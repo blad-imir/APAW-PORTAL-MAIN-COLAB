@@ -1,0 +1,112 @@
+// Colors
+.color-primary {
+	color: $accent !important;
+}
+.bg-primary {
+	background-color: $accent !important;
+}
+.color-primary-2 {
+	color: $accent-2 !important;
+}
+.bg-primary-2 {
+	background-color: $accent-2 !important;
+}
+
+.color-white {
+	color: $white !important;
+}
+.bg-white {
+	background-color: $white !important;
+}
+
+.color-black {
+	color: $black !important;
+}
+.bg-black {
+	background-color: $black !important;
+}
+
+.lightest-gray {
+	color: $lightest-gray !important;
+}
+.bg-lightest-gray {
+	background-color: $lightest-gray !important;
+}
+
+.light-gray {
+	color: $light-gray !important;
+}
+.bg-light-gray {
+	background-color: $light-gray !important;
+}
+
+.dark-gray {
+	color: $dark-gray !important;
+}
+.bg-dark-gray {
+	background-color: $dark-gray !important;
+}
+
+// Mix helper classes
+.b-unstyle {
+	border: 0;
+	background: transparent;
+}
+.uppercase {
+	text-transform: uppercase;
+}
+.bold-text {
+	font-weight: 500;
+	line-height: 120%;
+}
+
+.fw-400 {
+	font-weight: 400;
+}
+.fw-500 {
+	font-weight: 500;
+}
+.fw-600 {
+	font-weight: 600;
+}
+span {
+	&.br {
+		display: block;
+		margin-bottom: 12px;
+	}
+}
+.error-text {
+	leading-trim: both;
+	text-edge: cap;
+	font-size: clamp(90px, 20.833vw, 600px);
+	font-weight: 600;
+	line-height: 100%;
+}
+
+.social-icons {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(14px, 0.83vw, 24px);
+	li {
+		height: fit-content;
+		a {
+			width: clamp(18px, 1.25vw, 32px);
+			height: clamp(18px, 1.25vw, 32px);
+			svg {
+				path {
+					fill: $dark-gray;
+					transition: $transition;
+				}
+			}
+			&:hover {
+				svg {
+					path {
+						fill: $accent;
+						transition: $transition;
+					}
+				}
+			}
+		}
+	}
+}

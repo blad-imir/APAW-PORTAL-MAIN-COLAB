@@ -1,0 +1,531 @@
+{% extends "base.html" %}
+
+{% block title %} Dashboard {% endblock title %}
+
+<!-- Specific CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+  .water-waves {
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    width: 355px;
+    height: 355px;
+
+    border: 1px solid #1111;
+    text-align: center;
+    line-height: 50px;
+    animation: water-waves linear infinite;
+  }
+
+  /* .water-wave1 {
+    position: absolute;
+    top: 80%;
+    left: -25%;
+    background: #33cfff;
+    opacity: 0.7;
+    width: 200%;
+    height: 200%;
+    border-radius: 40%;
+    animation: inherit;
+    animation-duration: 5s;
+  }
+
+  .water-wave2 {
+    position: absolute;
+    top: 85%;
+    left: -35%;
+    background: #0eaffe;;
+    opacity: 0.5;
+    width: 200%;
+    height: 200%;
+    border-radius: 35%;
+    animation: inherit;
+    animation-duration: 7s;
+  } */
+
+  /* .water-wave3 {
+    position: absolute;
+    top: 90%;
+    left: -35%;
+    background: #0f7ae4;
+    opacity: 0.3;
+    width: 200%;
+    height: 200%;
+    border-radius: 33%;
+    animation: inherit;
+    animation-duration: 11s;
+  } */
+
+  /* .water-wave3 {
+    position: absolute;
+    width: 120%;
+    height: 104%;
+    left: -20%;
+    bottom: -40%;
+    background: #4973ff;
+    border-radius: 1%;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+  } */
+
+.wave {
+  background-color: #3f68c5;
+  position: absolute;
+  height: 300%;
+  width: 300%;
+  border-radius: 40%;
+  left: -100%;
+  top: 100%;
+  transform: rotate(360deg);
+  transition: all 5s ease;
+  animation: wave 60s linear infinite;
+}
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(3600deg); }
+}
+
+  /* @keyframes water-waves {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  } */
+  /* .overlay {
+    z-index: 20;
+
+  }
+  .mapdiv path{
+    transition: fill 0.1s;
+    fill: #1111;
+    stroke: #000000;
+    stroke-width: 4px;
+  } */
+}
+  
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- ### $App Screen Content ### -->
+    <main class='main-content bgc-grey-100'>
+      <div id='mainContent'>
+        <div class="row gap-20 masonry pos-r">
+          <div class="masonry-sizer col-md-6"></div>
+
+          <div class="masonry-item col-12">
+            <!-- #Site Visits ==================== -->
+            <div class="bd bgc-white">
+              <div class="peers fxw-nw@lg+ ai-s">
+                <div class="peer peer-greed w-70p@lg+ w-100@lg- p-20">
+                  <div class="layers">
+                    <div class="layer w-100">
+                      <!-- #Weather ==================== -->
+                      <div class="bd bgc-white p-20">
+                        <div class="layers">
+                          <!-- Widget Title -->
+                          <div class="layer w-100 mB-20">
+                            <h6 class="lh-1">Weather</h6>
+                          </div>
+
+                          <!-- Today Weather -->
+                          <div class="layer w-100">
+                            <div class="peers ai-c jc-sb fxw-nw">
+                              <div class="peer peer-greed">
+                                <div class="layers">
+                                  <!-- Temprature -->
+                                  <div class="layer w-100">
+                                    <div class="peers fxw-nw ai-c">
+                                      <div class="peer mR-20">
+                                        <h1><span id="temp">Loading...</span><sup>°C</sup></h1>
+                                      </div>
+                                      <div class="peer" id="rain_status">
+                                        
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Condition -->
+                                  <div class="layer w-100">
+                                    <i class="wi wi-thermometer"></i> Heat Index:
+                                    <span class="fw-600 c-grey-600" id="heat-index">Loading...</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="peer">
+                                <div class="layers ai-fe">
+                                  <div class="layer">
+                                    <h5 class="mB-5" id="day"></h5>
+                                  </div>
+                                  <div class="layer" style="text-align: right;">
+                                    <span class="mB-5 fw-600 c-grey-600" id="date"></span>
+
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Today Weather Extended -->
+                          <div class="layer w-100 mY-30">
+                            <div class="layers bdB">
+                              <div class="layer w-100 bdT pY-5">
+                                    <center><p class="mb-0">Real-time Weather Data from Camarines Sur Polytechnic Colleges' Local Weather Station</p></center>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Week Forecast -->
+                          <div class="layer w-100">
+                            <div class="peers peers-greed ai-fs ta-c row">
+                              <div class="peer col-md-2 mb-5 mb-sm-0">
+                                <h6 class="mB-10">WIND SPEED</h6>
+                                <h3 class="wi wi-strong-wind" style="color:#ED7014" width="50" height="30"></h3>
+                                <h3 id="wind" class="d-b fw-600">Loading...</h3>
+                              </div>
+                              <div class="peer col-md-2 mb-5 mb-sm-0">
+                                <h6 class="mB-10">WIND DIRECTION</h6>
+                                <h3 id="wind-dir-ic" class="wi wi-wind wi-towards-n" style="color:#ED7014"></h3>
+                                <h3 id="wind-dir" class="d-b fw-600">Loading...</h3>
+                              </div>
+                              <div class="peer col-md-2 mb-5 mb-sm-0">
+                                <h6 class="mB-10">HUMIDITY</h6>
+                                <h3 class="wi wi-humidity" style="color:#ED7014"></h3>
+                                <h3 id="humidity" class="d-b fw-600">Loading...</h3>
+                              </div>
+                              <div class="peer col-md-2 mb-5 mb-sm-0">
+                                <h6 class="mB-10">HOURLY RAIN</h6>
+                                <h3 class="wi wi-rain" style="color:#ED7014"></h3>
+                                <h3 id="hourly-rain" class="d-b fw-600">Loading...</h3>
+                              </div>
+                              <div class="peer col-md-2 mb-5 mb-sm-0">
+                                <h6 class="mB-10">DAILY RAIN</h6>
+                                <h3 class="wi wi-rain" style="color:#ED7014"></h3>
+                                <h3 id="daily-rain" class="d-b fw-600">Loading...</h3>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="masonry-item col-md-6">
+            <!-- #Monthly Stats ==================== -->
+            <div class="bd bgc-white">
+              <div class="layers">
+                <div class="layer w-100 pX-20 pT-20">
+                  <h6 class="lh-1">River Bank Simulation (13.10 meters)</h6>
+                </div>
+                <div class="layer w-100 p-20">
+                      <div class="water-waves">
+                        <!-- <div class="water-wave1"></div> -->
+                        <!-- <div class="water-wave2"></div> -->
+                        <!-- <div class="water-wave3"></div> -->
+                        <div class="wave" id="waterlevel"></div>
+                        <div class="water-waves overlay">
+                          <p style="color:white;background-color:#541E1B;width:50px;">11m -</p>
+                          <p style="color:white;background-color:#541E1B;width:50px;">10m -</p>
+                          <p style="color:white;background-color:#9B1003;width:50px;">9m -</p>
+                          <p style="color:white;background-color:#ED7014;width:50px;">8m -</p>
+                          <p style="color:white;background-color:#EFCC00;width:50px;">7m -</p>
+                          <p style="color:white;background-color:#32CD32;width:50px;">6m -</p>
+                          <p style="color:white;background-color:#32CD32;width:50px;">5m -</p>
+                          <p style="color:white;background-color:#32CD32;width:50px;">4m -</p>
+                        </div>
+                      </div>
+
+                </div>
+                <div class="layer bdT p-20 w-100">
+                  <div class="peers ai-c jc-c gapX-20">
+                    <div class="peer" style="color:white;background-color:#541E1B;width:100;">
+                      <span class="fsz-def fw-600 mR-10 c-white-800">FORCE EVACUATION<!--i class="fa fa-level-up c-red-500"></i--></span>
+                      <br><small class="c-white-500 fw-600">11 meters and above</small>
+                    </div>
+                    <div class="peer fw-600" style="color:white;background-color:#9B1003;width:100;">
+                      <span class="fsz-def fw-600 mR-10 c-white-800">EVACUATE<!--i class="fa fa-level-down c-red-500"></i--></span>
+                      <br><small class="c-white-500 fw-600">9 meters</small>
+                    </div>
+                    <div class="peer fw-600" style="color:white;background-color:#ED7014;width:100;">
+                      <span class="fsz-def fw-600 mR-10 c-white-800">PREPARE<!--i class="fa fa-level-down c-red-500"></i--></span>
+                      <br><small class="c-white-500 fw-600">8 meters</small>
+                    </div>
+
+                    <div class="peer fw-600" style="color:white;background-color:#EFCC00;width:100;">
+                      <span class="fsz-def fw-600 mR-10 c-white-800">ALERT<!--i class="fa fa-level-up c-green-500"></i--></span>
+                      <br><small class="c-white-500 fw-600">7 meters</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="masonry-item col-md-6 mb-3 mb-sm-0">
+
+            <!-- #Sales Report ==================== -->
+            <div class="bd bgc-white">
+              <div class="layers">
+                <div class="layer w-100 p-20">
+                  <h6 class="lh-1">Transmitted Data</h6>
+                </div>
+                <div class="layer w-100">
+                  <!--div class="bgc-light-blue-500 c-white p-20">
+                    <div class="peers ai-c jc-sb gap-40">
+                      <div class="peer peer-greed">
+                        <h5>November 2017</h5>
+                        <p class="mB-0">Sales Report</p>
+                      </div>
+                      <div class="peer">
+                        <h3 class="text-end">$6,000</h3>
+                      </div>
+                    </div>
+                  </div-->
+                  <div class="table-responsive p-20">
+                    <table class="table" id="transmission-table">
+                      <thead>
+                        <tr>
+                          <th class=" bdwT-0">Date & Time</th>
+                          <th class=" bdwT-0">Humidity</th>
+                          <th class=" bdwT-0">Temp</th>
+                          <th class=" bdwT-0">Heat Index</th>
+                          <th class=" bdwT-0">Wind Speed</th>
+                          <th class=" bdwT-0">Wind Direction</th>
+                          <th class=" bdwT-0">Hourly Rain</th>
+                        </tr>
+                      </thead>
+                      <tbody id="table-bod">
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                        <tr>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                          <td>Loading..</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    </div>
+                </div>
+              </div>
+              <!-- <div class="ta-c bdT w-100 p-20">
+                <a href="/transmission">Check all data</a>
+              </div> -->
+            </div>
+          </div>
+          <div class="masonry-item col-md-6">
+
+          </div>
+          <div class="masonry-item col-md-6">
+
+          </div>
+        </div>
+      </div>
+    </main>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+  $( document ).ready(function() {
+    oneMinuteFunction();
+  });
+  
+  $(function(){
+    setInterval(oneMinuteFunction, 1000);
+  });
+
+  function oneMinuteFunction() {
+    $.getJSON('/currentdata', function(data) {
+      if(data.data.sensor_data!=null){
+        sdata = data.data.sensor_data
+        if(sdata.windspeed!=""){
+          $('#wind').text(parseFloat((sdata.windspeed)).toFixed(2) + 'km/h');
+        }
+        if(sdata.winddirection!=""){
+          $('#wind-dir-ic').removeClass();
+          $('#wind-dir-ic').addClass('wi');
+          $('#wind-dir-ic').addClass('wi-wind');
+          $('#wind-dir-ic').addClass('wi-towards-'+sdata.winddirection.toLowerCase());
+          $('#wind-dir').text(sdata.winddirection);
+        }
+        if(sdata.humidity!=0){
+          $('#humidity').text(parseFloat((sdata.humidity)).toFixed(2) + '%');
+        }
+        if(sdata.temperature!=0){
+          $('#temp').text(sdata.temperature);
+        }
+        if(sdata.heatindex!=0){
+          $('#heat-index').text(sdata.heatindex + '°C');
+        }
+        $('#hourly-rain').text(sdata.hourlyrain + 'mm');
+        $('#daily-rain').text(sdata.dailyrain + 'mm');
+      
+        if(sdata.waterlevel!=""){
+          var waterlevel = "";
+          if(sdata.waterlevel>0){
+            waterlevel = "top: " + (100-sdata.waterlevel).toString() + "% !important";
+          }else{
+            waterlevel = "top: " + (100-0).toString() + "% !important";
+          }
+          $('.wave').attr("style", waterlevel);
+        }
+      }
+    });
+
+    $.getJSON('/temporary', function(data) {
+      if(data.data.sensor_data!=null){
+        $("#transmission-table > tbody").empty();
+        var root = document.getElementById('table-bod');
+        //data.data.sensor_data.forEach(element => root.insertAdjacentHTML('beforebegin', `<tr><td>${element.sensordataDateTime}</td><td>${element.temperature}°C</td><td>${element.heatindex}°C</td><td>${parseFloat((element.windspeed)).toFixed(2)}km/h</td><td>${element.winddirection}</td><td>${element.hourlyrain}mm</td></tr>`));
+        data.data.sensor_data.forEach(element => root.insertAdjacentHTML('beforebegin', `<tr><td>${element.sensordataDateTime}</td><td>${parseFloat((element.humidity)).toFixed(2)}%</td><td>${element.temperature}°C</td><td>${element.heatindex}°C</td><td>${parseFloat((element.windspeed)).toFixed(2)}km/h</td><td>${element.winddirection}</td><td>${element.hourlyrain}mm</td></tr>`));
+      }
+    });
+  }
+</script>
+
+<script >
+  window.onload = setInterval(clock,100);
+  function clock()
+  {
+      var d = new Date();
+      var hours = d.getHours();
+      var minutes = d.getMinutes();
+      var seconds = d.getSeconds();
+      if (hours < 10){
+        hours = "0" + hours;
+      }
+      if (minutes < 10){
+        minutes = "0" + minutes;
+      }
+      if (seconds < 10){
+        seconds = "0" + seconds;
+      }
+      var day = d.getDay();
+      var date = d.getDate();
+      var year = d.getFullYear();
+      var month = d.getMonth();
+      var monthArr = ["Jan", "Feb","March", "April", "May", "June", "July", "August", "Sept", "Oct", "Nov","Dec"];
+      var weekArr = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",];
+      month = monthArr[month];
+      day = weekArr[day];
+      document.getElementById("date").innerHTML=date+" "+month+", "+year+"<br>"+hours+":"+minutes+":"+seconds;
+      document.getElementById("day").innerHTML=day;
+
+      var dayShort = d.getDay();
+      var weekShortArr = ["SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT"];
+
+      // let text = "";
+      // let i = dayShort;
+      // let y = 0;
+      // while (i < 6){
+      //   i++;
+      //   y++;
+      //   text += weekShortArr[i] + " ";
+      //   document.getElementById("week"+y).innerHTML = weekShortArr[i];
+      // }
+
+      // let j = dayShort;
+      // let x = 0;
+      // while (j > -1){
+      //   j--;
+      //   y++;
+      //   text += weekShortArr[x] + " ";
+      //   document.getElementById("week"+y).innerHTML = weekShortArr[x];
+      //   x++;
+      // }
+
+  }
+</script>
+
+
+{% endblock javascripts %}

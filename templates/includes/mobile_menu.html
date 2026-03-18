@@ -1,0 +1,60 @@
+<!-- Mobile Menu Start -->
+<div class="sidebar-nav__wrapper">
+	<div class="sidebar-nav__overlay sidebar-nav__toggler"></div>
+	<div class="sidebar-nav__content">
+		<span class="sidebar-nav__close sidebar-nav__toggler">
+			<i class="fa-solid fa-xmark"></i>
+		</span>
+		<div class="logo-box">
+			<a href="{{ url_for('web.home') }}" aria-label="logo image">
+				<img
+					src="{{ url_for('static', filename='media/logo.png') }}"
+					alt="Project APAW"
+					width="150"
+				/>
+			</a>
+		</div>
+		<div class="sidebar-nav__container">
+			<!-- Mobile Menu Navigation -->
+			<ul class="main-menu__list">
+				<li>
+					<a href="{{ url_for('web.home') }}">
+						<i class="fa-solid fa-house"></i> Home
+					</a>
+				</li>
+				<li class="dropdown">
+					<a href="#">
+						<i class="fa-solid fa-tower-broadcast"></i> Stations
+						<i class="fa-solid fa-chevron-down"></i>
+					</a>
+					<ul>
+						{% set stations = config['SITES'] if config else [] %} {% for
+						station in stations %}
+						<li>
+							<a href="{{ url_for('web.site_detail', site_id=station.id) }}">
+								{{ station.name }}
+							</a>
+						</li>
+						{% endfor %}
+					</ul>
+				</li>
+				<li>
+					<a href="{{ url_for('web.precipitation') }}">
+						<i class="fa-solid fa-cloud-rain"></i> Precipitation
+					</a>
+				</li>
+				<li>
+					<a href="{{ url_for('web.about') }}">
+						<i class="fa-solid fa-circle-info"></i> About
+					</a>
+				</li>
+				<li>
+					<a href="{{ url_for('web.contact') }}">
+						<i class="fa-solid fa-envelope"></i> Contact
+					</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>
+<!-- Mobile Menu End -->

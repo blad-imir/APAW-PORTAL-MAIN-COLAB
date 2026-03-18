@@ -1,0 +1,83 @@
+<!-- Footer Section Start -->
+<footer class="footer py-40">
+	<!-- Partner Logos Row --->
+	<div
+		class="d-flex justify-content-center align-items-center flex-nowrap gap-2 gap-md-4 mb-24 px-3"
+	>
+		<a
+			href="https://fundacionfrs.es"
+			target="_blank"
+			rel="noopener"
+			class="flex-shrink-1"
+		>
+			<img
+				src="{{ url_for('static', filename='media/frs-logo.png') }}"
+				alt="Fundación de Religiosos para la Salud"
+				class="img-fluid footer-logo"
+			/>
+		</a>
+		<a
+			href="https://fundacionfrs.es"
+			target="_blank"
+			rel="noopener"
+			class="flex-shrink-1"
+		>
+			<img
+				src="{{ url_for('static', filename='media/cspc-logo.png') }}"
+				alt="Fundación de Religiosos para la Salud"
+				class="img-fluid footer-logo"
+			/>
+		</a>
+		<a href="{{ url_for('web.home') }}" class="flex-shrink-1">
+			<img
+				src="{{ url_for('static', filename='media/logo-lg.png') }}"
+				alt="AI Research Center for Community Development"
+				class="img-fluid footer-logo"
+			/>
+		</a>
+		<a
+			href="https://www.gvaoberta.gva.es/va/cooperacio"
+			target="_blank"
+			rel="noopener"
+			class="flex-shrink-1"
+		>
+			<img
+				src="{{ url_for('static', filename='media/lgu-balatan-logo.png') }}"
+				alt="Cooperació Valenciana"
+				class="img-fluid footer-logo"
+			/>
+		</a>
+		<a
+			href="https://www.gvaoberta.gva.es/va/cooperacio"
+			target="_blank"
+			rel="noopener"
+			class="flex-shrink-1"
+		>
+			<img
+				src="{{ url_for('static', filename='media/valencia-logo.png') }}"
+				alt="Cooperació Valenciana"
+				class="img-fluid footer-logo"
+			/>
+		</a>
+	</div>
+
+	<p class="mb-24">
+		Advanced Portal for Atmospheric and Water-level monitoring - LGU Balatan
+		DRRM
+	</p>
+
+	<p class="copyright">
+		© {{ current_year|default(2025) }} All Rights Reserved
+		<a href="{{ url_for('web.home') }}" class="color-primary">Project APAW</a>
+		| Design & Developed By
+		<a
+			href="https://ai.cspc.edu.ph"
+			class="color-primary"
+			target="_blank"
+			rel="noopener"
+		>
+			AI Research Center for Community Development
+		</a>
+	</p>
+</footer>
+<!-- Footer Section End -->

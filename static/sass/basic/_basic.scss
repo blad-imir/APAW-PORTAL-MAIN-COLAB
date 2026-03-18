@@ -1,0 +1,326 @@
+img {
+	max-width: 100%;
+	height: auto;
+	vertical-align: middle;
+}
+
+ul.list-style,
+ol.list-style {
+	padding: 0;
+}
+
+ul.list-style li::marker,
+ol.list-style li::marker {
+	color: $accent;
+}
+
+.unstyled {
+	padding-left: 0;
+	list-style: none;
+	margin-bottom: 0;
+}
+.list-unstyled {
+	padding-left: 0;
+	list-style: none;
+	margin-bottom: 0;
+}
+.col-sec {
+	.row {
+		@media (max-width: 575px) {
+			margin-right: calc(-0.25 * var(--bs-gutter-x));
+			margin-left: calc(-0.25 * var(--bs-gutter-x));
+		}
+	}
+	.row > * {
+		@media (max-width: 575px) {
+			padding-right: calc(var(--bs-gutter-x) * 0.25);
+			padding-left: calc(var(--bs-gutter-x) * 0.25);
+		}
+	}
+}
+.container-fluid {
+	@media (min-width: 1200px) {
+		padding: 0 12.7w;
+		width: 100%;
+	}
+	@media (max-width: 575px) {
+		--bs-gutter-x: 2rem;
+		--bs-gutter-y: 0;
+		width: 100%;
+		padding-right: calc(var(--bs-gutter-x) * 0.5);
+	}
+}
+.page-content {
+	margin-left: clamp(130px, 7.917vw, 200px);
+	padding: 0 clamp(16px, 2.35vw, 90px);
+
+	@media (max-width: 1199px) {
+		margin-left: 0;
+	}
+
+	@media (max-width: 492px) {
+		padding: 0 12px;
+	}
+}
+
+.x-hidden {
+	overflow-x: hidden !important;
+}
+.locked {
+	overflow-y: hidden;
+}
+.slick-track > [class*="col"] {
+	-webkit-flex-shrink: 0;
+	-ms-flex-negative: 0;
+	flex-shrink: 0;
+	width: 100%;
+	max-width: 100%;
+	padding-right: calc(var(--bs-gutter-x) / 2);
+	padding-left: calc(var(--bs-gutter-x) / 2);
+	@media (max-width: 575px) {
+		padding-right: calc(var(--bs-gutter-x) * 0.25);
+		padding-left: calc(var(--bs-gutter-x) * 0.25);
+	}
+}
+
+/*-------------------------
+    Typography
+-------------------------*/
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	font-family: $font-primary;
+	color: $dark-gray;
+	background-color: $accent-2;
+	vertical-align: baseline;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+	font-size: clamp(13px, 0.833vw, 22px);
+	font-weight: 400;
+	line-height: 150%;
+	height: 100%;
+	&::-webkit-scrollbar {
+		width: 8px;
+	}
+	&::-webkit-scrollbar-track {
+		background-color: $accent-2;
+		border-radius: 8px;
+	}
+	&::-webkit-scrollbar-thumb {
+		border-radius: 8px;
+		background: $accent;
+		box-shadow: inset 2px 2px 5px 0 rgba(#fff, 0.5);
+	}
+	@include media-query(991px) {
+		font-size: clamp(13.5px, 1.778vw, 16px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(13px, 2.286vw, 14px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(11.5px, 3.59vw, 14px);
+	}
+}
+
+a {
+	display: inline-block;
+	text-decoration: none;
+	color: unset;
+	transition: $transition;
+	&:hover {
+		color: $accent;
+		transition: $transition;
+	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+address,
+p,
+pre,
+blockquote,
+table,
+hr {
+	margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	a {
+		color: inherit;
+	}
+}
+
+h1,
+.h1 {
+	font-size: clamp(48px, 3.958vw, 138px); /* 76px */
+	font-weight: 400;
+	line-height: 120%;
+	font-style: normal;
+	@include media-query(991px) {
+		font-size: clamp(38px, 5.119vw, 48px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(35px, 6.094vw, 45px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(32px, 8.78vw, 40px);
+	}
+}
+
+h2,
+.h2 {
+	font-size: clamp(40px, 3.177vw, 122px); /* 61px */
+	font-weight: 600;
+	font-style: normal;
+	line-height: 125%;
+	letter-spacing: -1.22px;
+	@include media-query(991px) {
+		font-size: clamp(38px, 5.119vw, 48px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(35px, 6.094vw, 45px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(32px, 8.78vw, 40px);
+	}
+}
+
+h3,
+.h3 {
+	font-size: clamp(32px, 2.552vw, 98px); /* 49px */
+	font-weight: 600;
+	font-style: normal;
+	line-height: 120%;
+	letter-spacing: -0.49px;
+	@include media-query(991px) {
+		font-size: clamp(30px, 4.048vw, 40px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(28px, 4.844vw, 36px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(24px, 6.829vw, 32px);
+	}
+}
+
+h4,
+.h4 {
+	font-size: clamp(20.34px, 1.615vw, 62px); /* 31px */
+	font-weight: 600;
+	font-style: normal;
+	line-height: 120%;
+	letter-spacing: -0.024479166666666666vw;
+	@include media-query(991px) {
+		font-size: clamp(23px, 2.976vw, 28px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(21px, 3.594vw, 25px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(19px, 5.244vw, 23px);
+	}
+}
+
+h5,
+.h5 {
+	font-size: clamp(16.4px, 1.302vw, 50px); /* 25px */
+	font-style: normal;
+	font-weight: 500;
+	line-height: 120%;
+	@include media-query(991px) {
+		font-size: clamp(20px, 2.619vw, 23px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(19px, 3.047vw, 21px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(18px, 4.634vw, 20px);
+	}
+}
+
+h6,
+.h6 {
+	font-size: clamp(14.5px, 1.042vw, 40px); /* 20px */
+	font-style: normal;
+	font-weight: 500;
+	line-height: 120%;
+	@include media-query(991px) {
+		font-size: clamp(15px, 2.107vw, 21px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(15.5px, 2.656vw, 19px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(14.45px, 4.146vw, 18px);
+	}
+}
+
+.n-text {
+	font-size: clamp(13px, 0.833vw, 22px);
+	@include media-query(991px) {
+		font-size: clamp(13.5px, 1.778vw, 16px);
+	}
+	@include media-query(767px) {
+		font-size: clamp(13px, 2.286vw, 14px);
+	}
+	@include media-query(575px) {
+		font-size: clamp(11.5px, 3.59vw, 12px);
+	}
+}
+span {
+	display: inline-block;
+}
+
+b,
+strong {
+	font-family: $font-primary;
+}
+
+.text-primary {
+	color: $accent !important;
+}
+
+/*-------------------------
+    Bootstrap Tooltip Customization
+-------------------------*/
+.tooltip {
+	// Base tooltip styles
+	font-family: $font-primary;
+
+	.tooltip-inner {
+		text-align: left;
+		max-width: 220px;
+		padding: 8px 12px;
+		font-size: 12px;
+		line-height: 1.4;
+		border-radius: 6px;
+
+		// Mobile - smaller tooltip
+		@media (max-width: 575px) {
+			max-width: 180px;
+			padding: 6px 10px;
+			font-size: 11px;
+			line-height: 1.35;
+		}
+	}
+
+	// Arrow sizing
+	.tooltip-arrow {
+		@media (max-width: 575px) {
+			width: 0.6rem;
+			height: 0.3rem;
+		}
+	}
+}

@@ -1,0 +1,164 @@
+{% extends "base.html" %} {% block title %}About - Project APAW{% endblock %} {%
+block content %}
+<section class="page-header my-40">
+	<h1 class="page-header__title">ABOUT PROJECT APAW</h1>
+	<p class="page-header__subtitle">
+		Harnessing Micro-Weather Forecasting and Flood Detection with AI and Data
+		Analytics for LGU Balatan
+	</p>
+</section>
+
+<section class="my-40">
+	<div class="row">
+		<div class="col-12">
+			<div class="content-card logo-center">
+				<img
+					src="{{ url_for('static', filename='media/logo.png') }}"
+					alt="Project APAW Logo"
+					style="max-width: 50px; height: auto"
+					class="mb-3"
+				/>
+				<p class="text-dark-gray lh-base text-justify mb-3">
+					Project APAW is a solar-powered localized weather and flood monitoring
+					system developed by Camarines Sur Polytechnic Colleges (CSPC) through
+					the AI Research Center for Community Development. The project is
+					funded by Fundación de Religiosos Para la Salud (FRS) from January to
+					December 2025.
+				</p>
+				<p class="text-dark-gray lh-base text-justify mb-0">
+					The system integrates multi-parameter sensors (wind speed and
+					direction, temperature, humidity, rainfall, and water level) with a
+					long-range LoRa mesh communication network to continuously capture and
+					transmit critical environmental data. Five monitoring stations are
+					strategically deployed across the Municipality of Balatan: MDRRMO
+					Office, Luluasan, Laganac, Mang-it, and Binudegahan providing
+					real-time atmospheric and hydrological intelligence to support
+					disaster preparedness and emergency response.
+				</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="my-40">
+	<div class="row">
+		<div class="col-12 col-md-4 d-flex mb-3 mb-md-0">
+			<div class="content-card content-card--accent w-100">
+				<div class="d-flex align-items-center mb-3">
+					<div
+						class="icon-button me-3 d-flex align-items-center justify-content-center flex-shrink-0"
+					>
+						<i class="fa-solid fa-eye"></i>
+					</div>
+					<h3 class="h5 fw-semibold text-dark-gray mb-0">Vision</h3>
+				</div>
+				<p class="text-dark-gray lh-base text-justify mb-0">
+					To enhance community resilience through real-time environmental
+					observation, enabling early detection of conditions that may lead to
+					flooding and supporting timely forecasting for disaster preparedness.
+				</p>
+			</div>
+		</div>
+
+		<div class="col-12 col-md-4 d-flex mb-3 mb-md-0">
+			<div class="content-card content-card--accent w-100">
+				<div class="d-flex align-items-center mb-3">
+					<div
+						class="icon-button me-3 d-flex align-items-center justify-content-center flex-shrink-0"
+					>
+						<i class="fa-solid fa-bullseye"></i>
+					</div>
+					<h3 class="h5 fw-semibold text-dark-gray mb-0">Mission</h3>
+				</div>
+				<p class="text-dark-gray lh-base text-justify mb-0">
+					To continuously monitor environmental conditions across five strategic
+					locations in Balatan, gather historical data for predictive modeling,
+					and deliver real-time atmospheric and hydrological intelligence to
+					MDRRMO and residents—enabling early flood warnings, localized weather
+					forecasting, and informed emergency response decisions.
+				</p>
+			</div>
+		</div>
+
+		<div class="col-12 col-md-4 d-flex mb-3 mb-md-0">
+			<div class="content-card content-card--accent w-100">
+				<div class="d-flex align-items-center mb-3">
+					<div
+						class="icon-button me-3 d-flex align-items-center justify-content-center flex-shrink-0"
+					>
+						<i class="fa-solid fa-list-check"></i>
+					</div>
+					<h3 class="h5 fw-semibold text-dark-gray mb-0">Key Objectives</h3>
+				</div>
+				<p class="text-dark-gray lh-base text-justify mb-0">
+					To equip the local government and residents with actionable
+					information to enhance community resilience and disaster
+					responsiveness.
+				</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section class="mb-40">
+	<div class="row">
+		<div class="col-12">
+			<div class="content-card">
+				<h2 class="h5 fw-semibold text-dark-gray text-center mb-4">
+					PROJECT PARTNERS
+				</h2>
+
+				<div class="partners-horizontal">
+					<div class="partner-col">
+						<h3 class="partner-col__title">FUNDING SUPPORT</h3>
+						<div class="partner-col__logos">
+							<img
+								src="{{ url_for('static', filename='media/frs-logo.png') }}"
+								alt="FRS"
+								class="partner-logo partner-logo--frs"
+							/>
+							<img
+								src="{{ url_for('static', filename='media/valencia-logo.png') }}"
+								alt="Cooperació Valenciana"
+								class="partner-logo partner-logo--valencia"
+							/>
+						</div>
+					</div>
+
+					<div class="partner-col partner-col--divider">
+						<h3 class="partner-col__title">IMPLEMENTING AGENCY</h3>
+						<div class="partner-col__logos">
+							<img
+								src="{{ url_for('static', filename='media/cspc-logo.png') }}"
+								alt="CSPC"
+								class="partner-logo partner-logo--cspc"
+							/>
+							<img
+								src="{{ url_for('static', filename='media/logo-lg.png') }}"
+								alt="AI Research Center"
+								class="partner-logo partner-logo--ai"
+							/>
+						</div>
+					</div>
+
+					<div class="partner-col partner-col--divider">
+						<h3 class="partner-col__title">CO-OPERATING AGENCY</h3>
+						<div class="partner-col__logos">
+							<img
+								src="{{ url_for('static', filename='media/lgu-balatan-logo.png') }}"
+								alt="LGU Balatan"
+								class="partner-logo partner-logo--lgu"
+							/>
+							<img
+								src="{{ url_for('static', filename='media/MDRRMO.png') }}"
+								alt="MDRRMO"
+								class="partner-logo partner-logo--mdrrmo"
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+{% endblock %}

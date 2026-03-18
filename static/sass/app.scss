@@ -1,0 +1,156 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+// =============================================================================
+// CSS VARIABLES - INJECTED FROM config.py VIA base.html
+// =============================================================================
+
+// SCSS variables that reference CSS custom properties (from config.py)
+$accent: var(--color-primary);
+$accent-2: var(--color-primary-light);
+$white: var(--color-white);
+$lightest-gray: var(--color-lightest-gray);
+$light-gray: var(--color-light-gray);
+$dark-gray: var(--color-dark-gray);
+$black: var(--color-black);
+$light-black: var(--color-light-black);
+
+$alert-normal: var(--alert-normal);
+$alert-advisory: var(--alert-advisory);
+$alert-alert: var(--alert-alert);
+$alert-warning: var(--alert-warning);
+$alert-critical: var(--alert-critical);
+
+$flood-normal: var(--flood-normal);
+$flood-advisory: var(--flood-advisory);
+$flood-alert: var(--flood-alert);
+$flood-warning: var(--flood-warning);
+$flood-critical: var(--flood-critical);
+
+$success: var(--color-success);
+$info: var(--color-info);
+$warning: var(--color-warning);
+$danger: var(--color-error);
+
+$station-st1: var(--station-st1);
+$station-st2: var(--station-st2);
+$station-st3: var(--station-st3);
+$station-st4: var(--station-st4);
+$station-st5: var(--station-st5);
+
+$font-primary: "Poppins", sans-serif;
+$font-awesome: "Font Awesome 6 Pro";
+
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+$mobile-padding-y: 8px;
+$mobile-padding-x: 12px;
+$mobile-font-size: 10px;
+$mobile-icon-size: 12px;
+$mobile-border-radius: 20px;
+$desktop-padding-y: 12px;
+$desktop-padding-x: 20px;
+$desktop-font-size: 13px;
+$desktop-icon-size: 16px;
+$desktop-border-radius: 25px;
+
+$transition: all 0.5s ease-in;
+
+.color-primary {
+	color: $accent !important;
+}
+.bg-primary {
+	background-color: $accent !important;
+}
+.color-primary-2 {
+	color: $accent-2 !important;
+}
+.bg-primary-2 {
+	background-color: $accent-2 !important;
+}
+.color-white {
+	color: $white !important;
+}
+.bg-white {
+	background-color: $white !important;
+}
+.color-black {
+	color: $black !important;
+}
+.bg-black {
+	background-color: $black !important;
+}
+.color-success {
+	color: $success !important;
+}
+.bg-success {
+	background-color: $success !important;
+}
+
+.alert-normal {
+	color: $alert-normal !important;
+	background-color: rgba($alert-normal, 0.1) !important;
+}
+.alert-advisory {
+	color: $alert-advisory !important;
+	background-color: rgba($alert-advisory, 0.1) !important;
+}
+.alert-alert {
+	color: $alert-alert !important;
+	background-color: rgba($alert-alert, 0.1) !important;
+}
+.alert-warning {
+	color: $alert-warning !important;
+	background-color: rgba($alert-warning, 0.1) !important;
+}
+.alert-critical {
+	color: $alert-critical !important;
+	background-color: rgba($alert-critical, 0.1) !important;
+}
+
+.flood-normal {
+	color: $flood-normal !important;
+	background-color: rgba($flood-normal, 0.1) !important;
+}
+.flood-advisory {
+	color: $flood-advisory !important;
+	background-color: rgba($flood-advisory, 0.1) !important;
+}
+.flood-alert {
+	color: $flood-alert !important;
+	background-color: rgba($flood-alert, 0.1) !important;
+}
+.flood-warning {
+	color: $flood-warning !important;
+	background-color: rgba($flood-warning, 0.1) !important;
+}
+.flood-critical {
+	color: $flood-critical !important;
+	background-color: rgba($flood-critical, 0.1) !important;
+}
+
+@import "helpers/mixin";
+@import "helpers/classes";
+@import "helpers/spacing";
+
+@import "basic/basic";
+
+@import "elements/buttons";
+@import "elements/form";
+@import "elements/heading";
+@import "elements/preloader";
+@import "elements/search_popup";
+
+@import "layout/header";
+@import "layout/sidebar";
+@import "layout/footer";
+@import "layout/alerts";
+@import "layout/weather-card";
+@import "layout/map";
+@import "layout/chart";
+@import "layout/forecast";
+@import "layout/test-mode";
+@import "layout/contact";
+@import "layout/about";

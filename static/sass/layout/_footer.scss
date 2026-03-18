@@ -1,0 +1,26 @@
+.newsletter-block {
+	background-color: $white;
+	border-radius: 16px;
+	.text-block {
+		text-align: center;
+	}
+	.img-block {
+		text-align: end;
+		@include media-query(992px) {
+			text-align: center;
+		}
+	}
+}
+
+.footer {
+	text-align: center;
+}
+
+// Footer partner logos - responsive height
+.footer-logo {
+	max-height: 70px;
+
+	@media (max-width: 576px) {
+		max-height: 35px;
+	}
+}

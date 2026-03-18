@@ -1,0 +1,167 @@
+.today-highlight-card {
+	// Fixed height for consistency across all cards
+	min-height: 110px; // Mobile
+
+	@include media-query-min(576px) {
+		min-height: 120px; // Tablet
+	}
+
+	@include media-query-min(992px) {
+		min-height: 130px; // Desktop
+	}
+
+	// Compact variant for site detail Weather Details section
+	&--compact {
+		min-height: 80px;
+
+		@include media-query-min(576px) {
+			min-height: 90px;
+		}
+
+		@include media-query-min(992px) {
+			min-height: 95px;
+		}
+
+		.metric-icon {
+			width: 36px;
+			height: 36px;
+
+			@include media-query-min(576px) {
+				width: 42px;
+				height: 42px;
+			}
+		}
+
+		.metric-value {
+			font-size: 1.25rem !important;
+
+			@include media-query-min(576px) {
+				font-size: 1.5rem !important;
+			}
+
+			@include media-query-min(992px) {
+				font-size: 1.625rem !important;
+			}
+		}
+	}
+}
+
+// Weather detail icons - responsive sizing
+.weather-detail-icon {
+	width: 32px;
+	height: 32px;
+	object-fit: contain;
+
+	@include media-query-min(576px) {
+		width: 40px;
+		height: 40px;
+	}
+
+	@include media-query-min(992px) {
+		width: 48px;
+		height: 48px;
+	}
+}
+
+// -----------------------------------------------------------------------------
+// OTHER STATIONS CARDS
+// -----------------------------------------------------------------------------
+
+.cities-forecast-card {
+	// Ensure proper display flex for alignment
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+
+	// Fixed height for consistency
+	min-height: 90px;
+
+	@include media-query-min(576px) {
+		min-height: 100px;
+	}
+}
+
+// -----------------------------------------------------------------------------
+// RESPONSIVE FONT ADJUSTMENTS (Only where needed)
+// -----------------------------------------------------------------------------
+
+// Small devices - make text slightly smaller to fit
+@include media-query(575px) {
+	.today-highlight-card {
+		h6 {
+			font-size: 0.75rem !important; // 12px
+		}
+
+		h4 {
+			font-size: 1.25rem !important; // 20px
+		}
+	}
+
+	.cities-forecast-card {
+		h6 {
+			font-size: 0.813rem !important; // 13px
+		}
+
+		h4 {
+			font-size: 1.125rem !important; // 18px
+		}
+	}
+}
+
+// Medium devices - balanced sizing
+@include media-query-min(576px) {
+	.today-highlight-card {
+		h6 {
+			font-size: 0.875rem !important; // 14px
+		}
+
+		h4 {
+			font-size: 1.5rem !important; // 24px
+		}
+	}
+
+	.cities-forecast-card {
+		h6 {
+			font-size: 0.938rem !important; // 15px
+		}
+
+		h4 {
+			font-size: 1.25rem !important; // 20px
+		}
+	}
+}
+
+// Large devices - comfortable sizing
+@include media-query-min(992px) {
+	.today-highlight-card {
+		h6 {
+			font-size: 1rem !important; // 16px
+		}
+
+		h4 {
+			font-size: 1.75rem !important; // 28px
+		}
+	}
+
+	.cities-forecast-card {
+		h6 {
+			font-size: 1rem !important; // 16px
+		}
+
+		h4 {
+			font-size: 1.5rem !important; // 24px
+		}
+	}
+}
+
+// =============================================================================
+// PRINT STYLES
+// =============================================================================
+
+@media print {
+	.today-highlight-card,
+	.cities-forecast-card {
+		break-inside: avoid;
+		page-break-inside: avoid;
+	}
+}

@@ -1,0 +1,1275 @@
+{% extends 'base.html' %} {% from '_macros.html' import metric_card,
+alert_banner, weather_metric, water_level_metric, legend_item, chart_section,
+water_chart_card %} {% block extra_css %}
+<link
+	rel="stylesheet"
+	href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+	integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+	crossorigin=""
+/>
+{% endblock %} {% block content %} {# ==================== METRIC CARDS
+==================== #}
+<section class="py-40">
+	<div class="row g-3 g-md-4">
+		{{ metric_card( title="Highest Water Level Alert",
+		value=metrics.alert_level_info.level, icon=metrics.alert_level_info.icon,
+		icon_color=metrics.alert_level_info.color, card_class="alert-card
+		alert-card--" ~ metrics.highest_alert_level, tooltip="Displays the most
+		severe water level alert status detected across all 4 monitoring stations
+		with water sensors." ) }} {% set rainfall_display =
+		metrics.rainfall_forecast.level ~ " (" ~ metrics.rainfall_forecast.count ~
+		")" if metrics.rainfall_forecast.count > 0 else "No Rain" %} {{ metric_card(
+		title="Highest Rainfall", value=rainfall_display,
+		icon=metrics.rainfall_forecast.icon,
+		icon_color=metrics.rainfall_forecast.color, tooltip="Shows the highest
+		rainfall intensity detected across all 5 weather stations. The number in
+		parentheses indicates how many stations are experiencing this level." ) }}
+		{% set attention_icon %} {% if metrics.attention_stations|length > 0 %}
+		<i class="fas fa-exclamation-triangle text-danger"></i>
+		{% else %}
+		<i class="fas fa-check-circle text-primary"></i>
+		{% endif %} {% endset %} {{ metric_card( title="Stations Requiring
+		Attention", value=metrics.attention_stations|length ~ "/" ~
+		metrics.water_level_stations, icon="", condition_icon=attention_icon,
+		tooltip="Number of water level monitoring stations currently at Alert,
+		Warning, or Critical levels. MDRRMO Station (St4) is excluded as it serves
+		as the central hub without a water level sensor." ) }} {% set online_icon %}
+		{% if metrics.online_sensors == metrics.total_sensors %}
+		<i class="fas fa-check-circle text-primary"></i>
+		{% else %}
+		<i class="fas fa-exclamation-circle text-warning"></i>
+		{% endif %} {% endset %} {{ metric_card( title="Weather Stations Online",
+		value=metrics.online_sensors ~ "/" ~ metrics.total_sensors, icon="",
+		condition_icon=online_icon, tooltip="Number of weather stations currently
+		transmitting data. A station is considered offline if no data has been
+		received within the last 60 minutes." ) }}
+	</div>
+</section>
+
+{# ==================== ALERT BANNERS ==================== #} {% if
+metrics.highest_alert_count > 0 %}
+<section class="pb-2">
+	<div class="container-fluid px-2 px-md-3">
+		<div class="row g-2 alert-banners-row">
+			{{ alert_banner('critical', metrics.critical_count,
+			'fa-exclamation-triangle') }} {{ alert_banner('warning',
+			metrics.warning_count, 'fa-exclamation-circle') }} {{
+			alert_banner('alert', metrics.alert_count, 'fa-bolt') }} {{
+			alert_banner('advisory', metrics.advisory_count, 'fa-info-circle') }}
+		</div>
+	</div>
+</section>
+{% endif %} {# ==================== WEATHER CARD & MAP ==================== #}
+<section>
+	<div class="row g-3 g-lg-4">
+		{# Weather Card #}
+		<div class="col-12 col-lg-6">
+			<div class="weather-card">
+				<div class="weather-card__header">
+					<div class="weather-card__title-block">
+						<h4 class="weather-card__title color-white fw-600">
+							Current Weather
+						</h4>
+						<div class="weather-card__station">
+							<i class="fas fa-map-marker-alt me-1"></i>
+							{{ weather_card_station_name }}
+						</div>
+					</div>
+					<div class="weather-card__data-time">
+						<span class="weather-card__latest-reading">
+							{% if latest and (latest.get('DateTime') or
+							latest.get('DateTimeStamp')) %} {% set data_time =
+							latest.get('DateTime') or latest.get('DateTimeStamp') %} Last
+							Update: {{ data_time | format_time }} {% else %} No sensor data {%
+							endif %}
+						</span>
+					</div>
+				</div>
+
+				<div class="weather-card__main">
+					<div class="weather-card__icon">
+						<img
+							src="{{ url_for('static', filename='media/forecast-icons/sunny.png') }}"
+							alt="Weather condition"
+							class="img-fluid"
+						/>
+					</div>
+					<div class="weather-card__precipitation text-center">
+						<div
+							class="weather-card__main-value color-white"
+							id="current-weather-rainfall"
+						>
+							{% if latest and latest.get('HourlyRain') is not none %} {{
+							"%.2f"|format(latest.get('HourlyRain')|float) }}<small
+								>mm/hr</small
+							>
+							{% else %} --<small>mm/hr</small>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+
+				<div class="row g-2">
+					{# Water Level with threshold-based alert coloring #} {{
+					water_level_metric( latest.get('WaterLevel') if latest else none,
+					thresholds.water_level ) }} {{ weather_metric('Wind Speed',
+					latest.get('WindSpeed') if latest else none, 'm/s',
+					'media/icons/wind_speed.svg') }} {# Wind Direction needs special
+					formatting #}
+					<div class="col-6 col-xxl-3">
+						<div
+							class="weather-card__metric d-flex align-items-center gap-2 bg-white rounded-3 p-2 p-sm-3"
+						>
+							<img
+								class="weather-card__metric-icon flex-shrink-0"
+								src="{{ url_for('static', filename='media/icons/wind_direction.png') }}"
+								alt="Wind Direction"
+							/>
+							<div class="flex-grow-1 overflow-hidden">
+								<div
+									class="weather-card__metric-label text-uppercase text-secondary fw-medium mb-1 text-truncate"
+								>
+									Wind Direction
+								</div>
+								<div class="weather-card__metric-value fw-bold text-dark">
+									{% if latest and latest.get('WindDegree') is not none %} {{
+									"%.0f"|format(latest.get('WindDegree')|float) }}&deg;
+									<span class="weather-card__unit text-secondary"
+										>{{ latest.get('WindDirection', '') }}</span
+									>
+									{% else %} --<span class="weather-card__unit text-secondary"
+										>&deg;</span
+									>
+									{% endif %}
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{{ weather_metric('Temperature', latest.get('Temperature') if latest
+					else none, '&deg;C', 'media/icons/temperature.svg') }}
+				</div>
+			</div>
+		</div>
+
+		{# Map Column #}
+		<div class="col-12 col-lg-6">
+			<div class="map-container">
+				<div id="station-map" class="interactive-map"></div>
+
+				<div class="map-legend-bar">
+					{{ legend_item('normal', 'Normal', 'Water Level: < ' ~
+					thresholds.water_level.advisory|int ~ ' cm') }} {{
+					legend_item('advisory', 'Advisory', 'Water Level: ' ~
+					thresholds.water_level.advisory|int ~ '-' ~
+					(thresholds.water_level.alert|int - 1) ~ ' cm') }} {{
+					legend_item('alert', 'Alert', 'Water Level: ' ~
+					thresholds.water_level.alert|int ~ '-' ~
+					(thresholds.water_level.warning|int - 1) ~ ' cm') }} {{
+					legend_item('warning', 'Warning', 'Water Level: ' ~
+					thresholds.water_level.warning|int ~ '-' ~
+					(thresholds.water_level.critical|int - 1) ~ ' cm') }} {{
+					legend_item('critical', 'Critical', 'Water Level: ' ~
+					thresholds.water_level.critical|int ~ ' cm') }}
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+{# ==================== PRECIPITATION CHART ==================== #}
+<section class="pt-40">
+	{{ chart_section( chart_id='precipitationChart', title='Hourly Precipitation
+	Monitoring', icon_class='fa-cloud-rain', title_class='precipitation-title',
+	picker_id='datePicker', export_btn_id='btn-export-csv',
+	prev_btn_id='btn-prev-day', next_btn_id='btn-next-day',
+	loading_id='chart-loading', error_id='chart-error', data_type='precipitation'
+	) }}
+</section>
+
+<section class="pt-40">
+	{# Consolidated Header with Controls (Desktop only) #}
+	<div
+		class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2"
+	>
+		<h5 class="chart-title water-level-title mb-0">
+			<i class="fas fa-water chart-title__icon" aria-hidden="true"></i>
+			Hourly Water Level Monitoring
+		</h5>
+
+		{# Consolidated controls - all screen sizes #}
+		<div class="chart-controls d-flex align-items-center gap-2 flex-wrap">
+			<div class="date-picker-inline">
+				<i class="fas fa-calendar-alt" aria-hidden="true"></i>
+				<label for="waterPickerAll" class="sr-only">Select date</label>
+				<span class="date-picker-label" aria-hidden="true">Select Date:</span>
+				<input
+					type="date"
+					id="waterPickerAll"
+					class="date-picker-inline__input"
+					aria-label="Select specific date for all water level charts"
+				/>
+			</div>
+
+			<button
+				type="button"
+				id="exportWaterAll"
+				class="export-btn-inline"
+				aria-label="Export all water level data to CSV file"
+			>
+				<i class="fas fa-download" aria-hidden="true"></i>
+				<span class="export-btn-text">Export CSV</span>
+			</button>
+		</div>
+	</div>
+
+	<div class="row g-3 g-lg-4">
+		<div class="col-12 col-lg-6">
+			{{ water_chart_card( chart_id='waterChart-St1', title='St1 - Binudegahan
+			Station', icon_class='fa-map-pin text-danger',
+			loading_id='waterLoading-St1', error_id='waterError-St1',
+			picker_id='waterPicker-St1', prev_btn_id='waterPrev-St1',
+			next_btn_id='waterNext-St1' ) }}
+		</div>
+		<div class="col-12 col-lg-6">
+			{{ water_chart_card( chart_id='waterChart-St2', title='St2 - Mang-it
+			Station', icon_class='fa-map-pin text-danger',
+			loading_id='waterLoading-St2', error_id='waterError-St2',
+			picker_id='waterPicker-St2', prev_btn_id='waterPrev-St2',
+			next_btn_id='waterNext-St2' ) }}
+		</div>
+		<div class="col-12 col-lg-6">
+			{{ water_chart_card( chart_id='waterChart-St3', title='St3 - Laganac
+			Station', icon_class='fa-map-pin text-danger',
+			loading_id='waterLoading-St3', error_id='waterError-St3',
+			picker_id='waterPicker-St3', prev_btn_id='waterPrev-St3',
+			next_btn_id='waterNext-St3' ) }}
+		</div>
+		<div class="col-12 col-lg-6">
+			{{ water_chart_card( chart_id='waterChart-St5', title='St5 - Luluasan
+			Station', icon_class='fa-map-pin text-danger',
+			loading_id='waterLoading-St5', error_id='waterError-St5',
+			picker_id='waterPicker-St5', prev_btn_id='waterPrev-St5',
+			next_btn_id='waterNext-St5' ) }}
+		</div>
+	</div>
+</section>
+
+{# ==================== WEATHER TRENDS - Tabbed Interface ====================
+#}
+<section class="pt-40">
+	<div
+		class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2"
+	>
+		<h5 class="chart-title trends-title mb-0">
+			<i class="fas fa-chart-line chart-title__icon" aria-hidden="true"></i>
+			Daily Trends
+		</h5>
+
+		<div class="chart-controls d-flex align-items-center gap-2 flex-wrap">
+			{# Period/Year selector #}
+			<div class="date-picker-inline">
+				<i class="fas fa-calendar-alt" aria-hidden="true"></i>
+				<label for="trendsPeriodSelect" class="sr-only">Select period</label>
+				<select
+					id="trendsPeriodSelect"
+					class="date-picker-inline__input"
+					aria-label="Select period for trends"
+					style="min-width: 140px"
+				>
+					<option value="2026" selected>2026</option>
+				</select>
+			</div>
+
+			{# Month filter #}
+			<div class="date-picker-inline">
+				<i class="fas fa-calendar-day" aria-hidden="true"></i>
+				<label for="trendsMonthSelect" class="sr-only">Select month</label>
+				<select
+					id="trendsMonthSelect"
+					class="date-picker-inline__input"
+					aria-label="Filter by month"
+					style="min-width: 120px"
+				>
+					<option value="">All months</option>
+				</select>
+			</div>
+		</div>
+	</div>
+
+	<div class="chart-wrapper position-relative">
+		{# Tab buttons INSIDE chart container as header #}
+		<div class="trends-chart-header">
+			<div class="trends-tabs" role="tablist">
+				<button
+					type="button"
+					class="trends-tab trends-tab--active"
+					id="tabRainfall"
+					role="tab"
+					aria-selected="true"
+					aria-controls="rainfallTrendsChart"
+					data-tab="rainfall"
+				>
+					<i class="fas fa-cloud-rain" aria-hidden="true"></i>
+					<span>Rainfall</span>
+				</button>
+				<button
+					type="button"
+					class="trends-tab"
+					id="tabWaterLevel"
+					role="tab"
+					aria-selected="false"
+					aria-controls="waterLevelTrendsChart"
+					data-tab="waterlevel"
+				>
+					<i class="fas fa-water" aria-hidden="true"></i>
+					<span>Water Level</span>
+				</button>
+			</div>
+		</div>
+
+		<div
+			class="chart-loading hidden"
+			id="trendsLoading"
+			role="status"
+			aria-live="polite"
+		>
+			<div class="chart-loading__spinner" aria-hidden="true"></div>
+			<p class="chart-loading__text">Loading trends data...</p>
+		</div>
+
+		{# Mobile navigation arrows - hidden on desktop #}
+		<button
+			type="button"
+			class="chart-nav-arrow chart-nav-arrow--left d-md-none"
+			id="trendsPrevBtn"
+			aria-label="Previous 6 months"
+			style="display: none"
+		>
+			<i class="fas fa-chevron-left" aria-hidden="true"></i>
+		</button>
+
+		{# Rainfall Trends Chart #}
+		<div
+			id="rainfallTrendsChart"
+			class="chart-canvas trends-chart-panel"
+			role="tabpanel"
+			aria-labelledby="tabRainfall"
+		></div>
+
+		{# Water Level Trends Chart - hidden by default #}
+		<div
+			id="waterLevelTrendsChart"
+			class="chart-canvas trends-chart-panel hidden"
+			role="tabpanel"
+			aria-labelledby="tabWaterLevel"
+		></div>
+
+		<button
+			type="button"
+			class="chart-nav-arrow chart-nav-arrow--right d-md-none"
+			id="trendsNextBtn"
+			aria-label="Next 6 months"
+			style="display: none"
+		>
+			<i class="fas fa-chevron-right" aria-hidden="true"></i>
+		</button>
+
+		<div class="chart-error" id="trendsError" role="alert">
+			<i
+				class="fas fa-exclamation-triangle chart-error__icon"
+				aria-hidden="true"
+			></i>
+			<h3 class="chart-error__title">Unable to Load Data</h3>
+			<p class="chart-error__message">Error loading trends data.</p>
+			<button type="button" class="chart-error__btn" data-action="retry-trends">
+				<i class="fas fa-redo" aria-hidden="true"></i>
+				Retry
+			</button>
+		</div>
+	</div>
+</section>
+
+{% endblock %} {% block extra_js %} {# External Libraries #}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/vendor/canvasjs.min.js') }}"></script>
+
+{# Bootstrap weather data for initial render #}
+<script>
+	window.weatherData = {{ weather | tojson | safe }};
+	window.INITIAL_WEATHER_DATA = window.weatherData;
+	window.WATER_LEVEL_THRESHOLDS = {{ water_level_thresholds | tojson | safe }};
+</script>
+
+{# Application Scripts #}
+<script src="{{ url_for('static', filename='js/weather-card-realtime.js') }}"></script>
+<script src="{{ url_for('static', filename='js/alert-manager.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/csv-exporter.js') }}"></script>
+<script src="{{ url_for('static', filename='js/precipitation-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/water-level-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/trends-chart.js') }}"></script>
+
+{# Home Page Initialization #}
+<script src="{{ url_for('static', filename='js/home-init.js') }}"></script>
+
+{% if test_mode %} {# ==================== TEST MODE CONTROLS
+==================== #}
+
+<div class="test-mode-banner">
+	<i class="fas fa-flask me-2"></i>TEST MODE - Simulating Weather Data (Mock
+	Data)
+</div>
+
+{# Calculate slider gradient percentages from thresholds #} {% set slider_max =
+(test_thresholds.water_level.critical * 1.3)|int %} {% set rain_max = 50 %}
+<style>
+	.test-panel {
+		--water-advisory-pct: {{ (test_thresholds.water_level.advisory / slider_max * 100)|round(1) }}%;
+		--water-alert-pct: {{ (test_thresholds.water_level.alert / slider_max * 100)|round(1) }}%;
+		--water-warning-pct: {{ (test_thresholds.water_level.warning / slider_max * 100)|round(1) }}%;
+		--water-critical-pct: {{ (test_thresholds.water_level.critical / slider_max * 100)|round(1) }}%;
+		--rain-light-pct: {{ (test_thresholds.rainfall.light / rain_max * 100)|round(1) }}%;
+		--rain-moderate-pct: {{ (test_thresholds.rainfall.moderate / rain_max * 100)|round(1) }}%;
+		--rain-heavy-pct: {{ (test_thresholds.rainfall.heavy / rain_max * 100)|round(1) }}%;
+	}
+</style>
+
+<div class="test-panel" id="testPanel">
+	<button
+		class="test-panel__toggle"
+		onclick="document.getElementById('testPanel').classList.toggle('expanded')"
+	>
+		<span><i class="fas fa-sliders-h me-2"></i>Test Controls</span>
+		<i class="fas fa-chevron-up" id="toggleIcon"></i>
+	</button>
+
+	<div class="test-panel__content">
+		<!-- Presets -->
+		<div class="d-flex flex-wrap gap-2 mb-3">
+			<button
+				class="preset-btn preset-btn--reset"
+				onclick="TestMode.resetAll()"
+				title="Reset all values to zero"
+			>
+				<i class="fas fa-undo me-1"></i>Reset
+			</button>
+			<button
+				class="preset-btn preset-btn--normal"
+				onclick="TestMode.applyPreset('normal')"
+			>
+				Normal
+			</button>
+			<button
+				class="preset-btn preset-btn--advisory"
+				onclick="TestMode.applyPreset('advisory')"
+			>
+				Advisory
+			</button>
+			<button
+				class="preset-btn preset-btn--alert"
+				onclick="TestMode.applyPreset('alert')"
+			>
+				Alert
+			</button>
+			<button
+				class="preset-btn preset-btn--warning"
+				onclick="TestMode.applyPreset('warning')"
+			>
+				Warning
+			</button>
+			<button
+				class="preset-btn preset-btn--critical"
+				onclick="TestMode.applyPreset('critical')"
+			>
+				Critical
+			</button>
+			<button
+				class="preset-btn preset-btn--mixed"
+				onclick="TestMode.applyPreset('mixed')"
+			>
+				Mixed
+			</button>
+		</div>
+
+		<!-- Per-Station Controls -->
+		<div class="station-controls">
+			<!-- Header Row -->
+			<div class="station-row station-row--header d-none d-md-grid">
+				<div class="station-col station-col--name">Station</div>
+				<div class="station-col station-col--toggle">Status</div>
+				<div class="station-col station-col--water">Water Level (cm)</div>
+				<div class="station-col station-col--rain">Rainfall (mm/hr)</div>
+			</div>
+
+			<!-- St1 - Binudegahan -->
+			<div class="station-row" id="row-St1">
+				<div class="station-col station-col--name">
+					<span class="station-name">St1 - Binudegahan</span>
+				</div>
+				<div class="station-col station-col--toggle" data-label="Status">
+					<label class="toggle-switch">
+						<input
+							type="checkbox"
+							id="toggle-St1"
+							checked
+							onchange="TestMode.toggleStation('St1')"
+						/>
+						<span class="toggle-slider"></span>
+					</label>
+					<span class="toggle-label toggle-label--online" id="status-St1"
+						>Online</span
+					>
+				</div>
+				<div
+					class="station-col station-col--water"
+					data-label="Water Level (cm)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-water"
+						id="slider-water-St1"
+						min="0"
+						max="{{ (test_thresholds.water_level.critical * 1.3)|int }}"
+						value="{{ (test_thresholds.water_level.advisory * 0.5)|int }}"
+						oninput="TestMode.updateWaterLevel('St1')"
+					/>
+					<span class="slider-value" id="value-water-St1"
+						>{{ (test_thresholds.water_level.advisory * 0.5)|int }}</span
+					>
+				</div>
+				<div
+					class="station-col station-col--rain"
+					data-label="Rainfall (mm/hr)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-rain"
+						id="slider-rain-St1"
+						min="0"
+						max="50"
+						step="0.5"
+						value="2"
+						oninput="TestMode.updateRainfall('St1')"
+					/>
+					<span class="slider-value" id="value-rain-St1">2.0</span>
+				</div>
+			</div>
+
+			<!-- St2 - Mang-it -->
+			<div class="station-row" id="row-St2">
+				<div class="station-col station-col--name">
+					<span class="station-name">St2 - Mang-it</span>
+				</div>
+				<div class="station-col station-col--toggle" data-label="Status">
+					<label class="toggle-switch">
+						<input
+							type="checkbox"
+							id="toggle-St2"
+							checked
+							onchange="TestMode.toggleStation('St2')"
+						/>
+						<span class="toggle-slider"></span>
+					</label>
+					<span class="toggle-label toggle-label--online" id="status-St2"
+						>Online</span
+					>
+				</div>
+				<div
+					class="station-col station-col--water"
+					data-label="Water Level (cm)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-water"
+						id="slider-water-St2"
+						min="0"
+						max="{{ (test_thresholds.water_level.critical * 1.3)|int }}"
+						value="{{ (test_thresholds.water_level.advisory * 0.5)|int }}"
+						oninput="TestMode.updateWaterLevel('St2')"
+					/>
+					<span class="slider-value" id="value-water-St2"
+						>{{ (test_thresholds.water_level.advisory * 0.5)|int }}</span
+					>
+				</div>
+				<div
+					class="station-col station-col--rain"
+					data-label="Rainfall (mm/hr)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-rain"
+						id="slider-rain-St2"
+						min="0"
+						max="50"
+						step="0.5"
+						value="2"
+						oninput="TestMode.updateRainfall('St2')"
+					/>
+					<span class="slider-value" id="value-rain-St2">2.0</span>
+				</div>
+			</div>
+
+			<!-- St3 - Laganac -->
+			<div class="station-row" id="row-St3">
+				<div class="station-col station-col--name">
+					<span class="station-name">St3 - Laganac</span>
+				</div>
+				<div class="station-col station-col--toggle" data-label="Status">
+					<label class="toggle-switch">
+						<input
+							type="checkbox"
+							id="toggle-St3"
+							checked
+							onchange="TestMode.toggleStation('St3')"
+						/>
+						<span class="toggle-slider"></span>
+					</label>
+					<span class="toggle-label toggle-label--online" id="status-St3"
+						>Online</span
+					>
+				</div>
+				<div
+					class="station-col station-col--water"
+					data-label="Water Level (cm)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-water"
+						id="slider-water-St3"
+						min="0"
+						max="{{ (test_thresholds.water_level.critical * 1.3)|int }}"
+						value="{{ (test_thresholds.water_level.advisory * 0.5)|int }}"
+						oninput="TestMode.updateWaterLevel('St3')"
+					/>
+					<span class="slider-value" id="value-water-St3"
+						>{{ (test_thresholds.water_level.advisory * 0.5)|int }}</span
+					>
+				</div>
+				<div
+					class="station-col station-col--rain"
+					data-label="Rainfall (mm/hr)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-rain"
+						id="slider-rain-St3"
+						min="0"
+						max="50"
+						step="0.5"
+						value="2"
+						oninput="TestMode.updateRainfall('St3')"
+					/>
+					<span class="slider-value" id="value-rain-St3">2.0</span>
+				</div>
+			</div>
+
+			<!-- St4 - MDRRMO (No Water Sensor) -->
+			<div class="station-row station-row--hub" id="row-St4">
+				<div class="station-col station-col--name">
+					<span class="station-name"
+						>St4 - MDRRMO <small class="text-warning">(Hub)</small></span
+					>
+				</div>
+				<div class="station-col station-col--toggle" data-label="Status">
+					<label class="toggle-switch">
+						<input
+							type="checkbox"
+							id="toggle-St4"
+							checked
+							onchange="TestMode.toggleStation('St4')"
+						/>
+						<span class="toggle-slider"></span>
+					</label>
+					<span class="toggle-label toggle-label--online" id="status-St4"
+						>Online</span
+					>
+				</div>
+				<div
+					class="station-col station-col--water"
+					data-label="Water Level (cm)"
+				>
+					<span class="text-muted small">No water sensor</span>
+				</div>
+				<div
+					class="station-col station-col--rain"
+					data-label="Rainfall (mm/hr)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-rain"
+						id="slider-rain-St4"
+						min="0"
+						max="50"
+						step="0.5"
+						value="2"
+						oninput="TestMode.updateRainfall('St4')"
+					/>
+					<span class="slider-value" id="value-rain-St4">2.0</span>
+				</div>
+			</div>
+
+			<!-- St5 - Luluasan -->
+			<div class="station-row" id="row-St5">
+				<div class="station-col station-col--name">
+					<span class="station-name">St5 - Luluasan</span>
+				</div>
+				<div class="station-col station-col--toggle" data-label="Status">
+					<label class="toggle-switch">
+						<input
+							type="checkbox"
+							id="toggle-St5"
+							checked
+							onchange="TestMode.toggleStation('St5')"
+						/>
+						<span class="toggle-slider"></span>
+					</label>
+					<span class="toggle-label toggle-label--online" id="status-St5"
+						>Online</span
+					>
+				</div>
+				<div
+					class="station-col station-col--water"
+					data-label="Water Level (cm)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-water"
+						id="slider-water-St5"
+						min="0"
+						max="{{ (test_thresholds.water_level.critical * 1.3)|int }}"
+						value="{{ (test_thresholds.water_level.advisory * 0.5)|int }}"
+						oninput="TestMode.updateWaterLevel('St5')"
+					/>
+					<span class="slider-value" id="value-water-St5"
+						>{{ (test_thresholds.water_level.advisory * 0.5)|int }}</span
+					>
+				</div>
+				<div
+					class="station-col station-col--rain"
+					data-label="Rainfall (mm/hr)"
+				>
+					<input
+						type="range"
+						class="slider-input slider-rain"
+						id="slider-rain-St5"
+						min="0"
+						max="50"
+						step="0.5"
+						value="2"
+						oninput="TestMode.updateRainfall('St5')"
+					/>
+					<span class="slider-value" id="value-rain-St5">2.0</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="threshold-info">
+			<strong>Water Level:</strong>
+			Normal &lt;{{ test_thresholds.water_level.advisory }}cm | Advisory {{
+			test_thresholds.water_level.advisory }}cm | Alert {{
+			test_thresholds.water_level.alert }}cm | Warning {{
+			test_thresholds.water_level.warning }}cm | Critical {{
+			test_thresholds.water_level.critical }}cm
+			<br />
+			<strong>Rainfall:</strong>
+			None &lt;{{ test_thresholds.rainfall.light }}mm | Light {{
+			test_thresholds.rainfall.light }}mm | Moderate {{
+			test_thresholds.rainfall.moderate }}mm | Heavy {{
+			test_thresholds.rainfall.heavy }}mm
+		</div>
+	</div>
+</div>
+
+<script>
+	const TestMode = {
+		thresholds: {
+			water: {
+				advisory: {{ test_thresholds.water_level.advisory }},
+				alert: {{ test_thresholds.water_level.alert }},
+				warning: {{ test_thresholds.water_level.warning }},
+				critical: {{ test_thresholds.water_level.critical }}
+			},
+			rainfall: {
+				light: {{ test_thresholds.rainfall.light }},
+				moderate: {{ test_thresholds.rainfall.moderate }},
+				heavy: {{ test_thresholds.rainfall.heavy }}
+			}
+		},
+		// Configs from config.py (single source of truth)
+		colors: {{ test_ui_config.colors | tojson | safe }},
+		alertConfig: {{ test_ui_config.alert_levels | tojson | safe }},
+		rainfallConfig: {{ test_ui_config.rainfall_levels | tojson | safe }},
+
+		// All 5 stations with per-station data
+		allStations: ['St1', 'St2', 'St3', 'St4', 'St5'],
+		waterLevelStations: ['St1', 'St2', 'St3', 'St5'], // St4 has no water sensor
+
+		stationData: {
+			St1: { name: 'Binudegahan', waterLevel: {{ (test_thresholds.water_level.advisory * 0.5)|int }}, rainfall: 0.2, online: true, hasWaterSensor: true },
+			St2: { name: 'Mang-it', waterLevel: {{ (test_thresholds.water_level.advisory * 0.5)|int }}, rainfall: 0.2, online: true, hasWaterSensor: true },
+			St3: { name: 'Laganac', waterLevel: {{ (test_thresholds.water_level.advisory * 0.5)|int }}, rainfall: 0.2, online: true, hasWaterSensor: true },
+			St4: { name: 'MDRRMO', waterLevel: null, rainfall: 0.2, online: true, hasWaterSensor: false },
+			St5: { name: 'Luluasan', waterLevel: {{ (test_thresholds.water_level.advisory * 0.5)|int }}, rainfall: 0.2, online: true, hasWaterSensor: true }
+		},
+
+		getAlertLevel(waterLevel) {
+			if (waterLevel === null) return 'normal';
+			if (waterLevel >= this.thresholds.water.critical) return 'critical';
+			if (waterLevel >= this.thresholds.water.warning) return 'warning';
+			if (waterLevel >= this.thresholds.water.alert) return 'alert';
+			if (waterLevel >= this.thresholds.water.advisory) return 'advisory';
+			return 'normal';
+		},
+
+		getRainfallLevel(rainfall) {
+			if (rainfall >= this.thresholds.rainfall.heavy) return 'heavy';
+			if (rainfall >= this.thresholds.rainfall.moderate) return 'moderate';
+			if (rainfall >= this.thresholds.rainfall.light) return 'light';
+			return 'none';
+		},
+
+		toggleStation(stationId) {
+			const toggle = document.getElementById(`toggle-${stationId}`);
+			const statusEl = document.getElementById(`status-${stationId}`);
+			const row = document.getElementById(`row-${stationId}`);
+
+			const isOnline = toggle.checked;
+			this.stationData[stationId].online = isOnline;
+
+			statusEl.textContent = isOnline ? 'Online' : 'Offline';
+			statusEl.className = `toggle-label toggle-label--${isOnline ? 'online' : 'offline'}`;
+			row.classList.toggle('station-row--offline', !isOnline);
+
+			this.updateDashboard();
+		},
+
+		updateWaterLevel(stationId) {
+			const slider = document.getElementById(`slider-water-${stationId}`);
+			const valueEl = document.getElementById(`value-water-${stationId}`);
+			const waterLevel = parseInt(slider.value);
+
+			this.stationData[stationId].waterLevel = waterLevel;
+			valueEl.textContent = waterLevel;
+
+			const alertLevel = this.getAlertLevel(waterLevel);
+			valueEl.style.color = this.alertConfig[alertLevel].color;
+
+			this.updateDashboard();
+		},
+
+		updateRainfall(stationId) {
+			const slider = document.getElementById(`slider-rain-${stationId}`);
+			const valueEl = document.getElementById(`value-rain-${stationId}`);
+			const rainfall = parseFloat(slider.value);
+
+			this.stationData[stationId].rainfall = rainfall;
+			valueEl.textContent = rainfall.toFixed(1);
+
+			const level = this.getRainfallLevel(rainfall);
+			const config = this.rainfallConfig[level];
+			valueEl.style.color = config.color;
+
+			if (stationId === 'St5') {
+				this.updateCurrentWeatherCard();
+			}
+
+			this.updateDashboard();
+		},
+
+		updateCurrentWeatherCard() {
+			const rainfall = this.stationData.St5.rainfall;
+			const waterLevel = this.stationData.St5.waterLevel;
+
+			const rainfallEl = document.getElementById('current-weather-rainfall');
+			if (rainfallEl) {
+				rainfallEl.innerHTML = `${rainfall.toFixed(2)}<small>mm/hr</small>`;
+			}
+
+			// Update water level with alert coloring
+			const waterLevelEl = document.getElementById('weather-card-water-level');
+			if (waterLevelEl && waterLevel != null) {
+				const alertLevel = this.getAlertLevel(waterLevel);
+				const alertColor = this.alertConfig[alertLevel]?.color || '';
+				waterLevelEl.style.color = alertColor;
+				waterLevelEl.innerHTML = `${waterLevel.toFixed(1)}<span class="weather-card__unit text-secondary fw-normal">cm</span>`;
+			}
+
+			this.updateWeatherIcon(rainfall);
+		},
+
+		updateWeatherIcon(rainfall) {
+			const iconEl = document.querySelector('.weather-card__icon img');
+			if (!iconEl || !window.WeatherIcons) return;
+
+			WeatherIcons.updateIcon(iconEl, rainfall);
+		},
+
+		updateDashboard() {
+			const waterAlerts = { critical: 0, warning: 0, alert: 0, advisory: 0, normal: 0 };
+			const attentionStations = [];
+
+			this.waterLevelStations.forEach(id => {
+				const station = this.stationData[id];
+				if (!station.online) return;
+
+				const level = this.getAlertLevel(station.waterLevel);
+				waterAlerts[level]++;
+				if (['critical', 'warning', 'alert'].includes(level)) {
+					attentionStations.push(station.name);
+				}
+			});
+
+			let highestWaterLevel = 'normal';
+			for (const level of ['critical', 'warning', 'alert', 'advisory']) {
+				if (waterAlerts[level] > 0) { highestWaterLevel = level; break; }
+			}
+
+			const rainfallCounts = { heavy: 0, moderate: 0, light: 0, none: 0 };
+			this.allStations.forEach(id => {
+				const station = this.stationData[id];
+				if (!station.online) return;
+
+				const level = this.getRainfallLevel(station.rainfall);
+				rainfallCounts[level]++;
+			});
+
+			let highestRainfallLevel = 'none';
+			let highestRainfallCount = 0;
+			for (const level of ['heavy', 'moderate', 'light']) {
+				if (rainfallCounts[level] > 0) {
+					highestRainfallLevel = level;
+					highestRainfallCount = rainfallCounts[level];
+					break;
+				}
+			}
+
+			const onlineCount = this.allStations.filter(id => this.stationData[id].online).length;
+
+			this.updateAlertCard(highestWaterLevel);
+			this.updateRainfallCard(highestRainfallLevel, highestRainfallCount);
+			this.updateAttentionCard(attentionStations.length);
+			this.updateOnlineCard(onlineCount);
+			this.updateBanners(waterAlerts);
+			this.updateMapMarkers();
+		},
+
+		updateAlertCard(level) {
+			const alertCard = document.querySelector('.alert-card');
+			if (!alertCard) return;
+
+			alertCard.className = alertCard.className.replace(/alert-card--\w+/g, '');
+			alertCard.classList.add(`alert-card--${level}`);
+
+			const valueEl = alertCard.querySelector('.fs-3');
+			const iconEl = alertCard.querySelector('.fs-2 i');
+			const config = this.alertConfig[level];
+
+			if (valueEl) valueEl.textContent = config.level;
+			if (iconEl) {
+				iconEl.className = `fas ${config.icon}`;
+				iconEl.style.color = config.color;
+			}
+		},
+
+		updateRainfallCard(level, count) {
+			const cards = document.querySelectorAll('.row.g-3.g-md-4 > .col-6.col-xl-3');
+			if (cards.length < 2) return;
+
+			const rainfallCard = cards[1];
+			const valueEl = rainfallCard.querySelector('.fs-3');
+			const iconEl = rainfallCard.querySelector('.fs-2 i');
+
+			const config = this.rainfallConfig[level];
+			const displayText = count > 0 ? `${config.level} (${count})` : config.level;
+
+			if (valueEl) valueEl.textContent = displayText;
+			if (iconEl) {
+				iconEl.className = `fas ${config.icon}`;
+				iconEl.style.color = config.color;
+			}
+		},
+
+		updateAttentionCard(count) {
+			const cards = document.querySelectorAll('.row.g-3.g-md-4 > .col-6.col-xl-3');
+			if (cards.length < 3) return;
+
+			const attentionCard = cards[2];
+			const valueEl = attentionCard.querySelector('.fs-3');
+			const iconEl = attentionCard.querySelector('.fs-2 i');
+
+			if (valueEl) valueEl.textContent = `${count}/4`;
+			if (iconEl) {
+				iconEl.className = count > 0
+					? 'fas fa-exclamation-triangle'
+					: 'fas fa-check-circle';
+				iconEl.style.color = count > 0 ? this.colors.critical : this.colors.normal;
+			}
+		},
+
+		updateOnlineCard(count) {
+			const cards = document.querySelectorAll('.row.g-3.g-md-4 > .col-6.col-xl-3');
+			if (cards.length < 4) return;
+
+			const onlineCard = cards[3];
+			const valueEl = onlineCard.querySelector('.fs-3');
+			const iconEl = onlineCard.querySelector('.fs-2 i');
+
+			if (valueEl) valueEl.textContent = `${count}/5`;
+			if (iconEl) {
+				iconEl.className = count === 5
+					? 'fas fa-check-circle'
+					: 'fas fa-exclamation-circle';
+				iconEl.style.color = count === 5 ? this.colors.normal : this.colors.warning;
+			}
+		},
+
+		updateBanners(alerts) {
+			const bannersRow = document.querySelector('.alert-banners-row');
+			let bannersSection = bannersRow?.closest('section');
+
+			const hasAlerts = alerts.critical + alerts.warning + alerts.alert + alerts.advisory > 0;
+
+			if (!hasAlerts) {
+				if (bannersSection) bannersSection.style.display = 'none';
+				return;
+			}
+
+			if (!bannersSection && hasAlerts) {
+				const metricSection = document.querySelector('section.py-40');
+				if (metricSection) {
+					bannersSection = document.createElement('section');
+					bannersSection.className = 'pb-2';
+					bannersSection.innerHTML = '<div class="container-fluid px-2 px-md-3"><div class="row g-2 alert-banners-row"></div></div>';
+					metricSection.after(bannersSection);
+				}
+			}
+
+			if (bannersSection) bannersSection.style.display = 'block';
+			const container = bannersSection?.querySelector('.alert-banners-row');
+			if (!container) return;
+
+			let html = '';
+			if (alerts.critical > 0) html += this.bannerHTML('critical', this.alertConfig.critical.icon, alerts.critical);
+			if (alerts.warning > 0) html += this.bannerHTML('warning', this.alertConfig.warning.icon, alerts.warning);
+			if (alerts.alert > 0) html += this.bannerHTML('alert', this.alertConfig.alert.icon, alerts.alert);
+			if (alerts.advisory > 0) html += this.bannerHTML('advisory', this.alertConfig.advisory.icon, alerts.advisory);
+
+			container.innerHTML = html;
+		},
+
+		bannerHTML(level, icon, count) {
+			const labels = { critical: 'Critical Flood', warning: 'Flood Warning', alert: 'Flood Alert', advisory: 'Flood Advisory' };
+			const labelText = `${labels[level]} (${count})`;
+
+			return `<div class="col-6 col-md-auto">
+				<div class="d-flex align-items-center gap-2 py-2 px-3 rounded-pill shadow-sm text-white text-uppercase fw-semibold alert-banner alert-banner--${level}"
+				     role="alert"
+				     style="font-size: 0.6rem;">
+					<i class="fas ${icon} flex-shrink-0" aria-hidden="true"></i>
+					<span>${labelText}</span>
+				</div>
+			</div>`;
+		},
+
+		resetAll() {
+			this.allStations.forEach(id => {
+				const station = this.stationData[id];
+
+				// Reset online status
+				station.online = true;
+				document.getElementById(`toggle-${id}`).checked = true;
+				document.getElementById(`status-${id}`).textContent = 'Online';
+				document.getElementById(`status-${id}`).className = 'toggle-label toggle-label--online';
+				document.getElementById(`row-${id}`).classList.remove('station-row--offline');
+
+				// Reset water level to 0
+				if (station.hasWaterSensor) {
+					station.waterLevel = 0;
+					document.getElementById(`slider-water-${id}`).value = 0;
+					document.getElementById(`value-water-${id}`).textContent = '0';
+					document.getElementById(`value-water-${id}`).style.color = this.alertConfig.normal.color;
+				}
+
+				// Reset rainfall to 0
+				station.rainfall = 0;
+				document.getElementById(`slider-rain-${id}`).value = 0;
+				document.getElementById(`value-rain-${id}`).textContent = '0.0';
+				document.getElementById(`value-rain-${id}`).style.color = this.rainfallConfig.none.color;
+			});
+
+			this.updateCurrentWeatherCard();
+			this.updateDashboard();
+		},
+
+		refreshOpenPopup() {
+			if (!window.StationMap?.map) return;
+			Object.values(window.StationMap.markers).forEach(marker => {
+				if (marker.isPopupOpen()) {
+					marker.closePopup();
+					marker.openPopup();
+				}
+			});
+		},
+
+		updateMapMarkers() {
+			if (!window.StationMap || !window.StationMap.isInitialized) return;
+
+			const mockData = this.allStations.map(id => {
+				const station = this.stationData[id];
+				if (!station.online) {
+					return {
+						StationID: id,
+						DateTime: new Date(Date.now() - 3600000).toISOString(),
+						WaterLevel: null,
+						Temperature: null,
+						Humidity: null,
+						HourlyRain: null
+					};
+				}
+				return {
+					StationID: id,
+					DateTime: new Date().toISOString(),
+					WaterLevel: station.waterLevel,
+					Temperature: 28.5,
+					Humidity: 75,
+					HourlyRain: station.rainfall
+				};
+			});
+
+			window.StationMap.cachedWeatherData = mockData;
+			window.StationMap.renderAllMarkers();
+			this.refreshOpenPopup();
+		},
+
+		applyPreset(preset) {
+			const presets = {
+				normal: {
+					St1: { water: Math.round(this.thresholds.water.advisory * 0.4), rain: 0.2, online: true },
+					St2: { water: Math.round(this.thresholds.water.advisory * 0.5), rain: 0.3, online: true },
+					St3: { water: Math.round(this.thresholds.water.advisory * 0.35), rain: 0.1, online: true },
+					St4: { water: null, rain: 0.2, online: true },
+					St5: { water: Math.round(this.thresholds.water.advisory * 0.6), rain: 0.4, online: true }
+				},
+				advisory: {
+					St1: { water: Math.round(this.thresholds.water.advisory * 1.05), rain: this.thresholds.rainfall.light + 0.5, online: true },
+					St2: { water: Math.round(this.thresholds.water.advisory * 1.15), rain: this.thresholds.rainfall.moderate - 0.3, online: true },
+					St3: { water: Math.round(this.thresholds.water.advisory * 1.1), rain: this.thresholds.rainfall.light + 1.0, online: true },
+					St4: { water: null, rain: this.thresholds.rainfall.light + 0.3, online: true },
+					St5: { water: Math.round(this.thresholds.water.advisory * 1.2), rain: this.thresholds.rainfall.moderate - 0.5, online: true }
+				},
+				alert: {
+					St1: { water: Math.round(this.thresholds.water.alert * 1.05), rain: this.thresholds.rainfall.moderate + 1.0, online: true },
+					St2: { water: Math.round(this.thresholds.water.alert * 1.15), rain: this.thresholds.rainfall.moderate + 2.5, online: true },
+					St3: { water: Math.round(this.thresholds.water.alert * 1.1), rain: this.thresholds.rainfall.moderate + 1.5, online: true },
+					St4: { water: null, rain: this.thresholds.rainfall.moderate + 3.0, online: true },
+					St5: { water: Math.round(this.thresholds.water.alert * 1.2), rain: this.thresholds.rainfall.moderate + 2.0, online: true }
+				},
+				warning: {
+					St1: { water: Math.round(this.thresholds.water.warning * 1.05), rain: this.thresholds.rainfall.heavy + 2.0, online: true },
+					St2: { water: Math.round(this.thresholds.water.warning * 1.15), rain: this.thresholds.rainfall.heavy + 5.0, online: true },
+					St3: { water: Math.round(this.thresholds.water.warning * 1.1), rain: this.thresholds.rainfall.heavy + 3.0, online: true },
+					St4: { water: null, rain: this.thresholds.rainfall.heavy + 8.0, online: true },
+					St5: { water: Math.round(this.thresholds.water.warning * 1.12), rain: this.thresholds.rainfall.heavy + 4.0, online: true }
+				},
+				critical: {
+					St1: { water: Math.round(this.thresholds.water.critical * 1.05), rain: this.thresholds.rainfall.heavy * 3, online: true },
+					St2: { water: Math.round(this.thresholds.water.critical * 1.15), rain: this.thresholds.rainfall.heavy * 4, online: true },
+					St3: { water: Math.round(this.thresholds.water.critical * 1.08), rain: this.thresholds.rainfall.heavy * 2.5, online: true },
+					St4: { water: null, rain: this.thresholds.rainfall.heavy * 5, online: true },
+					St5: { water: Math.round(this.thresholds.water.critical * 1.1), rain: this.thresholds.rainfall.heavy * 3.5, online: true }
+				},
+				mixed: {
+					St1: { water: Math.round(this.thresholds.water.advisory * 0.5), rain: 0.2, online: true },
+					St2: { water: Math.round(this.thresholds.water.advisory * 1.1), rain: this.thresholds.rainfall.heavy + 5.0, online: true },
+					St3: { water: Math.round(this.thresholds.water.alert * 1.15), rain: this.thresholds.rainfall.moderate + 1.0, online: false },
+					St4: { water: null, rain: this.thresholds.rainfall.moderate, online: true },
+					St5: { water: Math.round(this.thresholds.water.critical * 1.05), rain: this.thresholds.rainfall.light + 0.5, online: true }
+				}
+			};
+
+			const config = presets[preset];
+			if (!config) return;
+
+			this.allStations.forEach(id => {
+				const settings = config[id];
+				const station = this.stationData[id];
+
+				station.online = settings.online;
+				document.getElementById(`toggle-${id}`).checked = settings.online;
+				document.getElementById(`status-${id}`).textContent = settings.online ? 'Online' : 'Offline';
+				document.getElementById(`status-${id}`).className = `toggle-label toggle-label--${settings.online ? 'online' : 'offline'}`;
+				document.getElementById(`row-${id}`).classList.toggle('station-row--offline', !settings.online);
+
+				if (station.hasWaterSensor) {
+					station.waterLevel = settings.water;
+					document.getElementById(`slider-water-${id}`).value = settings.water;
+					document.getElementById(`value-water-${id}`).textContent = settings.water;
+					const alertLevel = this.getAlertLevel(settings.water);
+					document.getElementById(`value-water-${id}`).style.color = this.alertConfig[alertLevel].color;
+				}
+
+				station.rainfall = settings.rain;
+				document.getElementById(`slider-rain-${id}`).value = settings.rain;
+				document.getElementById(`value-rain-${id}`).textContent = settings.rain.toFixed(1);
+				const rainLevel = this.getRainfallLevel(settings.rain);
+				document.getElementById(`value-rain-${id}`).style.color = this.rainfallConfig[rainLevel].color;
+			});
+
+			this.updateCurrentWeatherCard();
+			this.updateDashboard();
+		},
+
+		init() {
+			document.body.classList.add('test-mode');
+
+			const waitForMap = setInterval(() => {
+				if (window.StationMap && window.StationMap.isInitialized) {
+					clearInterval(waitForMap);
+					window.StationMap.fetchWeatherData = async () => {
+						return TestMode.allStations.map(id => {
+							const station = TestMode.stationData[id];
+							if (!station.online) {
+								return {
+									StationID: id,
+									DateTime: new Date(Date.now() - 3600000).toISOString(),
+									WaterLevel: null, Temperature: null, Humidity: null, HourlyRain: null
+								};
+							}
+							return {
+								StationID: id,
+								DateTime: new Date().toISOString(),
+								WaterLevel: station.waterLevel,
+								Temperature: 28.5,
+								Humidity: 75,
+								HourlyRain: station.rainfall
+							};
+						});
+					};
+					window.StationMap.stopAutoRefresh();
+					TestMode.updateMapMarkers();
+				}
+			}, 100);
+
+			this.allStations.forEach(id => {
+				const station = this.stationData[id];
+
+				if (station.hasWaterSensor) {
+					const waterEl = document.getElementById(`value-water-${id}`);
+					const alertLevel = this.getAlertLevel(station.waterLevel);
+					if (waterEl) waterEl.style.color = this.alertConfig[alertLevel].color;
+				}
+
+				const rainEl = document.getElementById(`value-rain-${id}`);
+				const rainLevel = this.getRainfallLevel(station.rainfall);
+				if (rainEl) rainEl.style.color = this.rainfallConfig[rainLevel].color;
+			});
+
+			this.updateCurrentWeatherCard();
+			document.getElementById('testPanel').classList.add('expanded');
+		}
+	};
+
+	document.addEventListener('DOMContentLoaded', () => TestMode.init());
+</script>
+{% endif %} {% endblock %}

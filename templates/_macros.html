@@ -1,0 +1,306 @@
+{# APAW Dashboard Macros Reusable Jinja components for dashboard elements #} {#
+============================================ METRIC CARD - Top dashboard summary
+cards ============================================ #} {% macro
+metric_card(title, value, icon, icon_color=none, card_class="",
+condition_icon=none, tooltip=none) %}
+<div class="col-6 col-xl-3">
+	<div class="card border-0 shadow-sm h-100 {{ card_class }}">
+		<div class="card-body d-flex flex-column">
+			<h6 class="n-text text-muted mb-3">
+				{{ title }} {% if tooltip %}
+				<i
+					class="fas fa-info-circle text-secondary ms-1"
+					style="font-size: 0.75rem; cursor: help"
+					data-bs-toggle="tooltip"
+					data-bs-placement="top"
+					data-bs-title="{{ tooltip }}"
+				></i>
+				{% endif %}
+			</h6>
+			<div class="d-flex align-items-center justify-content-between mt-auto">
+				<span
+					class="fs-3 fw-bold {{ 'text-capitalize' if 'alert' in card_class else '' }}"
+				>
+					{{ value }}
+				</span>
+				<span class="fs-2">
+					{% if condition_icon %} {{ condition_icon }} {% else %}
+					<i
+						class="fas {{ icon }}"
+						{%
+						if
+						icon_color
+						%}style="color: {{ icon_color }};"
+						{%
+						endif
+						%}
+					></i>
+					{% endif %}
+				</span>
+			</div>
+		</div>
+	</div>
+</div>
+{% endmacro %} {# ============================================ ALERT BANNER -
+Water level status pill badges Shows: "2 Critical Water Level" format
+============================================ #} {% macro alert_banner(level,
+count, icon, aria_live="polite") %} {% if count > 0 %}
+<div class="col-6 col-md-auto">
+	<div
+		class="d-flex align-items-center gap-2 py-2 px-3 rounded-pill shadow-sm text-white text-uppercase fw-semibold alert-banner alert-banner--{{ level }}"
+		role="alert"
+		aria-live="{{ 'assertive' if level == 'critical' else aria_live }}"
+	>
+		<i class="fas {{ icon }} flex-shrink-0" aria-hidden="true"></i>
+		<span>{{ level|title }} Flood {{ count }}</span>
+	</div>
+</div>
+{% endif %} {% endmacro %} {# ============================================
+WEATHER METRIC - Weather card metric item
+============================================ #} {% macro weather_metric(label,
+value, unit, icon_path, fallback="--") %}
+<div class="col-6 col-xxl-3">
+	<div
+		class="weather-card__metric d-flex align-items-center gap-2 bg-white rounded-3 p-2 p-sm-3"
+	>
+		<img
+			class="weather-card__metric-icon flex-shrink-0"
+			src="{{ url_for('static', filename=icon_path) }}"
+			alt="{{ label }}"
+		/>
+		<div class="flex-grow-1 overflow-hidden">
+			<div
+				class="weather-card__metric-label text-uppercase text-secondary fw-medium mb-1 text-truncate"
+			>
+				{{ label }}
+			</div>
+			<div class="weather-card__metric-value fw-bold text-dark">
+				{% if value is not none %} {{ "%.2f"|format(value|float) if value is not
+				none else fallback }}<span
+					class="weather-card__unit text-secondary fw-normal"
+					>{{ unit }}</span
+				>
+				{% else %} {{ fallback }}<span
+					class="weather-card__unit text-secondary fw-normal"
+					>{{ unit }}</span
+				>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endmacro %} {# ============================================ WATER LEVEL
+METRIC - Weather card water level with alert coloring Uses thresholds from
+config.py for alert-level based color coding
+============================================ #} {% macro
+water_level_metric(value, thresholds, fallback="--") %} {% set alert_color = ''
+%} {% if value is not none %} {% if value >= thresholds.critical %} {% set
+alert_color = 'var(--alert-critical)' %} {% elif value >= thresholds.warning %}
+{% set alert_color = 'var(--alert-warning)' %} {% elif value >= thresholds.alert
+%} {% set alert_color = 'var(--alert-alert)' %} {% elif value >=
+thresholds.advisory %} {% set alert_color = 'var(--alert-advisory)' %} {% endif
+%} {% endif %}
+<div class="col-6 col-xxl-3">
+	<div
+		class="weather-card__metric d-flex align-items-center gap-2 bg-white rounded-3 p-2 p-sm-3"
+	>
+		<img
+			class="weather-card__metric-icon flex-shrink-0"
+			src="{{ url_for('static', filename='media/icons/water_level.svg') }}"
+			alt="Water Level"
+		/>
+		<div class="flex-grow-1 overflow-hidden">
+			<div
+				class="weather-card__metric-label text-uppercase text-secondary fw-medium mb-1 text-truncate"
+			>
+				Water Level
+			</div>
+			<div
+				class="weather-card__metric-value fw-bold"
+				id="weather-card-water-level"
+				{%
+				if
+				alert_color
+				%}
+				style="color: {{ alert_color }};"
+				{%
+				endif
+				%}
+			>
+				{% if value is not none %} {{ "%.1f"|format(value|float) }}<span
+					class="weather-card__unit text-secondary fw-normal"
+					>cm</span
+				>
+				{% else %} {{ fallback }}<span
+					class="weather-card__unit text-secondary fw-normal"
+					>cm</span
+				>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endmacro %} {# ============================================ MAP LEGEND ITEM -
+Legend bar for map ============================================ #} {% macro
+legend_item(level, label, tooltip) %}
+<div
+	class="legend-bar-item legend-bar-{{ level }}"
+	data-bs-toggle="tooltip"
+	data-bs-placement="top"
+	data-bs-title="{{ tooltip }}"
+>
+	<span>{{ label }}</span>
+</div>
+{% endmacro %} {# ============================================ CHART SECTION -
+Precipitation/Water Level charts ============================================ #}
+{% macro chart_section( chart_id, title, icon_class, title_class, picker_id,
+export_btn_id, prev_btn_id, next_btn_id, loading_id, error_id, data_type ) %}
+<div class="chart-container">
+	<button
+		type="button"
+		class="chart-nav-arrow chart-nav-arrow--left"
+		id="{{ prev_btn_id }}"
+		aria-label="View previous day"
+	>
+		<i class="fas fa-chevron-left" aria-hidden="true"></i>
+	</button>
+
+	<div class="chart-wrapper">
+		<div class="chart-header">
+			<h6 class="chart-title {{ title_class }} mb-0">
+				<i
+					class="fas {{ icon_class }}{% if 'text-' not in icon_class %} chart-title__icon{% endif %}"
+					aria-hidden="true"
+				></i>
+				{{ title }}
+			</h6>
+
+			<div class="chart-controls">
+				<div class="date-picker-inline">
+					<i class="fas fa-calendar-alt" aria-hidden="true"></i>
+					<label for="{{ picker_id }}" class="sr-only">Select date</label>
+					<span class="date-picker-label" aria-hidden="true">Select Date:</span>
+					<input
+						type="date"
+						id="{{ picker_id }}"
+						class="date-picker-inline__input"
+						aria-label="Select specific date for {{ data_type }} data"
+					/>
+				</div>
+
+				<button
+					type="button"
+					id="{{ export_btn_id }}"
+					class="export-btn-inline"
+					aria-label="Export {{ data_type }} data to CSV file"
+				>
+					<i class="fas fa-download" aria-hidden="true"></i>
+					<span class="export-btn-text">Export CSV</span>
+				</button>
+			</div>
+		</div>
+
+		<div
+			class="chart-loading hidden"
+			id="{{ loading_id }}"
+			role="status"
+			aria-live="polite"
+		>
+			<div class="chart-loading__spinner" aria-hidden="true"></div>
+			<p class="chart-loading__text">Loading {{ data_type }} data...</p>
+		</div>
+
+		<div
+			id="{{ chart_id }}"
+			class="chart-canvas"
+			role="img"
+			aria-label="{{ title }} showing 24-hour monitoring data"
+		></div>
+
+		<div class="chart-error" id="{{ error_id }}" role="alert">
+			<i
+				class="fas fa-exclamation-triangle chart-error__icon"
+				aria-hidden="true"
+			></i>
+			<h3 class="chart-error__title">Unable to Load Data</h3>
+			<p class="chart-error__message">Error loading {{ data_type }} data.</p>
+			<button type="button" class="chart-error__btn" data-action="retry">
+				<i class="fas fa-redo" aria-hidden="true"></i>
+				Retry
+			</button>
+		</div>
+	</div>
+
+	<button
+		type="button"
+		class="chart-nav-arrow chart-nav-arrow--right"
+		id="{{ next_btn_id }}"
+		aria-label="View next day"
+	>
+		<i class="fas fa-chevron-right" aria-hidden="true"></i>
+	</button>
+</div>
+{% endmacro %} {# ============================================ WATER CHART CARD
+- Simplified chart for water level grid (no controls on desktop - uses
+consolidated header) ============================================ #} {% macro
+water_chart_card(chart_id, title, icon_class, loading_id, error_id, picker_id,
+prev_btn_id, next_btn_id) %}
+<div class="chart-container water-chart-card">
+	<button
+		type="button"
+		class="chart-nav-arrow chart-nav-arrow--left d-lg-none"
+		id="{{ prev_btn_id }}"
+		aria-label="View previous day"
+	>
+		<i class="fas fa-chevron-left" aria-hidden="true"></i>
+	</button>
+
+	<div class="chart-wrapper">
+		<div class="chart-header chart-header--simple">
+			<h6 class="chart-title mb-0">
+				<i class="fas {{ icon_class }}" aria-hidden="true"></i>
+				{{ title }}
+			</h6>
+		</div>
+
+		<div
+			class="chart-loading hidden"
+			id="{{ loading_id }}"
+			role="status"
+			aria-live="polite"
+		>
+			<div class="chart-loading__spinner" aria-hidden="true"></div>
+			<p class="chart-loading__text">Loading water level data...</p>
+		</div>
+
+		<div
+			id="{{ chart_id }}"
+			class="chart-canvas"
+			role="img"
+			aria-label="{{ title }} showing 24-hour water level monitoring data"
+		></div>
+
+		<div class="chart-error" id="{{ error_id }}" role="alert">
+			<i
+				class="fas fa-exclamation-triangle chart-error__icon"
+				aria-hidden="true"
+			></i>
+			<h3 class="chart-error__title">Unable to Load Data</h3>
+			<p class="chart-error__message">Error loading water level data.</p>
+			<button type="button" class="chart-error__btn" data-action="retry">
+				<i class="fas fa-redo" aria-hidden="true"></i>
+				Retry
+			</button>
+		</div>
+	</div>
+
+	<button
+		type="button"
+		class="chart-nav-arrow chart-nav-arrow--right d-lg-none"
+		id="{{ next_btn_id }}"
+		aria-label="View next day"
+	>
+		<i class="fas fa-chevron-right" aria-hidden="true"></i>
+	</button>
+</div>
+{% endmacro %}

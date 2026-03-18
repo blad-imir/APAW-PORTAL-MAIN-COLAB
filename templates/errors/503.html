@@ -1,0 +1,46 @@
+{% extends 'base.html' %} {% block title %}Service Unavailable - APAW Portal{%
+endblock %} {% block content %}
+<div class="container-fluid">
+	<div class="row justify-content-center">
+		<div class="col-lg-6 col-md-8 col-sm-10">
+			<div class="error-page text-center">
+				<div class="error-icon mb-4">
+					<i class="fas fa-tools fa-5x text-info"></i>
+				</div>
+				<h1 class="error-title mb-3">503</h1>
+				<h2 class="error-subtitle mb-3">Service Unavailable</h2>
+				<p class="error-message mb-4">
+					Weather data service is temporarily unavailable. Please try again in a
+					few moments.
+				</p>
+				<div class="error-actions">
+					<a href="{{ url_for('web.home') }}" class="btn btn-primary">
+						<i class="fas fa-home"></i> Go to Homepage
+					</a>
+					<button onclick="location.reload()" class="btn btn-info ml-2">
+						<i class="fas fa-sync"></i> Try Again
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.error-page {
+		padding: 50px 0;
+	}
+	.error-title {
+		font-size: 6rem;
+		font-weight: bold;
+		color: #17a2b8;
+	}
+	.error-subtitle {
+		color: #6c757d;
+	}
+	.error-message {
+		color: #6c757d;
+		font-size: 1.1rem;
+	}
+</style>
+{% endblock %}

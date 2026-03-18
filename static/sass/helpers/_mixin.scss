@@ -1,0 +1,25 @@
+/*----------------------------------------*/
+/*  Media Query CSS START
+/*----------------------------------------*/
+@mixin media-query-min( $length ) {
+    @media screen and (min-width: $length)  {
+        @content;
+    }
+}
+
+@mixin media-query( $length ) {
+    @media (max-width: $length) {
+        @content;
+    }
+}
+@mixin short-query( $min , $max ) {
+    @media only screen and (min-width: $min) and (max-width: $max) {
+        @content;
+    }
+}
+@mixin transition-2{
+    -webkit-transition: all 0.6s linear 0s;
+        transition: all 0.6s linear 0s;
+    
+}
+

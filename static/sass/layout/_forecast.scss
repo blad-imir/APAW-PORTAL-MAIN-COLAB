@@ -1,0 +1,479 @@
+.weekly-forecast {
+	position: relative;
+	background-color: $accent;
+	border-radius: 16px;
+	padding: clamp(16px, 1.25vw, 32px);
+	.selected-location {
+		.img-block {
+			text-align: center;
+			row-gap: 4px;
+			margin-bottom: 12px;
+			@include media-query(575px) {
+				margin-bottom: 16px;
+			}
+			img {
+				width: clamp(120px, 4vw, 160px);
+			}
+		}
+	}
+	.weekly-forecast-carousel {
+		height: 100%;
+		.slick-list,
+		.slick-track,
+		.slick-slide {
+			height: 100%;
+		}
+	}
+	.week-day-card {
+		padding: clamp(10px, 0.833vw, 24px);
+		height: 100%;
+		background-color: $white;
+		border-radius: 12px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		@include media-query(992px) {
+			gap: clamp(30px, 2.5vw, 64px);
+		}
+		img {
+			width: clamp(48px, 3.33vw, 96px);
+		}
+	}
+}
+
+// =============================================================================
+// WEATHER DETAILS CARDS
+// =============================================================================
+
+.today-highlight-card {
+	position: relative;
+	padding: clamp(15px, 1vw, 18px);
+	background-color: $white;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: clamp(8px, 1vw, 16px);
+
+	min-height: clamp(60px, 1vw, 80px);
+
+	// Header section (icon + labels)
+	.metric-header {
+		display: flex;
+		align-items: center;
+		gap: clamp(8px, 0.8vw, 12px);
+		flex: 1;
+		min-width: 0;
+	}
+
+	// Icon sizing - responsive
+	.metric-icon {
+		width: clamp(32px, 4vw, 56px);
+		height: clamp(32px, 4vw, 56px);
+		flex-shrink: 0; // Don't shrink icon
+		object-fit: contain;
+	}
+
+	// Label container
+	.metric-label {
+		flex: 1;
+		min-width: 0; // Allow text to shrink
+		overflow: hidden;
+	}
+
+	// Title text - responsive
+	.metric-title {
+		font-size: clamp(24px, 1.3vw, 24px);
+		margin-bottom: clamp(2px, 0.3vw, 4px);
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+
+		@include media-query(575px) {
+			font-size: 11px;
+		}
+
+		@include media-query-min(576px) {
+			font-size: clamp(12px, 1.3vw, 14px);
+		}
+
+		@include media-query-min(992px) {
+			font-size: clamp(24px, 1.3vw, 28px);
+		}
+	}
+
+	// Unit text - responsive
+	.metric-unit {
+		font-size: clamp(24px, 1vw, 32px);
+		margin: 0;
+		line-height: 0.8;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+
+		@include media-query(575px) {
+			font-size: 14px;
+		}
+
+		@include media-query-min(576px) {
+			font-size: clamp(16px, 1vw, 24px);
+		}
+
+		@include media-query-min(992px) {
+			font-size: clamp(18px, 1vw, 24px);
+		}
+	}
+
+	// Value text - responsive
+	.metric-value {
+		font-size: clamp(18px, 3vw, 32px);
+		flex-shrink: 0; // Don't shrink value
+		margin: 0;
+		line-height: 1;
+		text-align: right;
+
+		@include media-query(575px) {
+			font-size: 18px;
+		}
+
+		@include media-query-min(576px) {
+			font-size: clamp(20px, 3vw, 24px);
+		}
+
+		@include media-query-min(992px) {
+			font-size: clamp(24px, 3vw, 32px);
+		}
+	}
+	img {
+		width: clamp(32px, 4vw, 56px);
+		height: clamp(32px, 4vw, 56px);
+		flex-shrink: 0;
+	}
+}
+
+// =============================================================================
+// OTHER STATIONS CARDS - RESPONSIVE
+// =============================================================================
+
+.cities-forecast {
+	position: relative;
+	padding: clamp(16px, 1.25vw, 32px);
+	background-color: $white;
+	border-radius: 12px;
+
+	.cities-forecast-card {
+		padding: clamp(10px, 0.833vw, 20px);
+		background-color: $accent-2;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: clamp(8px, 1vw, 16px);
+
+		// Fixed min-height
+		min-height: clamp(80px, 10vw, 80px);
+
+		// Station content (icon + info)
+		.station-content {
+			display: flex;
+			align-items: center;
+			gap: clamp(8px, 0.8vw, 12px);
+			flex: 1;
+			min-width: 0;
+		}
+
+		// Station icon - responsive
+		.station-icon {
+			width: clamp(36px, 4vw, 56px);
+			height: clamp(36px, 4vw, 56px);
+			flex-shrink: 0;
+			object-fit: contain;
+		}
+
+		// Station info container
+		.station-info {
+			flex: 1;
+			min-width: 0;
+			overflow: hidden;
+		}
+
+		// Station name - responsive
+		.station-name {
+			font-size: clamp(18px, 1.3vw, 24px);
+			font-weight: 500;
+			margin-bottom: clamp(2px, 0.3vw, 4px);
+			line-height: 1.2;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+
+			@include media-query(575px) {
+				font-size: 14px;
+			}
+
+			@include media-query-min(576px) {
+				font-size: clamp(18px, 1.3vw, 18px);
+			}
+
+			@include media-query-min(992px) {
+				font-size: clamp(18px, 1.3vw, 24px);
+			}
+		}
+
+		// Station metrics - responsive
+		.station-metrics {
+			font-size: clamp(8px, 1vw, 11px);
+			margin: 0;
+			line-height: 1.3;
+
+			span {
+				display: block;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			@include media-query(575px) {
+				font-size: 8px;
+			}
+
+			@include media-query-min(576px) {
+				font-size: clamp(9px, 1vw, 10px);
+			}
+
+			@include media-query-min(992px) {
+				font-size: clamp(10px, 1vw, 11px);
+			}
+		}
+
+		// Station temperature - responsive
+		.station-temp {
+			font-size: clamp(32px, 2.5vw, 32px);
+			flex-shrink: 0;
+			margin: 0;
+			line-height: 1;
+			text-align: right;
+
+			@include media-query(575px) {
+				font-size: 18px;
+			}
+
+			@include media-query-min(576px) {
+				font-size: clamp(24px, 2.5vw, 24px);
+			}
+
+			@include media-query-min(992px) {
+				font-size: clamp(32px, 2.5vw, 32px);
+			}
+		}
+
+		// For backward compatibility with old structure
+		img {
+			width: clamp(36px, 4vw, 56px);
+		}
+	}
+}
+
+// =============================================================================
+// CHART BOX
+// =============================================================================
+
+.chart-box {
+	padding: clamp(10px, 0.833vw, 24px);
+	background-color: $white;
+	border-radius: 12px;
+
+	#chartContainer {
+		width: 100%;
+		position: relative;
+		height: 350px; /* Default height */
+
+		@include media-query(575px) {
+			height: 200px; /* Mobile height */
+		}
+	}
+
+	.canvasjs-chart-credit {
+		display: none !important;
+	}
+}
+
+// =============================================================================
+// RESPONSIVE BREAKPOINT OPTIMIZATIONS
+// =============================================================================
+
+// Extra small devices (portrait phones, less than 576px)
+@include media-query(575px) {
+	.today-highlight-card {
+		padding: 12px;
+		min-height: 50px;
+
+		.metric-icon {
+			width: 32px;
+			height: 32px;
+		}
+
+		.metric-title {
+			font-size: 11px;
+		}
+
+		.metric-unit {
+			font-size: 12px;
+		}
+
+		.metric-value {
+			font-size: 18px;
+		}
+	}
+
+	.cities-forecast-card {
+		padding: 10px;
+		min-height: 80px;
+
+		.station-icon {
+			width: 36px;
+			height: 36px;
+		}
+
+		.station-name {
+			font-size: 11px;
+		}
+
+		.station-metrics {
+			font-size: 8px;
+		}
+
+		.station-temp {
+			font-size: 16px;
+		}
+	}
+}
+
+// Small devices (landscape phones, 576px and up)
+@include media-query-min(576px) {
+	.today-highlight-card {
+		padding: clamp(14px, 1.25vw, 20px);
+		min-height: 50px;
+
+		.metric-icon {
+			width: clamp(36px, 4vw, 44px);
+			height: clamp(36px, 4vw, 44px);
+		}
+
+		.metric-title {
+			font-size: clamp(12px, 1.3vw, 14px);
+		}
+
+		.metric-unit {
+			font-size: clamp(10px, 1vw, 11px);
+		}
+
+		.metric-value {
+			font-size: clamp(20px, 3vw, 24px);
+		}
+	}
+
+	.cities-forecast-card {
+		padding: clamp(12px, 0.833vw, 16px);
+		min-height: 90px;
+
+		.station-icon {
+			width: clamp(40px, 4vw, 48px);
+			height: clamp(40px, 4vw, 48px);
+		}
+
+		.station-name {
+			font-size: clamp(12px, 1.3vw, 13px);
+		}
+
+		.station-metrics {
+			font-size: clamp(9px, 1vw, 10px);
+		}
+
+		.station-temp {
+			font-size: clamp(18px, 2.5vw, 20px);
+		}
+	}
+}
+
+// Medium devices (tablets, 768px and up)
+@include media-query-min(768px) {
+	.today-highlight-card {
+		min-height: 120px;
+	}
+
+	.cities-forecast-card {
+		min-height: 95px;
+	}
+}
+
+// Large devices (desktops, 992px and up)
+@include media-query-min(992px) {
+	.today-highlight-card {
+		padding: clamp(16px, 1.25vw, 32px);
+		min-height: 130px;
+
+		.metric-icon {
+			width: clamp(48px, 4vw, 56px);
+			height: clamp(48px, 4vw, 56px);
+		}
+
+		.metric-title {
+			font-size: clamp(14px, 1.3vw, 16px);
+		}
+
+		.metric-unit {
+			font-size: clamp(11px, 1vw, 12px);
+		}
+
+		.metric-value {
+			font-size: clamp(24px, 3vw, 32px);
+		}
+	}
+
+	.cities-forecast-card {
+		padding: clamp(14px, 0.833vw, 20px);
+		min-height: 100px;
+
+		.station-icon {
+			width: clamp(48px, 4vw, 56px);
+			height: clamp(48px, 4vw, 56px);
+		}
+
+		.station-name {
+			font-size: clamp(13px, 1.3vw, 15px);
+		}
+
+		.station-metrics {
+			font-size: clamp(10px, 1vw, 11px);
+		}
+
+		.station-temp {
+			font-size: clamp(20px, 2.5vw, 24px);
+		}
+	}
+}
+
+// Extra large devices (large desktops, 1200px and up)
+@include media-query-min(1200px) {
+	.today-highlight-card {
+		min-height: 140px;
+	}
+
+	.cities-forecast-card {
+		min-height: 110px;
+	}
+}
+
+// =============================================================================
+// PRINT STYLES
+// =============================================================================
+
+@media print {
+	.today-highlight-card,
+	.cities-forecast-card {
+		break-inside: avoid;
+		page-break-inside: avoid;
+	}
+}

@@ -1,0 +1,217 @@
+/*-------------------------
+  Form Styling
+-------------------------*/
+
+.form-group {
+  position: relative;
+  width: 100%;
+  input[type="date"],
+  input[type="text"],
+  input[type="email"],
+  input[type="file"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="submit"],
+  input[type="tel"],
+  textarea,
+  .cus-form-control {
+    width: 100%;
+    background-color: $accent-2;
+    padding: 0 clamp(12px, 0.83vw, 24px);
+    height: clamp(42px, 2.917vw, 72px);
+    color: $light-black;
+    display: flex;
+    border-radius: 5px;
+    align-items: center;
+    border: none;
+    &:focus {
+      color: $light-black;
+      outline: none;
+      background-color: $accent-2 !important;
+      border: none;
+      border-radius: 5px;
+      box-shadow: none;
+    }
+    &:hover {
+      color: $light-black;
+      border: none;
+    }
+    &::placeholder {
+      color: $light-black;
+      opacity: 1;
+    }
+  }
+  textarea {
+    height: auto !important;
+    padding-top: 16px;
+  }
+}
+.form-group {
+  input[type="date"] {
+    display: inline-block;
+  }
+}
+
+.newsletter-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  overflow: hidden;
+  @include media-query(575px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+  input {
+    width: 100%;
+    background-color: $accent-2;
+    padding: clamp(12px, 0.83vw, 24px);
+    color: $dark-gray;
+    border: none;
+    border-radius: 8px;
+    &:focus {
+      color: $dark-gray;
+      outline: none;
+      border: none;
+      box-shadow: none;
+    }
+    &:hover {
+      color: $dark-gray;
+      border: none;
+    }
+    &::placeholder {
+      color: $dark-gray;
+      opacity: 1;
+    }
+  }
+  button {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    font-size: clamp(14px, 0.83vw, 20px);
+    font-weight: 500;
+    line-height: 150%;
+    padding: clamp(12px, 0.83vw, 20px) clamp(24px, 1.66vw, 40px);
+    border-radius: 5px;
+    width: fit-content;
+    display: flex;
+    border: 0;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: $transition;
+    background-color: $accent !important;
+    color: $white !important;
+    svg {
+      width: clamp(20px, 1.25vw, 32px);
+      height: clamp(20px, 1.25vw, 32px);
+      path {
+        fill: $white !important;
+      }
+    }
+    span {
+      position: absolute;
+      display: block;
+      width: 0;
+      height: 0;
+      color: $white;
+      border-radius: 50%;
+      transition:
+        width 0.4s ease-in-out,
+        height 0.4s ease-in-out;
+      transform: translate(-50%, -50%);
+      background: $dark-gray;
+      z-index: -1;
+    }
+    &:hover {
+      span {
+        width: 225%;
+        height: 562.5px;
+        z-index: -1;
+      }
+    }
+  }
+}
+
+.coming-soon {
+  .newsletter-field {
+    width: 90%;
+    margin: 0 auto;
+    input {
+      background-color: $white;
+    }
+  }
+}
+// Search Field
+.search-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 clamp(12px, 0.83vw, 24px);
+  border-radius: 5px;
+  height: clamp(42px, 2.917vw, 72px);
+  border-radius: 5px;
+  border: 1px solid $white;
+  color: $light-gray;
+  background-color: $accent-2;
+  backdrop-filter: blur(25px);
+  .form-group {
+    input[type="date"],
+    input[type="text"],
+    input[type="email"],
+    input[type="file"],
+    input[type="number"],
+    input[type="password"],
+    input[type="search"],
+    input[type="submit"],
+    input[type="tel"],
+    textarea,
+    .cus-form-control {
+      border: none;
+      padding-right: 0;
+      background: transparent;
+      height: auto;
+      color: $light-gray;
+      padding: 0;
+      &:focus {
+        border: none;
+        background-color: transparent !important;
+      }
+      &:hover {
+        border: none;
+      }
+      &::placeholder {
+        color: $light-gray;
+        border: none;
+      }
+    }
+  }
+  .search-btn {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    color: $light-gray;
+    i {
+      font-size: 16px;
+    }
+  }
+}
+.form-group {
+  .cus-form-control-select {
+    width: 100%;
+    background-color: $light-black;
+    padding: 0 clamp(12px, 0.83vw, 24px);
+    height: clamp(42px, 2.917vw, 72px);
+    color: $white;
+    display: flex;
+    align-items: center;
+    border: none;
+    @include media-query(575px) {
+      max-width: 140px;
+    }
+  }
+}

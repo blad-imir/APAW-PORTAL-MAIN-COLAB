@@ -1,0 +1,93 @@
+/*----------------------------------------*/
+/*  Sidebar CSS START
+/*----------------------------------------*/
+.sidebar {
+    padding: clamp(14px, 1.25vw, 36px);
+    display: flex;
+    flex-direction: column;
+    border-radius: 0px;
+    background: $white;
+    border-radius: clamp(14px, 1.25vw, 36px);
+    .sidebar-widget {
+        border-bottom: 1px solid $lightest-gray;
+        padding: clamp(16px, 1.25vw, 40px) 0;
+        &:last-child{
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+        &:first-child{
+            padding-top: 0;
+        }
+        .widget-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: clamp(12px, 0.83vw, 24px);
+            span {
+                display: block;
+                i {
+                    color: $dark-gray;
+                    font-size: 16px;
+                    &.fa-plus {
+                        font-size: 20px;
+                    }
+                }
+            }
+        }
+        .blogs-list {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(12px, 0.83vw, 24px);
+            li {
+                a{
+                    display: flex;
+                    align-items: center;
+                    gap: clamp(12px, 0.83vw, 24px);
+                    img {
+                        flex-shrink: 0;
+                        border-radius: 5px;
+                    }
+                    .date{
+                        color: $dark-gray;
+                        font-size: clamp(12px, 0.73vw, 24px);
+                    }
+                    p{
+                        color: $light-black;
+                        transition: $transition;
+                    }
+                    &:hover{
+                        p{
+                            color: $accent;
+                            transition: $transition;
+                        }
+                    }
+                }
+            }
+        }
+        .cat-list{
+            display: flex;
+            flex-direction: column;
+            gap: clamp(10px, 0.83vw, 24px);
+            flex-wrap: wrap;
+            li {
+                color: $light-black;
+                a{
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+            }
+        }
+        .tag-list{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            li{
+                padding: 4px 10px;
+                border-radius: 5px;
+                background-color: $accent-2;
+            }
+        }
+    }
+}
+

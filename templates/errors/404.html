@@ -1,0 +1,29 @@
+{% extends 'base.html' %} {% block title %}Page Not Found - Weather Portal{%
+endblock %} {% block content %}
+<div
+	class="error-page-container"
+	style="
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 60vh;
+		text-align: center;
+		padding: 2rem;
+	"
+>
+	<!-- Error Icon -->
+	<div style="font-size: 120px; color: #409ac7; margin-bottom: 1rem">
+		<i class="fas fa-question-circle"></i>
+	</div>
+
+	<!-- Error Message -->
+	<h1 style="font-size: 3rem; margin-bottom: 1rem">404</h1>
+	<h2 style="margin-bottom: 1.5rem">Page Not Found</h2>
+
+	<p style="max-width: 500px; margin-bottom: 2rem; color: #64748b">
+		The page you're looking for doesn't exist. It might have been moved or
+		deleted.
+	</p>
+</div>
+{% endblock %}

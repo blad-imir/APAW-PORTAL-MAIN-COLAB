@@ -1,0 +1,913 @@
+/* ============================================================================
+   PRECIPITATION FORECAST PAGE - PRODUCTION READY WITH CRITICAL FIXES
+   ============================================================================
+   
+   FIXES APPLIED:
+   ✅ Date picker loading state (visual feedback during data fetch)
+   ✅ Loading spinner styles
+   ✅ Export button tooltip on mobile (hover)
+   ✅ Smaller chart tooltip on mobile (better fit)
+   ✅ Tooltip only shows on hover
+   ✅ All previous features maintained
+   
+   ============================================================================ */
+
+/* =============================================================================
+   HEADER & TITLE
+   ============================================================================= */
+
+.precipitation-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 36px;
+	flex-wrap: wrap;
+	gap: 16px;
+}
+
+.precipitation-header__content {
+	flex: 1;
+}
+
+.precipitation-header__controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.precipitation-title {
+	font-weight: 600;
+	color: #1a202c;
+	margin-bottom: 4px;
+
+	@media (max-width: 768px) {
+		font-size: 18px;
+	}
+}
+
+.precipitation-title__icon {
+	color: $accent;
+	margin-right: 8px;
+}
+
+.precipitation-subtitle {
+	color: #64748b;
+	font-size: 13px;
+}
+
+/* =============================================================================
+   DATE PICKER INLINE (in header) - WITH LOADING STATE
+   ============================================================================= */
+
+.date-picker-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: #64748b;
+	position: relative;
+
+	i {
+		color: $accent;
+	}
+}
+
+.date-picker-inline__input {
+	padding: 8px 12px;
+	height: 36px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #1a202c;
+	background: $white;
+	cursor: pointer;
+	transition: all 0.2s ease;
+
+	&:hover:not(:disabled) {
+		border-color: $accent;
+	}
+
+	&:focus {
+		outline: none;
+		border-color: $accent;
+		box-shadow: 0 0 0 3px rgba($accent, 0.15);
+	}
+
+	// ✅ NEW: Loading state
+	&.loading {
+		opacity: 0.6;
+		cursor: wait;
+		pointer-events: none;
+	}
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		background: #f8fafc;
+	}
+}
+
+// ✅ NEW: Date picker loading spinner
+.date-picker-spinner {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 8px;
+	color: $accent;
+	animation: fadeIn 0.2s ease;
+
+	i {
+		font-size: 14px;
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* =============================================================================
+   CHART CONTAINER
+   ============================================================================= */
+
+.chart-container {
+	position: relative;
+}
+
+.chart-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 36px;
+}
+/* =============================================================================
+   NAVIGATION ARROWS - RESPONSIVE & ALWAYS VISIBLE
+   ============================================================================= */
+
+.chart-nav-arrow {
+	// === POSITIONING ===
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 20;
+
+	// === SIZE (Desktop) ===
+	width: 40px;
+	height: 40px;
+
+	// === APPEARANCE ===
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba($accent, 0.9);
+	color: $white;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	transition: $transition;
+
+	// === ICON ===
+	i {
+		font-size: 14px;
+	}
+
+	// === HOVER ===
+	&:hover:not(:disabled) {
+		background: $accent;
+		transform: translateY(-50%) scale(1.1);
+		box-shadow: 0 4px 12px rgba($accent, 0.4);
+	}
+
+	// === ACTIVE ===
+	&:active:not(:disabled) {
+		transform: translateY(-50%) scale(0.95);
+	}
+
+	// === FOCUS ===
+	&:focus {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba($accent, 0.3);
+	}
+
+	// === DISABLED (ALWAYS VISIBLE!) ===
+	&:disabled {
+		opacity: 0.4;
+		background: rgba(148, 163, 184, 0.5);
+		cursor: not-allowed;
+		box-shadow: none;
+
+		&:hover {
+			transform: translateY(-50%);
+		}
+	}
+
+	// === POSITIONING ===
+	&--left {
+		left: -16px;
+	}
+
+	&--right {
+		right: -16px;
+	}
+
+	// === TABLET (768px - 1023px) ===
+	@media (max-width: 1023px) and (min-width: 768px) {
+		width: 36px;
+		height: 36px;
+
+		i {
+			font-size: 13px;
+		}
+	}
+
+	// === MOBILE (below 768px) ===
+	@media (max-width: 767px) {
+		width: 32px;
+		height: 32px;
+
+		i {
+			font-size: 12px;
+		}
+
+		&--left {
+			left: 8px;
+		}
+
+		&--right {
+			right: 8px;
+		}
+
+		// Better touch targets
+		&::before {
+			content: "";
+			position: absolute;
+			top: -8px;
+			left: -8px;
+			right: -8px;
+			bottom: -8px;
+			border-radius: 50%;
+		}
+	}
+
+	// === EXTRA SMALL (below 480px) ===
+	@media (max-width: 480px) {
+		width: 28px;
+		height: 28px;
+
+		i {
+			font-size: 10px;
+		}
+
+		&--left {
+			left: 4px;
+		}
+
+		&--right {
+			right: 4px;
+		}
+	}
+}
+
+/* Arrow fade-in animation */
+.chart-nav-arrow[style*="display: flex"] {
+	animation: arrowFadeIn 0.3s ease;
+}
+
+@keyframes arrowFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-50%) scale(0.8);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(-50%) scale(1);
+	}
+}
+
+/* =============================================================================
+   CHART WRAPPER
+   ============================================================================= */
+
+.chart-wrapper {
+	position: relative;
+	background: $white;
+	border-radius: 12px;
+	padding: 50px 24px 32px 24px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	overflow: hidden;
+}
+
+.chart-canvas {
+	width: 100%;
+	height: 300px;
+	transition: opacity 0.2s ease;
+
+	&.sliding {
+		opacity: 0.7;
+	}
+
+	@media (max-width: 768px) {
+		height: 300px;
+	}
+
+	@media (max-width: 480px) {
+		height: 250px;
+	}
+}
+
+/* Responsive heights */
+@media (max-width: 480px) {
+	.chart-wrapper {
+		min-height: 250px;
+	}
+
+	.chart-canvas {
+		height: 250px !important;
+	}
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+	.chart-wrapper {
+		min-height: 280px;
+	}
+
+	.chart-canvas {
+		height: 280px !important;
+	}
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+	.chart-wrapper {
+		min-height: 320px;
+	}
+
+	.chart-canvas {
+		height: 320px !important;
+	}
+}
+
+@media (min-width: 1024px) {
+	.chart-wrapper {
+		min-height: 480px;
+	}
+
+	.chart-canvas {
+		height: 400px !important;
+	}
+}
+
+/* Mobile touch feedback */
+@media (max-width: 767px) {
+	.chart-canvas {
+		touch-action: pan-x;
+		cursor: grab;
+
+		&:active {
+			cursor: grabbing;
+		}
+	}
+}
+
+/* =============================================================================
+   LOADING STATE
+   ============================================================================= */
+
+.chart-loading {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba($white, 0.95);
+	z-index: 10;
+
+	&.hidden {
+		display: none;
+	}
+}
+
+.chart-loading__spinner {
+	width: 36px;
+	height: 36px;
+	border: 3px solid #e2e8f0;
+	border-top-color: $accent;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+.chart-loading__text {
+	margin-top: 12px;
+	color: #64748b;
+	font-size: 13px;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* =============================================================================
+   ERROR STATE
+   ============================================================================= */
+
+.chart-error {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba($white, 0.95);
+	padding: 24px;
+	text-align: center;
+	z-index: 15;
+
+	&.show {
+		display: flex;
+	}
+}
+
+.chart-error__icon {
+	font-size: 40px;
+	color: #f59e0b;
+	margin-bottom: 12px;
+}
+
+.chart-error__title {
+	font-size: 16px;
+	font-weight: 600;
+	color: #1a202c;
+	margin-bottom: 8px;
+}
+
+.chart-error__message {
+	color: #64748b;
+	font-size: 13px;
+	margin-bottom: 16px;
+}
+
+.chart-error__btn {
+	padding: 8px 16px;
+	background: $accent;
+	color: $white;
+	border: none;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: $transition;
+
+	&:hover {
+		background: darken($accent, 10%);
+		transform: translateY(-1px);
+	}
+
+	&:active {
+		transform: translateY(0);
+	}
+}
+
+/* =============================================================================
+   EXPORT BUTTON (Inline with date picker)
+   ============================================================================= */
+
+.export-btn-inline {
+	position: relative; // For tooltip positioning
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 12px;
+	height: 36px;
+	background: $white;
+	color: $dark-gray;
+	border: 1px solid $accent;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: $transition;
+	white-space: nowrap;
+
+	&:hover {
+		background: $accent;
+		transform: translateY(-1px);
+		color: $white;
+		box-shadow: 0 4px 12px rgba($accent, 0.3);
+	}
+
+	&:active {
+		transform: translateY(0);
+	}
+
+	&:disabled {
+		background: #9ca3af;
+		cursor: not-allowed;
+		transform: none;
+		box-shadow: none;
+	}
+
+	i {
+		font-size: 12px;
+	}
+
+	// === TOOLTIP (Mobile Only) ===
+	@media (max-width: 480px) {
+		// Hide text, show only icon
+		span {
+			display: none;
+		}
+
+		padding: 8px 10px;
+
+		// Tooltip on hover
+		&::after {
+			content: "Export CSV";
+			position: absolute;
+			bottom: calc(100% + 8px);
+			left: 50%;
+			transform: translateX(-50%);
+			padding: 6px 10px;
+			background: rgba(0, 0, 0, 0.85);
+			color: $white;
+			font-size: 11px;
+			font-weight: 500;
+			border-radius: 6px;
+			white-space: nowrap;
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.2s ease, visibility 0.2s ease;
+			pointer-events: none;
+			z-index: 100;
+		}
+
+		// Tooltip arrow
+		&::before {
+			content: "";
+			position: absolute;
+			bottom: calc(100% + 2px);
+			left: 50%;
+			transform: translateX(-50%);
+			border-left: 5px solid transparent;
+			border-right: 5px solid transparent;
+			border-top: 6px solid rgba(0, 0, 0, 0.85);
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.2s ease, visibility 0.2s ease;
+			z-index: 100;
+		}
+
+		// Show tooltip on hover
+		&:hover::after,
+		&:hover::before {
+			opacity: 1;
+			visibility: visible;
+		}
+
+		// Don't show tooltip when disabled
+		&:disabled::after,
+		&:disabled::before {
+			display: none;
+		}
+	}
+}
+
+/* =============================================================================
+   HELP TEXT
+   ============================================================================= */
+
+.precipitation-help {
+	text-align: center;
+	font-size: 12px;
+	color: #94a3b8;
+
+	i {
+		margin-right: 6px;
+		color: $accent;
+	}
+}
+
+/* =============================================================================
+   PRECIPITATION TOOLTIP - SMALLER ON MOBILE (DOESN'T COVER LINES)
+   ============================================================================= */
+
+.prec-tooltip {
+	width: 320px;
+	font-family: $font-primary;
+	background: $white;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+	border: 2px solid $accent;
+
+	// === HEADER ===
+	&__header {
+		padding: 12px 16px;
+		background: $accent;
+		color: $white;
+		font-size: 14px;
+		font-weight: 700;
+		text-align: left;
+	}
+
+	// === WARNING BANNER (Yellow - for duplicate values) ===
+	&__warning {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 10px 16px;
+		background: #fef3c7;
+		border-left: 4px solid #f59e0b;
+		font-size: 12px;
+		font-weight: 600;
+		color: #92400e;
+
+		i {
+			font-size: 14px;
+			color: #f59e0b;
+			flex-shrink: 0;
+		}
+	}
+
+	// === BODY ===
+	&__body {
+		padding: 14px 16px;
+		background: $white;
+	}
+
+	// === STATION ROW ===
+	&__station {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 6px 0;
+
+		&:first-child {
+			padding-top: 0;
+		}
+
+		&:last-child {
+			padding-bottom: 0;
+		}
+	}
+
+	&__station-left {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	// === DOT ===
+	&__dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+
+	// === STATION NAME ===
+	&__station-name {
+		font-size: 13px;
+		font-weight: 500;
+		color: #1e293b;
+	}
+
+	// === RAINFALL VALUE ===
+	&__value {
+		font-size: 13px;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+}
+
+/* =============================================================================
+   TOOLTIP - MOBILE RESPONSIVE (MUCH SMALLER - DOESN'T COVER LINES!)
+   ============================================================================= */
+
+@media (max-width: 767px) {
+	.prec-tooltip {
+		width: 200px !important; // Significantly smaller on mobile
+
+		&__header {
+			padding: 6px 10px;
+			font-size: 10px;
+			font-weight: 600;
+		}
+
+		&__warning {
+			padding: 5px 8px;
+			font-size: 9px;
+			gap: 4px;
+
+			i {
+				font-size: 10px;
+			}
+		}
+
+		&__body {
+			padding: 8px 10px;
+		}
+
+		&__station {
+			padding: 3px 0;
+		}
+
+		&__station-left {
+			gap: 4px;
+		}
+
+		&__dot {
+			width: 6px;
+			height: 6px;
+		}
+
+		&__station-name {
+			font-size: 9px;
+			font-weight: 500;
+		}
+
+		&__value {
+			font-size: 9px;
+			font-weight: 600;
+		}
+	}
+}
+
+/* Extra small screens - even tinier */
+@media (max-width: 480px) {
+	.prec-tooltip {
+		width: 180px !important; // Tiny on very small screens
+
+		&__header {
+			padding: 5px 8px;
+			font-size: 9px;
+		}
+
+		&__warning {
+			padding: 4px 6px;
+			font-size: 8px;
+
+			i {
+				font-size: 9px;
+			}
+		}
+
+		&__body {
+			padding: 6px 8px;
+		}
+
+		&__station {
+			padding: 2px 0;
+		}
+
+		&__station-left {
+			gap: 3px;
+		}
+
+		&__dot {
+			width: 5px;
+			height: 5px;
+		}
+
+		&__station-name {
+			font-size: 8px;
+		}
+
+		&__value {
+			font-size: 8px;
+		}
+	}
+}
+
+/* =============================================================================
+   CANVASJS OVERRIDES - TOOLTIP ONLY ON HOVER!
+   ============================================================================= */
+
+.canvasjs-chart-credit {
+	display: none !important;
+}
+
+#precipitationChart a[href*="canvasjs"] {
+	display: none !important;
+}
+
+// CRITICAL: Make tooltip invisible by default (only show on hover)
+.canvasjs-chart-tooltip,
+div[id*="canvasjs-tooltip"],
+div[id*="canvasjs-react-tooltip"] {
+	box-shadow: none !important;
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+
+	// Hide by default (CanvasJS will show on hover)
+	pointer-events: none !important;
+}
+
+.canvasjs-chart-container div[style*="position: absolute"] {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+[id*="canvasjs"] > div {
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+/* =============================================================================
+   PAGE INDICATOR (Optional - shows which 12-hour window on mobile)
+   ============================================================================= */
+
+.chart-page-indicator {
+	display: none;
+	justify-content: center;
+	gap: 8px;
+	margin-top: 12px;
+
+	@media (max-width: 767px) {
+		display: flex;
+	}
+}
+
+.chart-page-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #e2e8f0;
+	transition: all 0.3s ease;
+
+	&--active {
+		background: $accent;
+		width: 24px;
+		border-radius: 4px;
+	}
+}
+
+/* =============================================================================
+   SWIPE HINT (Optional - shows on first mobile load)
+   ============================================================================= */
+
+.chart-swipe-hint {
+	position: absolute;
+	bottom: 60px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba($black, 0.8);
+	color: $white;
+	padding: 8px 16px;
+	border-radius: 20px;
+	font-size: 12px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	pointer-events: none;
+	animation: swipeHintFade 3s ease forwards;
+
+	i {
+		font-size: 14px;
+	}
+
+	@media (min-width: 768px) {
+		display: none;
+	}
+}
+
+@keyframes swipeHintFade {
+	0%,
+	70% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
+/* =============================================================================
+   ACCESSIBILITY
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+	.prec-tooltip,
+	.chart-canvas,
+	.chart-nav-arrow,
+	.export-btn-inline,
+	.date-picker-spinner {
+		transition: none;
+		animation: none;
+	}
+}

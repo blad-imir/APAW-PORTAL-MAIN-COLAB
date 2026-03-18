@@ -1,0 +1,1303 @@
+// =============================================================================
+// INTERACTIVE MAP COMPONENT
+// Leaflet-based station map with markers, popups, and legend
+// =============================================================================
+
+$map-border-color: #e5e7eb;
+$map-bg-color: #f9fafb;
+$map-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$legend-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+
+// Popup-specific styling
+$popup-bg: white;
+$popup-border: #e2e8f0;
+$popup-text-dark: #1a202c;
+$popup-text-light: #64748b;
+$popup-text-muted: #94a3b8;
+
+// Data age colors - matches alert severity for intuitive understanding
+$age-fresh-bg: #d1fae5;
+$age-fresh-text: #059669;
+$age-normal-bg: #e0f2fe;
+$age-normal-text: #0369a1;
+$age-stale-bg: #fef3c7;
+$age-stale-text: #d97706;
+$age-old-bg: #fee2e2;
+$age-old-text: #dc2626;
+
+// -----------------------------------------------------------------------------
+// Map Container
+// -----------------------------------------------------------------------------
+.map-container {
+	background: $map-bg-color;
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: $map-shadow;
+	position: relative;
+	height: 100%;
+	min-height: 300px;
+
+	@media (min-width: $breakpoint-md) {
+		min-height: 320px;
+	}
+
+	@media (min-width: $breakpoint-lg) {
+		min-height: 340px;
+	}
+}
+
+#station-map {
+	width: 100%;
+	height: 100%;
+	min-height: inherit;
+}
+
+.interactive-map {
+	height: 100%;
+	width: 100%;
+	border-radius: 8px;
+	position: relative;
+	background: $map-bg-color;
+}
+
+.leaflet-tile-container {
+	filter: hue-rotate(190deg) saturate(115%) brightness(97%);
+}
+
+// =============================================================================
+// Z-INDEX FIX: Popup should appear above zoom controls
+// =============================================================================
+.leaflet-popup {
+	z-index: 9999 !important;
+}
+
+.leaflet-popup-pane {
+	z-index: 9999 !important;
+}
+
+// -----------------------------------------------------------------------------
+// HTML Legend Bar (hidden - using JS-injected legend)
+// -----------------------------------------------------------------------------
+.map-legend-bar {
+	display: none !important;
+}
+
+// -----------------------------------------------------------------------------
+// Station Popup Styles - Clean, organized layout
+// -----------------------------------------------------------------------------
+.station-popup {
+	min-width: 200px;
+	font-family: inherit;
+	text-align: left;
+
+	@media (min-width: $breakpoint-md) {
+		min-width: 240px;
+	}
+
+	// Header section: Title + Meta (status & timestamp)
+	&__header {
+		margin-bottom: 10px;
+		padding-bottom: 8px;
+		border-bottom: 1px solid $popup-border;
+
+		@media (min-width: $breakpoint-md) {
+			margin-bottom: 12px;
+			padding-bottom: 10px;
+		}
+	}
+
+	&__title {
+		margin: 0 0 6px 0;
+		color: $popup-text-dark;
+		font-size: 13px;
+		font-weight: 600;
+		line-height: 1.2;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 15px;
+			margin-bottom: 8px;
+		}
+	}
+
+	// Meta row: Status dot + timestamp on same line
+	&__meta {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+
+	&__status {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 10px;
+		font-weight: 500;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 11px;
+		}
+
+		&--online {
+			color: $flood-normal;
+		}
+
+		&--offline {
+			color: $popup-text-light;
+		}
+
+		&--loading {
+			color: $flood-advisory;
+		}
+
+		&::before {
+			content: "";
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: currentColor;
+		}
+	}
+
+	// Loading state for popup when data is still being fetched
+	&__loading {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 16px 8px;
+		gap: 10px;
+	}
+
+	&__spinner {
+		width: 28px;
+		height: 28px;
+		border: 3px solid #e5e7eb;
+		border-top-color: $accent;
+		border-radius: 50%;
+		animation: popup-spinner 0.8s linear infinite;
+	}
+
+	&__loading-text {
+		margin: 0;
+		font-size: 12px;
+		color: $popup-text-light;
+		font-weight: 500;
+	}
+
+	@keyframes popup-spinner {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	&__timestamp {
+		font-size: 10px;
+		color: $popup-text-muted;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 11px;
+		}
+	}
+
+	// Last Update row - the hero information
+	&__update {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 10px;
+		padding: 6px 8px;
+		background: #f8fafc;
+		border-radius: 4px;
+
+		@media (min-width: $breakpoint-md) {
+			margin-bottom: 12px;
+			padding: 8px 10px;
+		}
+	}
+
+	&__update-label {
+		font-size: 11px;
+		font-weight: 500;
+		color: $popup-text-light;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+	}
+
+	// Data age badge
+	&__age {
+		font-weight: 600;
+		padding: 3px 8px;
+		border-radius: 4px;
+		font-size: 10px;
+		white-space: nowrap;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 4px 10px;
+			font-size: 11px;
+		}
+
+		&--fresh {
+			color: $age-fresh-text;
+			background: $age-fresh-bg;
+		}
+
+		&--normal {
+			color: $age-normal-text;
+			background: $age-normal-bg;
+		}
+
+		&--stale {
+			color: $age-stale-text;
+			background: $age-stale-bg;
+		}
+
+		&--old {
+			color: $age-old-text;
+			background: $age-old-bg;
+		}
+	}
+
+	// Metrics section
+	&__metrics {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin-bottom: 10px;
+
+		@media (min-width: $breakpoint-md) {
+			gap: 6px;
+			margin-bottom: 12px;
+		}
+	}
+
+	&__metric {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 5px 6px;
+		background: #f8fafc;
+		border-radius: 4px;
+		font-size: 11px;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 6px 8px;
+			font-size: 12px;
+		}
+	}
+
+	&__metric-level {
+		font-weight: 600;
+		font-size: 11px;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+
+		// Water Level alerts
+		&--critical {
+			color: $flood-critical;
+		}
+
+		&--warning {
+			color: $flood-warning;
+		}
+
+		&--alert {
+			color: $flood-alert;
+		}
+
+		&--advisory {
+			color: $flood-advisory;
+		}
+
+		&--normal {
+			color: $flood-normal;
+		}
+
+		// Rainfall levels (PAGASA classification)
+		&--none {
+			color: $flood-normal;
+		}
+
+		&--light {
+			color: $flood-advisory;
+		}
+
+		&--moderate {
+			color: $flood-warning;
+		}
+
+		&--heavy {
+			color: $flood-critical;
+		}
+	}
+
+	&__metric-value {
+		font-weight: 600;
+		color: $popup-text-dark;
+		font-size: 11px;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+	}
+
+	&__actions {
+		text-align: center;
+		margin-top: 10px;
+
+		@media (min-width: $breakpoint-md) {
+			margin-top: 12px;
+		}
+	}
+
+	.cus-btn {
+		padding: 6px 12px;
+		font-size: 10px;
+		width: 100%;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 8px 16px;
+			font-size: 11px;
+		}
+
+		span {
+			display: none;
+		}
+
+		&:hover {
+			background-color: #2d7ba3 !important;
+		}
+	}
+
+	&__no-data {
+		color: $popup-text-light;
+		text-align: center;
+		font-size: 11px;
+		padding: 8px 0;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+			padding: 10px 0;
+		}
+	}
+
+	// Offline station message - clearer than just "No data"
+	&__offline-message {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 12px 8px;
+		text-align: center;
+	}
+
+	&__offline-icon {
+		color: #94a3b8;
+		margin-bottom: 8px;
+	}
+
+	&__offline-title {
+		margin: 0 0 6px 0;
+		font-size: 13px;
+		font-weight: 600;
+		color: $popup-text-dark;
+	}
+
+	&__offline-desc {
+		margin: 0;
+		font-size: 11px;
+		color: $popup-text-light;
+		line-height: 1.4;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+	}
+}
+
+// =============================================================================
+// POPUP STYLES - Minimal, flexible, no hardcoded dimensions
+// All dimensions controlled by config.py
+// =============================================================================
+
+.leaflet-popup-content {
+	margin: 8px;
+	padding: 0;
+
+	@media (min-width: $breakpoint-md) {
+		margin: 12px;
+	}
+}
+
+.leaflet-popup-content-wrapper {
+	border-radius: 6px;
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+	width: auto !important;
+
+	@media (min-width: $breakpoint-md) {
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	}
+}
+
+// Ensure popup stays visible and centered
+.leaflet-popup {
+	@media (max-width: 767px) {
+		.leaflet-popup-content-wrapper {
+			margin: 0 auto;
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Popup Alert Status Badges
+// -----------------------------------------------------------------------------
+.popup-alert {
+	margin-top: 10px;
+	padding: 6px;
+	border-radius: 4px;
+	text-align: center;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.popup-alert-critical {
+	background: #fee2e2;
+	color: $flood-critical;
+	border: 1px solid #fca5a5;
+}
+
+.popup-alert-warning {
+	background: #fef3c7;
+	color: $flood-warning;
+	border: 1px solid #fcd34d;
+}
+
+.popup-alert-advisory {
+	background: #dbeafe;
+	color: $flood-advisory;
+	border: 1px solid #93c5fd;
+}
+
+.popup-alert-alert {
+	background: #fef3c7;
+	color: $flood-alert;
+	border: 1px solid #fde047;
+}
+
+.popup-alert-normal {
+	background: #d1fae5;
+	color: $flood-normal;
+	border: 1px solid #86efac;
+}
+
+// -----------------------------------------------------------------------------
+// Custom Markers
+// -----------------------------------------------------------------------------
+.custom-marker {
+	background: transparent !important;
+	border: none !important;
+}
+
+@keyframes pulse-marker {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.15);
+	}
+}
+
+.pulse-marker svg {
+	animation: pulse-marker 1s ease-in-out infinite;
+}
+
+// -----------------------------------------------------------------------------
+// Station Labels - Horizontally aligned with pins
+// -----------------------------------------------------------------------------
+.station-label {
+	background: transparent !important;
+	border: none !important;
+
+	&__text {
+		display: inline-block;
+		background: white;
+		padding: 3px 8px;
+		border-radius: 4px;
+		font-weight: 600;
+		font-size: 10px;
+		color: #1e293b;
+		white-space: nowrap;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+		transition: opacity 0.2s ease;
+		line-height: 1.2;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 4px 10px;
+			font-size: 11px;
+		}
+	}
+
+	// Remove default Leaflet tooltip arrow
+	&::before,
+	&::after {
+		display: none !important;
+	}
+}
+
+.station-label--right,
+.station-label--left {
+	.station-label__text {
+		margin: 0;
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Map Legend - Leaflet Control
+// Mobile-first: compact on small screens, expands on larger
+// -----------------------------------------------------------------------------
+.map-legend {
+	display: flex;
+	border-radius: 4px;
+	overflow: hidden;
+	box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+	background: white;
+}
+
+.legend-seg {
+	padding: 4px 6px;
+	font-size: 8px;
+	font-weight: 600;
+	color: white;
+	text-align: center;
+	white-space: nowrap;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+	@media (min-width: $breakpoint-sm) {
+		padding: 4px 8px;
+		font-size: 9px;
+	}
+
+	@media (min-width: $breakpoint-md) {
+		padding: 5px 12px;
+		font-size: 10px;
+	}
+
+	@media (min-width: $breakpoint-lg) {
+		padding: 6px 14px;
+		font-size: 11px;
+	}
+}
+
+.legend-normal {
+	background: $flood-normal;
+}
+.legend-advisory {
+	background: $flood-advisory;
+}
+.legend-alert {
+	background: $flood-alert;
+}
+.legend-warning {
+	background: $flood-warning;
+}
+.legend-critical {
+	background: $flood-critical;
+}
+
+// -----------------------------------------------------------------------------
+// Attribution - Subtle but legally required
+// -----------------------------------------------------------------------------
+.leaflet-control-attribution {
+	font-size: 9px !important;
+	background: rgba(255, 255, 255, 0.7) !important;
+	padding: 2px 6px !important;
+
+	a {
+		color: #64748b !important;
+	}
+}
+// =============================================================================
+// INTERACTIVE MAP COMPONENT
+// Leaflet-based station map with markers, popups, and legend
+// =============================================================================
+
+$map-border-color: #e5e7eb;
+$map-bg-color: #f9fafb;
+$map-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$legend-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+
+// Popup-specific styling
+$popup-bg: white;
+$popup-border: #e2e8f0;
+$popup-text-dark: #1a202c;
+$popup-text-light: #64748b;
+$popup-text-muted: #94a3b8;
+
+// Data age colors - matches alert severity for intuitive understanding
+$age-fresh-bg: #d1fae5;
+$age-fresh-text: #059669;
+$age-normal-bg: #e0f2fe;
+$age-normal-text: #0369a1;
+$age-stale-bg: #fef3c7;
+$age-stale-text: #d97706;
+$age-old-bg: #fee2e2;
+$age-old-text: #dc2626;
+
+// -----------------------------------------------------------------------------
+// Map Container
+// -----------------------------------------------------------------------------
+.map-container {
+	background: $map-bg-color;
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: $map-shadow;
+	position: relative;
+	height: 100%;
+	min-height: 300px;
+
+	@media (min-width: $breakpoint-md) {
+		min-height: 320px;
+	}
+
+	@media (min-width: $breakpoint-lg) {
+		min-height: 340px;
+	}
+}
+
+#station-map {
+	width: 100%;
+	height: 100%;
+	min-height: inherit;
+}
+
+.interactive-map {
+	height: 100%;
+	width: 100%;
+	border-radius: 8px;
+	position: relative;
+	background: $map-bg-color;
+}
+
+.leaflet-tile-container {
+	filter: hue-rotate(190deg) saturate(115%) brightness(97%);
+}
+
+// =============================================================================
+// Z-INDEX FIX: Popup should appear above zoom controls
+// =============================================================================
+.leaflet-popup {
+	z-index: 9999 !important;
+}
+
+.leaflet-popup-pane {
+	z-index: 9999 !important;
+}
+
+// -----------------------------------------------------------------------------
+// HTML Legend Bar (hidden - using JS-injected legend)
+// -----------------------------------------------------------------------------
+.map-legend-bar {
+	display: none !important;
+}
+
+// -----------------------------------------------------------------------------
+// Station Popup Styles - Clean, organized layout
+// -----------------------------------------------------------------------------
+.station-popup {
+	min-width: 200px;
+	font-family: inherit;
+	text-align: left;
+
+	@media (min-width: $breakpoint-md) {
+		min-width: 240px;
+	}
+
+	// Header section: Title + Meta (status & timestamp)
+	&__header {
+		margin-bottom: 10px;
+		padding-bottom: 8px;
+		border-bottom: 1px solid $popup-border;
+
+		@media (min-width: $breakpoint-md) {
+			margin-bottom: 12px;
+			padding-bottom: 10px;
+		}
+	}
+
+	&__title {
+		margin: 0 0 6px 0;
+		color: $popup-text-dark;
+		font-size: 13px;
+		font-weight: 600;
+		line-height: 1.2;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 15px;
+			margin-bottom: 8px;
+		}
+	}
+
+	// Meta row: Status dot + timestamp on same line
+	&__meta {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+
+	&__status {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		font-size: 10px;
+		font-weight: 500;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 11px;
+		}
+
+		&--online {
+			color: $flood-normal;
+		}
+
+		&--offline {
+			color: $popup-text-light;
+		}
+
+		&--loading {
+			color: $flood-advisory;
+		}
+
+		&::before {
+			content: "";
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: currentColor;
+		}
+	}
+
+	// Loading state for popup when data is still being fetched
+	&__loading {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 16px 8px;
+		gap: 10px;
+	}
+
+	&__spinner {
+		width: 28px;
+		height: 28px;
+		border: 3px solid #e5e7eb;
+		border-top-color: $accent;
+		border-radius: 50%;
+		animation: popup-spinner 0.8s linear infinite;
+	}
+
+	&__loading-text {
+		margin: 0;
+		font-size: 12px;
+		color: $popup-text-light;
+		font-weight: 500;
+	}
+
+	@keyframes popup-spinner {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	&__timestamp {
+		font-size: 10px;
+		color: $popup-text-muted;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 11px;
+		}
+	}
+
+	// Last Update row - the hero information
+	&__update {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 10px;
+		padding: 6px 8px;
+		background: #f8fafc;
+		border-radius: 4px;
+
+		@media (min-width: $breakpoint-md) {
+			margin-bottom: 12px;
+			padding: 8px 10px;
+		}
+	}
+
+	&__update-label {
+		font-size: 11px;
+		font-weight: 500;
+		color: $popup-text-light;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+	}
+
+	// Data age badge
+	&__age {
+		font-weight: 600;
+		padding: 3px 8px;
+		border-radius: 4px;
+		font-size: 10px;
+		white-space: nowrap;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 4px 10px;
+			font-size: 11px;
+		}
+
+		&--fresh {
+			color: $age-fresh-text;
+			background: $age-fresh-bg;
+		}
+
+		&--normal {
+			color: $age-normal-text;
+			background: $age-normal-bg;
+		}
+
+		&--stale {
+			color: $age-stale-text;
+			background: $age-stale-bg;
+		}
+
+		&--old {
+			color: $age-old-text;
+			background: $age-old-bg;
+		}
+	}
+
+	// Metrics section
+	&__metrics {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin-bottom: 10px;
+
+		@media (min-width: $breakpoint-md) {
+			gap: 6px;
+			margin-bottom: 12px;
+		}
+	}
+
+	&__metric {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 5px 6px;
+		background: #f8fafc;
+		border-radius: 4px;
+		font-size: 11px;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 6px 8px;
+			font-size: 12px;
+		}
+	}
+
+	&__metric-level {
+		font-weight: 600;
+		font-size: 11px;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+
+		// Water Level alerts
+		&--critical {
+			color: $flood-critical;
+		}
+
+		&--warning {
+			color: $flood-warning;
+		}
+
+		&--alert {
+			color: $flood-alert;
+		}
+
+		&--advisory {
+			color: $flood-advisory;
+		}
+
+		&--normal {
+			color: $flood-normal;
+		}
+
+		// Rainfall levels (PAGASA classification)
+		&--none {
+			color: $flood-normal;
+		}
+
+		&--light {
+			color: $flood-advisory;
+		}
+
+		&--moderate {
+			color: $flood-warning;
+		}
+
+		&--heavy {
+			color: $flood-critical;
+		}
+	}
+
+	&__metric-value {
+		font-weight: 600;
+		color: $popup-text-dark;
+		font-size: 11px;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+	}
+
+	&__actions {
+		text-align: center;
+		margin-top: 10px;
+
+		@media (min-width: $breakpoint-md) {
+			margin-top: 12px;
+		}
+	}
+
+	.cus-btn {
+		padding: 6px 12px;
+		font-size: 10px;
+		width: 100%;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 8px 16px;
+			font-size: 11px;
+		}
+
+		span {
+			display: none;
+		}
+
+		&:hover {
+			background-color: #2d7ba3 !important;
+		}
+	}
+
+	&__no-data {
+		color: $popup-text-light;
+		text-align: center;
+		font-size: 11px;
+		padding: 8px 0;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+			padding: 10px 0;
+		}
+	}
+
+	// Offline station message - clearer than just "No data"
+	&__offline-message {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 12px 8px;
+		text-align: center;
+	}
+
+	&__offline-icon {
+		color: #94a3b8;
+		margin-bottom: 8px;
+	}
+
+	&__offline-title {
+		margin: 0 0 6px 0;
+		font-size: 13px;
+		font-weight: 600;
+		color: $popup-text-dark;
+	}
+
+	&__offline-desc {
+		margin: 0;
+		font-size: 11px;
+		color: $popup-text-light;
+		line-height: 1.4;
+
+		@media (min-width: $breakpoint-md) {
+			font-size: 12px;
+		}
+	}
+}
+
+// =============================================================================
+// POPUP STYLES - Minimal, flexible, no hardcoded dimensions
+// All dimensions controlled by config.py]
+// =============================================================================
+
+.leaflet-popup-content {
+	margin: 8px;
+	padding: 0;
+
+	@media (min-width: $breakpoint-md) {
+		margin: 12px;
+	}
+}
+
+.leaflet-popup-content-wrapper {
+	border-radius: 6px;
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+	width: auto !important;
+
+	@media (min-width: $breakpoint-md) {
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	}
+}
+
+// Ensure popup stays visible and centered
+.leaflet-popup {
+	@media (max-width: 767px) {
+		.leaflet-popup-content-wrapper {
+			margin: 0 auto;
+		}
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Popup Alert Status Badges
+// -----------------------------------------------------------------------------
+.popup-alert {
+	margin-top: 10px;
+	padding: 6px;
+	border-radius: 4px;
+	text-align: center;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.popup-alert-critical {
+	background: #fee2e2;
+	color: $flood-critical;
+	border: 1px solid #fca5a5;
+}
+
+.popup-alert-warning {
+	background: #fef3c7;
+	color: $flood-warning;
+	border: 1px solid #fcd34d;
+}
+
+.popup-alert-advisory {
+	background: #dbeafe;
+	color: $flood-advisory;
+	border: 1px solid #93c5fd;
+}
+
+.popup-alert-alert {
+	background: #fef3c7;
+	color: $flood-alert;
+	border: 1px solid #fde047;
+}
+
+.popup-alert-normal {
+	background: #d1fae5;
+	color: $flood-normal;
+	border: 1px solid #86efac;
+}
+
+// -----------------------------------------------------------------------------
+// Custom Markers
+// -----------------------------------------------------------------------------
+.custom-marker {
+	background: transparent !important;
+	border: none !important;
+}
+
+@keyframes pulse-marker {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.15);
+	}
+}
+
+.pulse-marker svg {
+	animation: pulse-marker 1s ease-in-out infinite;
+}
+
+// -----------------------------------------------------------------------------
+// Station Labels - Horizontally aligned with pins
+// -----------------------------------------------------------------------------
+.station-label {
+	background: transparent !important;
+	border: none !important;
+
+	&__text {
+		display: inline-block;
+		background: white;
+		padding: 3px 8px;
+		border-radius: 4px;
+		font-weight: 600;
+		font-size: 10px;
+		color: #1e293b;
+		white-space: nowrap;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+		transition: opacity 0.2s ease;
+		line-height: 1.2;
+
+		@media (min-width: $breakpoint-md) {
+			padding: 4px 10px;
+			font-size: 11px;
+		}
+	}
+
+	// Remove default Leaflet tooltip arrow
+	&::before,
+	&::after {
+		display: none !important;
+	}
+}
+
+// RIGHT labels - extend naturally to the right of anchor
+.station-label--right {
+	.station-label__text {
+		margin-left: 8px;
+	}
+}
+
+// LEFT labels - shift entire label to the left of anchor
+.station-label--left {
+	.station-label__text {
+		transform: translateX(calc(-100% - 8px));
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Map Legend - Leaflet Control
+// Mobile-first: compact on small screens, expands on larger
+// -----------------------------------------------------------------------------
+.map-legend {
+	display: flex;
+	border-radius: 4px;
+	overflow: hidden;
+	box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+	background: white;
+}
+
+.legend-seg {
+	padding: 4px 6px;
+	font-size: 8px;
+	font-weight: 600;
+	color: white;
+	text-align: center;
+	white-space: nowrap;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+	@media (min-width: $breakpoint-sm) {
+		padding: 4px 8px;
+		font-size: 9px;
+	}
+
+	@media (min-width: $breakpoint-md) {
+		padding: 5px 12px;
+		font-size: 10px;
+	}
+
+	@media (min-width: $breakpoint-lg) {
+		padding: 6px 14px;
+		font-size: 11px;
+	}
+}
+
+.legend-normal {
+	background: $flood-normal;
+}
+.legend-advisory {
+	background: $flood-advisory;
+}
+.legend-alert {
+	background: $flood-alert;
+}
+.legend-warning {
+	background: $flood-warning;
+}
+.legend-critical {
+	background: $flood-critical;
+}
+
+// -----------------------------------------------------------------------------
+// Attribution - Subtle but legally required
+// -----------------------------------------------------------------------------
+.leaflet-control-attribution {
+	font-size: 9px !important;
+	background: rgba(255, 255, 255, 0.7) !important;
+	padding: 2px 6px !important;
+
+	a {
+		color: #64748b !important;
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Map Loading Overlay - Shows while fetching station data
+// -----------------------------------------------------------------------------
+.map-loading-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.85);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	border-radius: inherit;
+	transition: opacity 0.3s ease;
+
+	&--hidden {
+		opacity: 0;
+		pointer-events: none;
+	}
+}
+
+.map-loading-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	text-align: center;
+	padding: 20px;
+
+	.spinner-border {
+		width: 2.5rem;
+		height: 2.5rem;
+	}
+}
+
+.map-loading-text {
+	font-size: 13px;
+	font-weight: 500;
+	color: #64748b;
+	margin: 0;
+
+	@media (min-width: $breakpoint-md) {
+		font-size: 14px;
+	}
+}

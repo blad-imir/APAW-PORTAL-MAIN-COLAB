@@ -1,0 +1,148 @@
+// =============================================================================
+// ALERT STYLES
+// Utility classes for alert levels and metric card styling
+// =============================================================================
+
+// Alert level utility classes
+.alert-normal {
+	color: $alert-normal !important;
+}
+.alert-advisory {
+	color: $alert-advisory !important;
+}
+.alert-alert {
+	color: $alert-alert !important;
+}
+.alert-warning {
+	color: $alert-warning !important;
+}
+.alert-critical {
+	color: $alert-critical !important;
+}
+
+// =============================================================================
+// ALERT BANNERS - Responsive sizing
+// =============================================================================
+
+.alert-banner {
+	// Desktop: comfortable readable size
+	font-size: 0.85rem; // ~13.6px
+	padding: 10px 20px;
+	gap: 10px;
+
+	i {
+		font-size: 1rem; // 16px icon
+	}
+
+	// Colors
+	&--critical {
+		background-color: $flood-critical !important;
+		animation: pulse-alert 2s ease-in-out infinite;
+	}
+
+	&--warning {
+		background-color: $flood-warning !important;
+	}
+
+	&--alert {
+		background-color: $flood-alert !important;
+	}
+
+	&--advisory {
+		background-color: $flood-advisory !important;
+	}
+}
+
+// Tablet (768px - 1023px)
+@media (max-width: 1023px) and (min-width: 768px) {
+	.alert-banner {
+		font-size: 0.75rem; // 12px
+		padding: 8px 14px;
+		gap: 8px;
+
+		i {
+			font-size: 0.875rem;
+		}
+	}
+}
+
+// Mobile (< 768px)
+@media (max-width: 767px) {
+	.alert-banner {
+		font-size: 0.65rem; // ~10.4px
+		padding: 6px 12px;
+		gap: 6px;
+
+		i {
+			font-size: 0.75rem;
+		}
+	}
+}
+
+// Extra small (< 480px)
+@media (max-width: 480px) {
+	.alert-banner {
+		font-size: 0.6rem; // 9.6px
+		padding: 5px 10px;
+		gap: 5px;
+
+		i {
+			font-size: 0.7rem;
+		}
+	}
+}
+
+@keyframes pulse-alert {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.85;
+	}
+}
+
+// =============================================================================
+// METRIC CARD
+// =============================================================================
+
+.alert-card {
+	border-left: none !important;
+	transition: all 0.3s ease;
+}
+
+// =============================================================================
+// TEXT & BACKGROUND UTILITIES
+// =============================================================================
+
+.text-normal {
+	color: $flood-normal !important;
+}
+.text-advisory {
+	color: $flood-advisory !important;
+}
+.text-alert {
+	color: $flood-alert !important;
+}
+.text-warning {
+	color: $flood-warning !important;
+}
+.text-critical {
+	color: $flood-critical !important;
+}
+
+.bg-normal {
+	background-color: $flood-normal !important;
+}
+.bg-advisory {
+	background-color: $flood-advisory !important;
+}
+.bg-alert {
+	background-color: $flood-alert !important;
+}
+.bg-warning {
+	background-color: $flood-warning !important;
+}
+.bg-critical {
+	background-color: $flood-critical !important;
+}

@@ -1,0 +1,308 @@
+<header class="main-menu sticky-top bg-white py-3 py-lg-4">
+	<nav class="main-menu__block">
+		<!-- Left Section -->
+		<div class="location-block d-xl-flex d-none">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				fill="none"
+			>
+				<path
+					d="M11.415 23.6869C11.5454 23.8825 11.7649 24 12 24C12.2351 24 12.4546 23.8825 12.585 23.6869C14.2491 21.1909 16.7 18.1084 18.408 14.9733C19.7736 12.4666 20.4375 10.3287 20.4375 8.4375C20.4375 3.78506 16.6524 0 12 0C7.34756 0 3.5625 3.78506 3.5625 8.4375C3.5625 10.3287 4.22639 12.4666 5.59205 14.9733C7.29872 18.106 9.75436 21.1961 11.415 23.6869ZM12 1.40625C15.877 1.40625 19.0312 4.56047 19.0312 8.4375C19.0312 10.0877 18.4234 12.0055 17.1731 14.3006C15.7009 17.0029 13.6 19.7441 12 22.0485C10.4002 19.7444 8.29922 17.003 6.82692 14.3006C5.57658 12.0055 4.96875 10.0877 4.96875 8.4375C4.96875 4.56047 8.12297 1.40625 12 1.40625Z"
+					fill="#141516"
+				/>
+				<path
+					d="M12 12.6562C14.3262 12.6562 16.2188 10.7637 16.2188 8.4375C16.2188 6.11128 14.3262 4.21875 12 4.21875C9.67378 4.21875 7.78125 6.11128 7.78125 8.4375C7.78125 10.7637 9.67378 12.6562 12 12.6562ZM12 5.625C13.5508 5.625 14.8125 6.88669 14.8125 8.4375C14.8125 9.98831 13.5508 11.25 12 11.25C10.4492 11.25 9.1875 9.98831 9.1875 8.4375C9.1875 6.88669 10.4492 5.625 12 5.625Z"
+					fill="#141516"
+				/>
+			</svg>
+			<span class="bold-text">Balatan, Camarines Sur</span>
+		</div>
+		<!-- End of Left Section -->
+		<div class="main-menu__logo d-xl-none d-block">
+			<a href="{{ url_for('web.home') }}" class="logo">
+				<img src="{{ url_for('static', filename='media/logo.png') }}" alt="" />
+			</a>
+		</div>
+		<!-- Middle Section -->
+		<div class="search-block d-xl-flex d-none">
+			<form action="{{ url_for('web.home') if url_for else 'blogs.html' }}">
+				<div class="search-field">
+					<div class="form-group">
+						<input
+							type="search"
+							class="cus-form-control"
+							id="searchInput"
+							name="search"
+							autocomplete="off"
+							placeholder="Search Weather Station here..."
+						/>
+					</div>
+					<button type="submit" class="search-btn">
+						<i class="fa-regular fa-magnifying-glass"></i>
+					</button>
+				</div>
+			</form>
+		</div>
+		<!-- End of Left Section -->
+		<!-- Right Section -->
+		<div class="main-menu__right">
+			<span
+				class="badge bg-danger d-none d-flex align-items-center gap-2 me-2 px-3 py-2 system-status-badge"
+				id="systemStatusBadge"
+				role="alert"
+			>
+				<span class="status-pulse bg-white rounded-circle"></span>
+				<span class="status-text">No Internet Connection</span>
+			</span>
+			<!-- Notification Bell Dropdown -->
+			<div class="dropdown d-xl-flex d-none">
+				<a
+					class="icon-btn notification position-relative"
+					href="#"
+					role="button"
+					id="notificationDropdown"
+					data-bs-toggle="dropdown"
+					data-bs-auto-close="outside"
+					aria-expanded="false"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="22"
+						height="24"
+						viewBox="0 0 22 24"
+						fill="none"
+					>
+						<path
+							d="M18.2657 12.3217V10.0781C18.2657 6.80522 16.0902 4.0312 13.1094 3.12516V2.10938C13.1094 0.946266 12.1632 0 11.0001 0C9.83695 0 8.89068 0.946266 8.89068 2.10938V3.12516C5.9099 4.0312 3.73443 6.80517 3.73443 10.0781V12.3217C3.73443 15.1966 2.63859 17.9227 0.648789 19.9977C0.453789 20.2011 0.398992 20.5011 0.509523 20.7602C0.620055 21.0194 0.874586 21.1875 1.1563 21.1875H7.55516C7.88179 22.7903 9.30229 24 11.0001 24C12.6979 24 14.1183 22.7903 14.4449 21.1875H20.8438C21.1255 21.1875 21.38 21.0194 21.4905 20.7602C21.6011 20.5011 21.5463 20.2011 21.3513 19.9977C19.3615 17.9227 18.2657 15.1965 18.2657 12.3217ZM10.2969 2.10938C10.2969 1.72167 10.6124 1.40625 11.0001 1.40625C11.3878 1.40625 11.7032 1.72167 11.7032 2.10938V2.84663C11.4718 2.82431 11.2372 2.8125 11.0001 2.8125C10.7629 2.8125 10.5284 2.82431 10.2969 2.84663V2.10938ZM11.0001 22.5938C10.0834 22.5938 9.30187 22.0059 9.01162 21.1875H12.9885C12.6982 22.0059 11.9167 22.5938 11.0001 22.5938ZM2.67177 19.7812C4.27307 17.6348 5.14068 15.0371 5.14068 12.3217V10.0781C5.14068 6.84727 7.7692 4.21875 11.0001 4.21875C14.2309 4.21875 16.8594 6.84727 16.8594 10.0781V12.3217C16.8594 15.0371 17.727 17.6348 19.3284 19.7812H2.67177Z"
+							fill="#141516"
+						/>
+						<path
+							d="M20.1407 10.0781C20.1407 10.4664 20.4555 10.7812 20.8438 10.7812C21.2321 10.7812 21.5469 10.4664 21.5469 10.0781C21.5469 7.26094 20.4499 4.61236 18.4578 2.62031C18.1833 2.34577 17.7381 2.34572 17.4635 2.62031C17.1889 2.89491 17.1889 3.34008 17.4635 3.61467C19.1899 5.34113 20.1407 7.63655 20.1407 10.0781Z"
+							fill="#141516"
+						/>
+						<path
+							d="M1.1563 10.7812C1.54462 10.7812 1.85943 10.4664 1.85943 10.0781C1.85943 7.63659 2.81024 5.34117 4.53665 3.61472C4.81124 3.34012 4.81124 2.89495 4.53665 2.62036C4.2621 2.34577 3.81688 2.34577 3.54229 2.62036C1.55024 4.61241 0.45318 7.26094 0.45318 10.0781C0.45318 10.4664 0.767992 10.7812 1.1563 10.7812Z"
+							fill="#141516"
+						/>
+					</svg>
+					<!-- Badge positioned close to bell -->
+					<span
+						class="badge rounded-pill bg-danger d-none notification-badge"
+						id="notificationBadge"
+					>
+						0
+					</span>
+				</a>
+				<div
+					class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-0 overflow-hidden notification-dropdown"
+					aria-labelledby="notificationDropdown"
+				>
+					<!-- Header -->
+					<div
+						class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-light notification-dropdown__header"
+					>
+						<h6 class="mb-0 fw-semibold">
+							<i class="fas fa-bell me-2 text-primary"></i>Alert History
+						</h6>
+						<small class="text-muted" id="notificationPeriod"
+							>Last 10 days</small
+						>
+					</div>
+
+					<!-- Filter Toggle Buttons -->
+					<div class="d-flex gap-2 p-2 border-bottom bg-white">
+						<button
+							type="button"
+							class="notification-filter active"
+							data-filter="all"
+						>
+							<i class="fas fa-list"></i>
+							<span>All</span>
+						</button>
+						<button
+							type="button"
+							class="notification-filter"
+							data-filter="water_level"
+						>
+							<i class="fas fa-water"></i>
+							<span>Water Level</span>
+						</button>
+						<button
+							type="button"
+							class="notification-filter"
+							data-filter="rainfall"
+						>
+							<i class="fas fa-cloud-rain"></i>
+							<span>Rainfall</span>
+						</button>
+					</div>
+
+					<!-- Notification List -->
+					<div
+						class="overflow-auto notification-dropdown__list"
+						id="notificationList"
+					>
+						<!-- Loading State -->
+						<div class="text-center py-4" id="notificationLoading">
+							<div
+								class="spinner-border spinner-border-sm text-primary"
+								role="status"
+							>
+								<span class="visually-hidden">Loading...</span>
+							</div>
+							<p class="text-muted small mt-2 mb-0">Loading alerts...</p>
+						</div>
+						<!-- Empty State (hidden by default) -->
+						<div class="text-center py-4 d-none" id="notificationEmpty">
+							<i class="fas fa-check-circle text-success fs-1 mb-2"></i>
+							<p class="text-muted small mb-0">No alerts in the last 10 days</p>
+						</div>
+						<!-- Notifications will be injected here -->
+					</div>
+					<!-- Footer -->
+					<div
+						class="border-top px-3 py-2 bg-light text-center notification-dropdown__footer"
+					>
+						<small class="text-muted">
+							<i class="fas fa-info-circle me-1"></i>
+							Showing flood &amp; rainfall alerts
+						</small>
+					</div>
+				</div>
+			</div>
+			<a class="icon-btn account d-xl-flex d-none" href="javascript:;">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="28"
+					height="32"
+					fill="none"
+					viewBox="0 0 14 14"
+				>
+					<path
+						d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"
+					/>
+				</svg>
+			</a>
+			<!-- Mobile Notification Bell (replaces search icon) -->
+			<a
+				class="icon-btn notification-mobile position-relative d-xl-none"
+				href="#"
+				id="mobileNotificationToggle"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="22"
+					height="24"
+					viewBox="0 0 22 24"
+					fill="none"
+				>
+					<path
+						d="M18.2657 12.3217V10.0781C18.2657 6.80522 16.0902 4.0312 13.1094 3.12516V2.10938C13.1094 0.946266 12.1632 0 11.0001 0C9.83695 0 8.89068 0.946266 8.89068 2.10938V3.12516C5.9099 4.0312 3.73443 6.80517 3.73443 10.0781V12.3217C3.73443 15.1966 2.63859 17.9227 0.648789 19.9977C0.453789 20.2011 0.398992 20.5011 0.509523 20.7602C0.620055 21.0194 0.874586 21.1875 1.1563 21.1875H7.55516C7.88179 22.7903 9.30229 24 11.0001 24C12.6979 24 14.1183 22.7903 14.4449 21.1875H20.8438C21.1255 21.1875 21.38 21.0194 21.4905 20.7602C21.6011 20.5011 21.5463 20.2011 21.3513 19.9977C19.3615 17.9227 18.2657 15.1965 18.2657 12.3217ZM10.2969 2.10938C10.2969 1.72167 10.6124 1.40625 11.0001 1.40625C11.3878 1.40625 11.7032 1.72167 11.7032 2.10938V2.84663C11.4718 2.82431 11.2372 2.8125 11.0001 2.8125C10.7629 2.8125 10.5284 2.82431 10.2969 2.84663V2.10938ZM11.0001 22.5938C10.0834 22.5938 9.30187 22.0059 9.01162 21.1875H12.9885C12.6982 22.0059 11.9167 22.5938 11.0001 22.5938ZM2.67177 19.7812C4.27307 17.6348 5.14068 15.0371 5.14068 12.3217V10.0781C5.14068 6.84727 7.7692 4.21875 11.0001 4.21875C14.2309 4.21875 16.8594 6.84727 16.8594 10.0781V12.3217C16.8594 15.0371 17.727 17.6348 19.3284 19.7812H2.67177Z"
+						fill="#141516"
+					/>
+					<path
+						d="M20.1407 10.0781C20.1407 10.4664 20.4555 10.7812 20.8438 10.7812C21.2321 10.7812 21.5469 10.4664 21.5469 10.0781C21.5469 7.26094 20.4499 4.61236 18.4578 2.62031C18.1833 2.34577 17.7381 2.34572 17.4635 2.62031C17.1889 2.89491 17.1889 3.34008 17.4635 3.61467C19.1899 5.34113 20.1407 7.63655 20.1407 10.0781Z"
+						fill="#141516"
+					/>
+					<path
+						d="M1.1563 10.7812C1.54462 10.7812 1.85943 10.4664 1.85943 10.0781C1.85943 7.63659 2.81024 5.34117 4.53665 3.61472C4.81124 3.34012 4.81124 2.89495 4.53665 2.62036C4.2621 2.34577 3.81688 2.34577 3.54229 2.62036C1.55024 4.61241 0.45318 7.26094 0.45318 10.0781C0.45318 10.4664 0.767992 10.7812 1.1563 10.7812Z"
+						fill="#141516"
+					/>
+				</svg>
+				<!-- Mobile Badge -->
+				<span
+					class="badge rounded-pill bg-danger d-none notification-badge"
+					id="mobileNotificationBadge"
+				>
+					0
+				</span>
+			</a>
+			<a href="#" class="main-menu__toggler sidebar-nav__toggler">
+				<i class="fa-light fa-bars"></i>
+			</a>
+		</div>
+		{% include 'includes/sidebar.html' %}
+	</nav>
+</header>
+
+<!-- Mobile Notification Full Page Overlay -->
+<div class="mobile-notification-page d-xl-none" id="mobileNotificationPage">
+	<!-- Mobile Header -->
+	<div
+		class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom bg-white sticky-top mobile-notification-page__header"
+	>
+		<button
+			type="button"
+			class="btn mobile-notification-page__back"
+			id="mobileNotificationBack"
+		>
+			<i class="fas fa-arrow-left"></i>
+		</button>
+		<h5 class="mb-0 fw-semibold">
+			<i class="fas fa-bell me-2 text-primary"></i>Alert History
+		</h5>
+		<small class="text-muted mobile-notification-page__period"
+			>Last 10 days</small
+		>
+	</div>
+
+	<!-- Filter Toggle Buttons -->
+	<div
+		class="d-flex gap-2 p-2 border-bottom bg-white sticky-top mobile-notification-page__filters"
+	>
+		<button
+			type="button"
+			class="mobile-notification-filter active"
+			data-filter="all"
+		>
+			<i class="fas fa-list"></i>
+			<span>All</span>
+		</button>
+		<button
+			type="button"
+			class="mobile-notification-filter"
+			data-filter="water_level"
+		>
+			<i class="fas fa-water"></i>
+			<span>Water Level</span>
+		</button>
+		<button
+			type="button"
+			class="mobile-notification-filter"
+			data-filter="rainfall"
+		>
+			<i class="fas fa-cloud-rain"></i>
+			<span>Rainfall</span>
+		</button>
+	</div>
+
+	<!-- Mobile Notification List -->
+	<div id="mobileNotificationList">
+		<!-- Loading State -->
+		<div class="text-center py-5" id="mobileNotificationLoading">
+			<div class="spinner-border text-primary" role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+			<p class="text-muted mt-3 mb-0">Loading alerts...</p>
+		</div>
+		<!-- Empty State -->
+		<div class="text-center py-5 d-none" id="mobileNotificationEmpty">
+			<i
+				class="fas fa-check-circle text-success mobile-notification-page__empty-icon"
+			></i>
+			<p class="text-muted mt-3 mb-0">No alerts in the last 10 days</p>
+		</div>
+		<!-- Notifications will be injected here -->
+	</div>
+
+	<!-- Footer -->
+	<div class="border-top px-3 py-3 bg-light text-center">
+		<small class="text-muted">
+			<i class="fas fa-info-circle me-1"></i>
+			Showing flood &amp; rainfall alerts
+		</small>
+	</div>
+</div>

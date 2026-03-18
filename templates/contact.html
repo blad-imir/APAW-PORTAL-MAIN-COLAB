@@ -1,0 +1,97 @@
+{% extends "base.html" %} {% block title %}Contact - Project APAW{% endblock %}
+{% block meta_description %} Contact the Project APAW team at Camarines Sur
+Polytechnic Colleges {% endblock %} {% block content %}
+<!-- Page Header -->
+<section class="contact-header text-center my-40">
+	<h2 class="contact-header__title mb-1 mb-lg-2">GET IN TOUCH</h2>
+	<p class="contact-header__subtitle mb-0">Reach out to us!</p>
+</section>
+
+<!-- Contact Content -->
+<section class="mb-40">
+	<div class="bg-white rounded-4 p-4 p-lg-5 overflow-hidden">
+		<div class="row g-0 align-items-center justify-content-center">
+			<!-- Map -->
+			<div class="col-12 col-lg-auto order-2 order-lg-1">
+				<div class="d-flex justify-content-center w-100">
+					<div class="contact-map position-relative rounded-3 overflow-hidden">
+						<iframe
+							src="https://www.google.com/maps?q=College+of+Computer+Studies,+CSPC,+Nabua,+Camarines+Sur&ll=13.4063,123.377&z=17&output=embed"
+							width="100%"
+							height="100%"
+							style="border: 0"
+							allowfullscreen=""
+							loading="lazy"
+							referrerpolicy="no-referrer-when-downgrade"
+							title="AIRCoDe Office - CCS Building, CSPC"
+						></iframe>
+
+						<!-- Map Popup -->
+						<div
+							class="contact-map__popup bg-white rounded-3 text-center shadow"
+						>
+							<button
+								class="contact-map__popup-close btn-close position-absolute"
+								aria-label="Close"
+							></button>
+							<p class="fw-semibold small text-dark mb-0">AIRCoDe Office</p>
+							<p class="small text-muted mb-1">Visit us!</p>
+							<a
+								href="https://maps.app.goo.gl/XmZjMxJff9kLVRrN6"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="small text-primary text-decoration-none"
+								>Directions</a
+							>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Contact Info -->
+			<div class="col-12 col-lg-auto order-1 order-lg-2">
+				<div
+					class="d-flex flex-column align-items-center align-items-lg-start gap-4 py-4 py-lg-0 px-lg-5 text-center text-lg-start"
+				>
+					<!-- Phone -->
+					<a
+						href="tel:+63542884421"
+						class="contact-item d-flex flex-column flex-lg-row align-items-center align-items-lg-start gap-3 text-decoration-none"
+					>
+						<span class="contact-icon">
+							<i class="fa-solid fa-phone"></i>
+						</span>
+						<span class="contact-text">(054) 288-4421 to 23</span>
+					</a>
+
+					<!-- Email -->
+					<a
+						href="mailto:aircode@cspc.edu.ph"
+						class="contact-item d-flex flex-column flex-lg-row align-items-center align-items-lg-start gap-3 text-decoration-none"
+					>
+						<span class="contact-icon">
+							<i class="fa-solid fa-envelope"></i>
+						</span>
+						<span class="contact-text">aircode@cspc.edu.ph</span>
+					</a>
+
+					<!-- Address -->
+					<div
+						class="d-flex flex-column flex-lg-row align-items-center align-items-lg-start gap-3"
+					>
+						<span class="contact-icon">
+							<i class="fa-solid fa-location-dot"></i>
+						</span>
+						<span class="contact-text">
+							4th Floor, CCS Building,<br />
+							Camarines Sur Polytechnic Colleges,<br />
+							San Miguel, Nabua, Camarines Sur,<br />
+							Philippines 4434
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+{% endblock %}

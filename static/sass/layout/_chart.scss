@@ -1,0 +1,1023 @@
+// =============================================================================
+// CHART STYLES - Precipitation & Water Level Charts
+// =============================================================================
+
+@use "sass:color";
+
+$accent: #409ac7;
+$font-primary: "Poppins", sans-serif;
+$transition: all 0.2s ease;
+
+// =============================================================================
+// ALERT BANNERS
+// =============================================================================
+
+.alert-banner {
+	&--advisory {
+		background: #3b82f6;
+	}
+	&--alert {
+		background: #eab308;
+	}
+	&--warning {
+		background: #f97316;
+	}
+	&--critical {
+		background: #dc2626;
+		animation: criticalPulse 1s ease-in-out infinite;
+	}
+}
+
+@keyframes criticalPulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.85;
+	}
+}
+
+// =============================================================================
+// CHART CONTAINER & WRAPPER
+// =============================================================================
+
+.chart-container {
+	position: relative;
+}
+
+.chart-wrapper {
+	position: relative;
+	background: $white;
+	border-radius: 12px;
+	padding: 12px 24px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	overflow: visible;
+}
+
+// =============================================================================
+// CHART HEADER & CONTROLS
+// =============================================================================
+
+.chart-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding-bottom: 16px;
+}
+
+.chart-header--simple {
+	justify-content: flex-start;
+	padding-bottom: 12px;
+}
+
+.chart-title,
+.water-level-title,
+.precipitation-title {
+	font-size: 20px;
+	font-weight: 600;
+	color: $dark-gray;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	&__icon {
+		color: $accent;
+		font-size: 20px;
+	}
+}
+
+.chart-controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+// =============================================================================
+// DATE PICKER
+// =============================================================================
+
+.date-picker-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: #64748b;
+
+	i {
+		color: $accent;
+		font-size: 14px;
+	}
+
+	.date-picker-label,
+	span:not(.sr-only) {
+		font-size: 13px;
+		color: #64748b;
+		white-space: nowrap;
+	}
+}
+
+.date-picker-inline__input {
+	padding: 8px 12px;
+	height: 36px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #1a202c;
+	background: $white;
+	cursor: pointer;
+	transition: $transition;
+	min-width: 140px;
+	accent-color: $accent;
+
+	&:hover {
+		border-color: $accent;
+	}
+	&:focus {
+		outline: none;
+		border-color: $accent;
+		box-shadow: 0 0 0 3px rgba($accent, 0.15);
+	}
+	&:disabled {
+		opacity: 0.6;
+		cursor: wait;
+		background: #f8fafc;
+	}
+
+	// Style options (works in Firefox, limited in Chrome/Safari)
+	option {
+		padding: 8px 12px;
+		background: $white;
+		color: #1a202c;
+
+		&:checked,
+		&:hover,
+		&[selected] {
+			background: $accent;
+			color: $white;
+		}
+	}
+}
+
+// =============================================================================
+// EXPORT BUTTON
+// =============================================================================
+
+.export-btn-inline {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 12px;
+	height: 36px;
+	background: $white;
+	color: $dark-gray;
+	border: 1px solid $accent;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: $transition;
+	white-space: nowrap;
+
+	&:hover {
+		background: $accent;
+		color: $white;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba($accent, 0.3);
+	}
+	&:active {
+		transform: translateY(0);
+	}
+	&:disabled {
+		background: #9ca3af;
+		cursor: not-allowed;
+	}
+
+	i {
+		font-size: 12px;
+	}
+}
+
+// =============================================================================
+// CHART CANVAS
+// =============================================================================
+
+.chart-canvas {
+	width: 100%;
+	position: relative;
+	min-height: 350px;
+	transition: opacity 0.2s ease;
+
+	&.sliding {
+		opacity: 0.7;
+	}
+}
+
+// =============================================================================
+// NAVIGATION ARROWS
+// =============================================================================
+
+.chart-nav-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 20;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba($accent, 0.9);
+	color: $white;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	transition: $transition;
+
+	i {
+		font-size: 14px;
+	}
+
+	&:hover:not(:disabled) {
+		background: $accent;
+		transform: translateY(-50%) scale(1.1);
+		box-shadow: 0 4px 12px rgba($accent, 0.4);
+	}
+	&:disabled {
+		opacity: 0.4;
+		background: rgba(148, 163, 184, 0.5);
+		cursor: not-allowed;
+	}
+
+	&--left {
+		left: -16px;
+	}
+	&--right {
+		right: -16px;
+	}
+
+	// Small variant for inline/header use
+	&--sm {
+		position: static;
+		transform: none;
+		width: 32px;
+		height: 32px;
+		flex-shrink: 0;
+
+		i {
+			font-size: 12px;
+		}
+
+		&:hover:not(:disabled) {
+			transform: scale(1.1);
+		}
+	}
+}
+
+// =============================================================================
+// LOADING STATE
+// =============================================================================
+
+.chart-loading {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba($white, 0.95);
+	border-radius: 12px;
+	z-index: 10;
+
+	&.hidden {
+		display: none !important;
+	}
+
+	&__spinner {
+		width: 36px;
+		height: 36px;
+		border: 3px solid #e2e8f0;
+		border-top-color: $accent;
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+	&__text {
+		margin-top: 12px;
+		color: #64748b;
+		font-size: 14px;
+	}
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+// =============================================================================
+// ERROR STATE
+// =============================================================================
+
+.chart-error {
+	display: none;
+	position: absolute;
+	inset: 0;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba($white, 0.95);
+	padding: 24px;
+	text-align: center;
+	border-radius: 12px;
+	z-index: 15;
+
+	&.show {
+		display: flex !important;
+	}
+
+	&__icon {
+		font-size: 40px;
+		color: #f59e0b;
+		margin-bottom: 12px;
+	}
+	&__title {
+		font-size: 16px;
+		font-weight: 600;
+		color: #1a202c;
+		margin-bottom: 8px;
+	}
+	&__message {
+		color: #64748b;
+		font-size: 13px;
+		margin-bottom: 16px;
+		max-width: 300px;
+	}
+	&__btn {
+		padding: 8px 16px;
+		background: $accent;
+		color: $white;
+		border: none;
+		border-radius: 6px;
+		font-size: 13px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: $transition;
+
+		i {
+			margin-right: 6px;
+		}
+	}
+}
+
+// =============================================================================
+// SHARED TOOLTIP BASE (used by both water-tooltip and prec-tooltip)
+// =============================================================================
+
+%tooltip-base {
+	font-family: $font-primary;
+	background: $white;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+	border: 2px solid $accent;
+}
+
+%tooltip-header {
+	padding: 12px 16px;
+	background: $accent;
+	color: $white;
+	font-size: 14px;
+	font-weight: 700;
+	text-align: left;
+}
+
+%tooltip-warning {
+	padding: 10px 16px;
+	background: #fef3c7;
+	border-left: 4px solid #f59e0b;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #92400e;
+
+	i {
+		color: #f59e0b;
+		font-size: 14px;
+		flex-shrink: 0;
+	}
+}
+
+%tooltip-body {
+	padding: 14px 16px;
+	background: $white;
+}
+
+%tooltip-station {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 6px 0;
+
+	&:first-child {
+		padding-top: 0;
+	}
+	&:last-child {
+		padding-bottom: 0;
+	}
+}
+
+%tooltip-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+// Water Level Tooltip
+.water-tooltip {
+	@extend %tooltip-base;
+	width: 280px;
+
+	&__header {
+		@extend %tooltip-header;
+	}
+	&__warning {
+		@extend %tooltip-warning;
+	}
+	&__body {
+		@extend %tooltip-body;
+	}
+	&__station {
+		@extend %tooltip-station;
+	}
+	&__station-left {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	&__dot {
+		@extend %tooltip-dot;
+	}
+	&__station-name {
+		font-size: 13px;
+		font-weight: 500;
+		color: #1e293b;
+	}
+	&__value {
+		font-size: 13px;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+	&__alert {
+		padding: 8px 16px;
+		font-size: 11px;
+		font-weight: 700;
+		text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+
+		&--advisory {
+			background: #eff6ff;
+			color: #1e40af;
+		}
+		&--alert {
+			background: #fefce8;
+			color: #854d0e;
+		}
+		&--warning {
+			background: #fff7ed;
+			color: #9a3412;
+		}
+		&--critical {
+			background: #fef2f2;
+			color: #991b1b;
+		}
+	}
+}
+
+// Precipitation Tooltip
+.prec-tooltip {
+	@extend %tooltip-base;
+	width: 320px;
+
+	&__header {
+		@extend %tooltip-header;
+	}
+	&__warning {
+		@extend %tooltip-warning;
+	}
+	&__body {
+		@extend %tooltip-body;
+	}
+	&__station {
+		@extend %tooltip-station;
+	}
+	&__station-left {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	&__dot {
+		@extend %tooltip-dot;
+	}
+	&__station-name {
+		font-size: 13px;
+		font-weight: 500;
+		color: #1e293b;
+	}
+	&__value {
+		font-size: 13px;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+}
+
+// =============================================================================
+// ACCESSIBILITY
+// =============================================================================
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+// =============================================================================
+// CANVASJS OVERRIDES
+// =============================================================================
+
+// Hide CanvasJS trial credit watermark - multiple selectors for reliability
+.canvasjs-chart-credit,
+a[href*="canvasjs.com"],
+a[title*="JavaScript Charts"] {
+	display: none !important;
+	visibility: hidden !important;
+	opacity: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+}
+
+.canvasjs-chart-tooltip,
+div[id*="canvasjs-tooltip"] {
+	box-shadow: none !important;
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+}
+
+// Force center CanvasJS legend on all screen sizes
+.canvasjs-chart-container {
+	> div {
+		// Target legend items and center them
+		&[style*="cursor"] {
+			float: none !important;
+			display: inline-flex !important;
+		}
+	}
+}
+
+// =============================================================================
+// RESPONSIVE - TABLET (768px - 1023px)
+// =============================================================================
+
+@media (max-width: 1023px) and (min-width: 768px) {
+	.chart-title,
+	.water-level-title,
+	.precipitation-title {
+		font-size: 19px;
+		&__icon {
+			font-size: 19px;
+		}
+	}
+
+	.chart-canvas {
+		min-height: 320px;
+	}
+
+	.date-picker-inline {
+		font-size: 12px;
+		i {
+			font-size: 13px;
+		}
+	}
+	.date-picker-inline__input {
+		height: 34px;
+		font-size: 12px;
+		min-width: 130px;
+	}
+	.export-btn-inline {
+		height: 34px;
+		font-size: 12px;
+	}
+	.chart-nav-arrow {
+		width: 36px;
+		height: 36px;
+		i {
+			font-size: 13px;
+		}
+	}
+}
+
+// =============================================================================
+// RESPONSIVE - MOBILE (< 768px)
+// =============================================================================
+
+@media (max-width: 767px) {
+	.chart-title,
+	.water-level-title,
+	.precipitation-title {
+		font-size: 18px;
+		&__icon {
+			font-size: 18px;
+		}
+	}
+
+	.chart-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 12px;
+		padding-bottom: 8px;
+	}
+
+	.chart-controls {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.chart-canvas {
+		min-height: 250px;
+		touch-action: pan-x;
+		cursor: grab;
+		&:active {
+			cursor: grabbing;
+		}
+	}
+
+	.date-picker-inline {
+		font-size: 11px;
+		gap: 4px;
+		i {
+			font-size: 11px;
+		}
+	}
+	.date-picker-inline__input {
+		padding: 6px 8px;
+		height: 32px;
+		font-size: 12px;
+		min-width: 110px;
+	}
+
+	.export-btn-inline {
+		padding: 6px 8px;
+		height: 32px;
+		font-size: 12px;
+		i {
+			font-size: 11px;
+		}
+	}
+
+	.chart-nav-arrow {
+		width: 32px;
+		height: 32px;
+		i {
+			font-size: 12px;
+		}
+		&--left {
+			left: 8px;
+		}
+		&--right {
+			right: 8px;
+		}
+	}
+
+	// Smaller tooltips on mobile
+	.water-tooltip,
+	.prec-tooltip {
+		width: 200px !important;
+
+		&__header {
+			padding: 6px 10px;
+			font-size: 10px;
+		}
+		&__warning {
+			padding: 5px 8px;
+			font-size: 9px;
+			i {
+				font-size: 10px;
+			}
+		}
+		&__body {
+			padding: 8px 10px;
+		}
+		&__station {
+			padding: 3px 0;
+		}
+		&__station-left {
+			gap: 4px;
+		}
+		&__dot {
+			width: 6px;
+			height: 6px;
+		}
+		&__station-name {
+			font-size: 9px;
+		}
+		&__value {
+			font-size: 9px;
+		}
+	}
+}
+
+// =============================================================================
+// RESPONSIVE - EXTRA SMALL (< 480px)
+// =============================================================================
+
+@media (max-width: 480px) {
+	.chart-title,
+	.water-level-title,
+	.precipitation-title {
+		font-size: 16px;
+		&__icon {
+			font-size: 16px;
+		}
+	}
+
+	.chart-canvas {
+		min-height: 220px;
+	}
+
+	.date-picker-inline {
+		font-size: 10px;
+		gap: 3px;
+		i {
+			font-size: 10px;
+		}
+	}
+	.date-picker-inline__input {
+		padding: 4px 6px;
+		height: 28px;
+		font-size: 11px;
+		min-width: 100px;
+	}
+
+	.export-btn-inline {
+		padding: 4px 6px;
+		height: 28px;
+		font-size: 11px;
+		i {
+			font-size: 10px;
+		}
+
+		.export-btn-text {
+			display: none;
+		}
+	}
+
+	.chart-nav-arrow {
+		width: 28px;
+		height: 28px;
+		i {
+			font-size: 10px;
+		}
+		&--left {
+			left: 4px;
+		}
+		&--right {
+			right: 4px;
+		}
+	}
+
+	.water-tooltip,
+	.prec-tooltip {
+		width: 180px !important;
+
+		&__header {
+			padding: 5px 8px;
+			font-size: 9px;
+		}
+		&__warning {
+			padding: 4px 6px;
+			font-size: 8px;
+			i {
+				font-size: 9px;
+			}
+		}
+		&__body {
+			padding: 6px 8px;
+		}
+		&__station {
+			padding: 2px 0;
+		}
+		&__station-left {
+			gap: 3px;
+		}
+		&__dot {
+			width: 5px;
+			height: 5px;
+		}
+		&__station-name {
+			font-size: 8px;
+		}
+		&__value {
+			font-size: 8px;
+		}
+	}
+}
+
+// =============================================================================
+// PRINT & ACCESSIBILITY
+// =============================================================================
+
+@media print {
+	.chart-nav-arrow,
+	.export-btn-inline,
+	.date-picker-inline {
+		display: none !important;
+	}
+
+	.chart-wrapper {
+		box-shadow: none;
+		border: 1px solid #e2e8f0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chart-canvas,
+	.chart-nav-arrow,
+	.export-btn-inline,
+	.chart-loading__spinner {
+		transition: none;
+		animation: none;
+	}
+}
+
+// =============================================================================
+// RAINFALL TRENDS TOOLTIP
+// =============================================================================
+
+.trends-tooltip {
+	font-family: $font-primary;
+	background: $white;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+	border: 2px solid $accent;
+	min-width: 200px;
+
+	&__header {
+		padding: 10px 14px;
+		background: $accent;
+		color: $white;
+		font-size: 13px;
+		font-weight: 600;
+	}
+
+	&__body {
+		padding: 10px 14px;
+	}
+
+	&__row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 4px 0;
+
+		&:first-child {
+			padding-top: 0;
+		}
+		&:last-child {
+			padding-bottom: 0;
+		}
+	}
+
+	&__dot {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+
+	&__name {
+		flex: 1;
+		font-size: 12px;
+		color: #1e293b;
+	}
+
+	&__value {
+		font-size: 12px;
+		font-weight: 600;
+		color: #1e293b;
+	}
+}
+
+// =============================================================================
+// TRENDS CHART HEADER (tabs inside chart container)
+// =============================================================================
+
+.trends-chart-header {
+	display: flex;
+	justify-content: center;
+	padding: 12px 16px;
+}
+
+// Trends chart panels - ensure proper show/hide
+.trends-chart-panel {
+	&.hidden {
+		display: none !important;
+	}
+}
+
+// Mobile: less padding
+@media (max-width: 576px) {
+	.trends-chart-header {
+		padding: 8px 12px;
+	}
+}
+
+// =============================================================================
+// TRENDS TABS
+// =============================================================================
+
+.trends-tabs {
+	display: flex;
+	gap: 4px;
+	background: rgba(0, 0, 0, 0.05);
+	padding: 4px;
+	border-radius: 8px;
+}
+
+.trends-tab {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	border: none;
+	background: transparent;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	color: #64748b;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	white-space: nowrap;
+
+	i {
+		font-size: 12px;
+	}
+
+	&:hover:not(.trends-tab--active) {
+		background: rgba(0, 0, 0, 0.05);
+		color: #475569;
+	}
+
+	&--active {
+		background: $accent;
+		color: $white;
+		box-shadow: 0 2px 4px rgba($accent, 0.3);
+
+		&:hover {
+			background: color.adjust($accent, $lightness: -5%);
+		}
+	}
+}
+
+// Mobile: Compact tabs
+@media (max-width: 576px) {
+	.trends-tabs {
+		gap: 2px;
+		padding: 3px;
+	}
+
+	.trends-tab {
+		padding: 6px 12px;
+		font-size: 12px;
+		gap: 5px;
+
+		i {
+			font-size: 11px;
+		}
+	}
+}
+
+@media (min-width: 577px) and (max-width: 767px) {
+	.trends-tab {
+		padding: 5px 10px;
+		font-size: 12px;
+	}
+}

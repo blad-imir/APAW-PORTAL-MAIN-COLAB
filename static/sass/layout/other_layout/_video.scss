@@ -1,0 +1,42 @@
+.video-card{
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    .thumbnail-block{
+        overflow: hidden;
+        border-radius: 12px;
+        img{
+            -webkit-transition: all 0.6s linear 0s;
+            transition: all 0.6s linear 0s;
+        }
+    }
+    &:hover {
+        .thumbnail-block{
+            img {
+                -webkit-transform: scale(1.025);
+                transform: scale(1.025);
+                -webkit-transition: all 0.6s linear 0s;
+                transition: all 0.6s linear 0s;
+            }
+        }
+    }
+    .video-btn{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        svg{
+            width: clamp(56px, 4.167vw, 140px);
+            height: clamp(56px, 4.167vw, 140px);
+        }
+    }
+    .duration{
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        border-radius: 2px;
+        color: $white;
+        background-color: $black;
+        padding: 2px clamp(10px, 0.83vw, 24px);
+    }
+}

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no"
+		/>
+		<meta
+			name="description"
+			content="{% block meta_description %}Weather Forecast Portal{% endblock %}"
+		/>
+
+		<title>
+			{% block title %}Project APAW - Advanced Portal for Atmospheric and
+			Water-level monitoring{% endblock %}
+		</title>
+
+		<link
+			rel="shortcut icon"
+			href="{{ url_for('static', filename='media/favicon.png') }}"
+		/>
+
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='css/vendor/bootstrap.min.css') }}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='css/vendor/fontawsome.css') }}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='css/vendor/slick.css') }}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='css/vendor/jquery.magnific-popup.css') }}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{{ url_for('static', filename='css/app.css') }}"
+		/>
+
+		<!-- Inject CSS variables from config.py -->
+		<style>
+			:root {
+				{% for key, value in css_variables.items() %}
+				{{ key }}: {{ value }};
+				{% endfor %}
+			}
+		</style>
+		<script>
+			{% if css_variables and css_variables.get('--flood-normal') %}
+				// Single source of truth for all JavaScript configuration
+				window.APP_CONFIG = {
+					// Colors for color-config.js, charts, map markers
+					colors: {
+						flood_colors: {
+							normal: "{{ css_variables['--flood-normal'] }}",
+							advisory: "{{ css_variables['--flood-advisory'] }}",
+							alert: "{{ css_variables['--flood-alert'] }}",
+							warning: "{{ css_variables['--flood-warning'] }}",
+							critical: "{{ css_variables['--flood-critical'] }}"
+						},
+						alert_colors: {
+							none: "{{ css_variables['--alert-none'] }}",
+							normal: "{{ css_variables['--alert-normal'] }}",
+							advisory: "{{ css_variables['--alert-advisory'] }}",
+							alert: "{{ css_variables['--alert-alert'] }}",
+							warning: "{{ css_variables['--alert-warning'] }}",
+							critical: "{{ css_variables['--alert-critical'] }}"
+						},
+						station_colors: {
+							st1: "{{ css_variables['--station-st1'] }}",
+							st2: "{{ css_variables['--station-st2'] }}",
+							st3: "{{ css_variables['--station-st3'] }}",
+							st4: "{{ css_variables['--station-st4'] }}",
+							st5: "{{ css_variables['--station-st5'] }}"
+						}
+					},
+
+					// Thresholds for charts, alerts, water level classification
+					thresholds: {
+						water_level: {
+							advisory: {{ thresholds.water_level.advisory }},
+							alert: {{ thresholds.water_level.alert }},
+							warning: {{ thresholds.water_level.warning }},
+							critical: {{ thresholds.water_level.critical }}
+						},
+						rainfall: {
+							light: {{ thresholds.rainfall.light }},
+							moderate: {{ thresholds.rainfall.moderate }},
+							heavy: {{ thresholds.rainfall.heavy }}
+						}
+					},
+
+					// Station data for map.js (only included on pages that have 'sites')
+					{% if sites %}
+					stations: {{ sites | tojson | safe }},
+					{% endif %}
+
+					// Map configuration from config.py
+					{% if map_config %}
+					map: {
+						center: [{{ map_config.center.lat }}, {{ map_config.center.lng }}],
+						zoom: {{ map_config.zoom }}
+					},
+					{% endif %}
+					// Full map configuration from config.py MapConfig.get_js_config()
+					{% if map_config_full %}
+					mapConfig: {{ map_config_full | tojson | safe }},
+					{% endif %}
+
+
+					// Weather icon config from config.py WeatherIconConfig.get_js_config()
+					{% if weather_icon_config %}
+					weatherIconConfig: {{ weather_icon_config | tojson | safe }},
+					{% endif %}
+
+					// Weather card display station from config.py WeatherCardConfig
+					{% if weather_card_config %}
+					weatherCardConfig: {{ weather_card_config | tojson | safe }},
+					{% endif %}
+
+					// Station colors for backward compatibility (map.js might use this)
+					{% if station_colors %}
+					stationColors: {{ station_colors | tojson | safe }},
+					{% endif %}
+
+					// Alert level configs for dashboard cards (icons, colors, labels)
+					{% if alert_levels %}
+					alertLevels: {{ alert_levels | tojson | safe }},
+					{% endif %}
+
+					// Rainfall level configs for dashboard cards (icons, colors, labels)
+					{% if rainfall_levels %}
+					rainfallLevels: {{ rainfall_levels | tojson | safe }},
+					{% endif %}
+				};
+
+				console.info('[CONFIG] Unified APP_CONFIG loaded from config.py');
+				console.log('[CONFIG] Structure:', {
+					colors: Object.keys(window.APP_CONFIG.colors),
+					thresholds: Object.keys(window.APP_CONFIG.thresholds),
+					stations: window.APP_CONFIG.stations ? window.APP_CONFIG.stations.length + ' stations' : 'not loaded',
+				});
+			{% else %}
+				// Template injection failed - critical error
+				console.error('[CONFIG] css_variables not available! Check app.py context_processor');
+				console.error('[CONFIG] APP_CONFIG not created - application may not work correctly');
+			{% endif %}
+		</script>
+
+		{% block extra_css %}{% endblock %}
+	</head>
+
+	<body>
+		{% include 'includes/preloader.html' %}
+
+		<main class="page-content">
+			{% include 'includes/header.html' %} {% block content %}{% endblock %} {%
+			include 'includes/footer.html' %}
+		</main>
+
+		{% include 'includes/mobile_menu.html' %} {% include
+		'includes/search_popup.html' %}
+
+		<a href="#" class="scroll-top">
+			<svg
+				class="scroll-top__circle"
+				width="100%"
+				height="100%"
+				viewBox="-1 -1 102 102"
+			>
+				<path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+			</svg>
+		</a>
+
+		<!-- Color utility must load AFTER APP_CONFIG is defined -->
+		<script src="{{ url_for('static', filename='js/color-config.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/weather-icons.js') }}"></script>
+
+		<!-- Page load - must load before app.js and components -->
+		<script src="{{ url_for('static', filename='js/page-loader.js') }}"></script>
+
+		<!-- Core JavaScript -->
+		<script src="{{ url_for('static', filename='js/vendor/jquery-3.6.3.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/vendor/jquery-appear.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/vendor/slick.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/vendor/jquery.magnific-popup.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/header-status.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/notification-bell.js') }}"></script>
+
+		{% block extra_js %}{% endblock %}
+	</body>
+</html>

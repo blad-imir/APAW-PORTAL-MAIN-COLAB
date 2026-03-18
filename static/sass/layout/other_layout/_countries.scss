@@ -1,0 +1,13 @@
+.countries-sec{
+    .country-block{
+        position: relative;
+        text-align: center;
+        padding: clamp(16px, 1.25vw, 32px) clamp(6px, 0.83vw, 24px);
+        background-color: $white;
+        border-radius: 12px;
+        width: 100%;
+        img{
+            width: clamp(48px, 4.167vw, 120px);
+        }
+    }
+}

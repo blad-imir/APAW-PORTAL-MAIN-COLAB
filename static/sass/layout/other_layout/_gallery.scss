@@ -1,0 +1,43 @@
+.gallery-sec {
+    .img-block {
+        overflow: hidden;
+        border-radius: clamp(10px, 0.83vw, 20px);
+        @media (max-width: 575px) {
+            margin-bottom: 2px;
+        }
+        img {
+            -webkit-transition: all 0.6s linear 0s;
+            transition: all 0.6s linear 0s;
+        }
+        &:hover {
+            img {
+                -webkit-transform: scale(1.05);
+                transform: scale(1.05);
+                -webkit-transition: all 0.6s linear 0s;
+                transition: all 0.6s linear 0s;
+            }
+        }
+    }
+}
+
+.map-sec {
+    .map-block {
+        overflow: hidden;
+        border-radius: clamp(10px, 0.83vw, 20px);
+        @media (max-width: 575px) {
+            margin-bottom: 2px;
+        }
+        img {
+            -webkit-transition: all 0.6s linear 0s;
+            transition: all 0.6s linear 0s;
+        }
+        &:hover {
+            img {
+                -webkit-transform: scale(1.05);
+                transform: scale(1.05);
+                -webkit-transition: all 0.6s linear 0s;
+                transition: all 0.6s linear 0s;
+            }
+        }
+    }
+}

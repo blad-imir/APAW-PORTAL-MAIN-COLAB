@@ -1,0 +1,824 @@
+/* ============================================================================
+   COMPLETE UNIFIED CHART SYSTEM STYLES
+   ============================================================================
+   
+   This single CSS file contains ALL styles for both precipitation and 
+   water level charts. It replaces:
+   - _precipitation.scss
+   - _water-level.scss
+   
+   Save this as: static/css/charts-unified.css
+   
+   ============================================================================ */
+
+/* =========================================================================
+   ALERT BANNERS (Shared by both charts)
+   ========================================================================= */
+
+.chart-alert-banner,
+.water-alert-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 20px;
+	border-radius: 8px;
+	margin-bottom: 16px;
+	border-left: 4px solid;
+	animation: alertPulse 2s ease-in-out infinite;
+}
+
+.chart-alert-banner.hidden,
+.water-alert-banner.hidden {
+	display: none !important;
+}
+
+.chart-alert-banner--advisory,
+.water-alert-banner--advisory {
+	background: #eff6ff;
+	border-color: #3b82f6;
+	color: #1e40af;
+}
+
+.chart-alert-banner--alert,
+.water-alert-banner--alert {
+	background: #fefce8;
+	border-color: #eab308;
+	color: #854d0e;
+}
+
+.chart-alert-banner--warning,
+.water-alert-banner--warning {
+	background: #fff7ed;
+	border-color: #f97316;
+	color: #9a3412;
+}
+
+.chart-alert-banner--critical,
+.water-alert-banner--critical {
+	background: #fef2f2;
+	border-color: #dc2626;
+	color: #991b1b;
+	animation: criticalPulse 1s ease-in-out infinite;
+}
+
+.chart-alert-banner__message,
+.water-alert-banner__message {
+	font-size: 14px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Alert Animations */
+@keyframes alertPulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.85;
+	}
+}
+
+@keyframes criticalPulse {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.9;
+		transform: scale(1.02);
+	}
+}
+
+/* =========================================================================
+   CHART SECTION
+   ========================================================================= */
+
+.precipitation-section,
+.water-level-section {
+	margin-bottom: 2rem;
+}
+
+/* =========================================================================
+   CHART CONTAINER (Layout with navigation arrows)
+   ========================================================================= */
+
+.chart-container {
+	position: relative;
+	margin-bottom: 16px;
+}
+
+.chart-wrapper {
+	position: relative;
+	background: #fff;
+	border-radius: 12px;
+	padding: 16px 24px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	overflow: visible; /* CRITICAL: allows arrows to show outside */
+}
+
+/* =========================================================================
+   CHART HEADER (Title + Controls)
+   ========================================================================= */
+
+.chart-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+/* Chart Titles */
+.water-level-title,
+.precipitation-title {
+	font-size: 20px;
+	font-weight: 600;
+	color: #1a202c;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.water-level-title__icon,
+.precipitation-title__icon {
+	color: #409ac7;
+	font-size: 20px;
+}
+
+/* =========================================================================
+   CHART CONTROLS (Date picker + Export button)
+   ========================================================================= */
+
+.chart-controls,
+.precipitation-header__controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+/* Date Picker */
+.date-picker-inline {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	color: #64748b;
+}
+
+.date-picker-inline i {
+	color: #409ac7;
+	font-size: 14px;
+}
+
+.date-picker-inline span:not(.sr-only),
+.date-picker-label {
+	font-size: 13px;
+	color: #64748b;
+	white-space: nowrap;
+}
+
+.date-picker-inline__input {
+	padding: 8px 12px;
+	height: 36px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	font-size: 13px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	min-width: 140px;
+}
+
+.date-picker-inline__input:hover {
+	border-color: #409ac7;
+}
+
+.date-picker-inline__input:focus {
+	outline: none;
+	border-color: #409ac7;
+	box-shadow: 0 0 0 3px rgba(64, 154, 199, 0.1);
+}
+
+.date-picker-inline__input.loading {
+	opacity: 0.6;
+	cursor: wait;
+	background: #f8fafc;
+}
+
+.date-picker-inline__input:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	background: #f8fafc;
+}
+
+/* Export Button */
+.export-btn-inline {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 12px;
+	height: 36px;
+	background: #fff;
+	color: #1a202c;
+	border: 1px solid #409ac7;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	white-space: nowrap;
+}
+
+.export-btn-inline:hover {
+	background: #409ac7;
+	color: #fff;
+}
+
+.export-btn-inline i {
+	font-size: 13px;
+}
+
+/* =========================================================================
+   NAVIGATION ARROWS
+   ========================================================================= */
+
+.chart-nav-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 20;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(64, 154, 199, 0.9);
+	color: #fff;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	transition: all 0.2s ease;
+	pointer-events: auto;
+}
+
+.chart-nav-arrow:hover:not(:disabled) {
+	background: #409ac7;
+	transform: translateY(-50%) scale(1.1);
+}
+
+.chart-nav-arrow:active:not(:disabled) {
+	transform: translateY(-50%) scale(0.95);
+}
+
+.chart-nav-arrow:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+	background: rgba(64, 154, 199, 0.5);
+}
+
+.chart-nav-arrow--left {
+	left: -16px;
+}
+
+.chart-nav-arrow--right {
+	right: -16px;
+}
+
+.chart-nav-arrow i {
+	font-size: 14px;
+}
+
+/* =========================================================================
+   CHART CANVAS (The actual chart area)
+   ========================================================================= */
+
+.chart-canvas {
+	min-height: 200px;
+	position: relative;
+}
+
+/* =========================================================================
+   LOADING STATE
+   ========================================================================= */
+
+.chart-loading {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.95);
+	z-index: 10;
+	border-radius: 12px;
+}
+
+.chart-loading.hidden {
+	display: none !important;
+}
+
+.chart-loading__spinner {
+	width: 36px;
+	height: 36px;
+	border: 3px solid #e2e8f0;
+	border-top-color: #409ac7;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+.chart-loading__text {
+	margin-top: 12px;
+	color: #64748b;
+	font-size: 14px;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* =========================================================================
+   ERROR STATE
+   ========================================================================= */
+
+.chart-error {
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+	text-align: center;
+	min-height: 200px;
+}
+
+.chart-error.show {
+	display: flex !important;
+}
+
+.chart-error__icon {
+	font-size: 48px;
+	color: #dc2626;
+	margin-bottom: 16px;
+}
+
+.chart-error__title {
+	font-size: 20px;
+	font-weight: 600;
+	color: #1e293b;
+	margin-bottom: 8px;
+}
+
+.chart-error__message {
+	font-size: 14px;
+	color: #64748b;
+	margin-bottom: 20px;
+	max-width: 400px;
+}
+
+.chart-error__btn {
+	padding: 10px 24px;
+	background: #409ac7;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.chart-error__btn:hover {
+	background: #357a99;
+}
+
+.chart-error__btn i {
+	margin-right: 6px;
+}
+
+/* =========================================================================
+   TOOLTIPS (Water Level specific styles)
+   ========================================================================= */
+
+.water-tooltip {
+	width: 280px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+	border: 2px solid #409ac7;
+}
+
+.water-tooltip__header {
+	padding: 12px 16px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+	text-align: left;
+}
+
+.water-tooltip__warning {
+	padding: 10px 16px;
+	background: #fef3c7;
+	border-left: 4px solid #f59e0b;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #92400e;
+}
+
+.water-tooltip__warning i {
+	color: #f59e0b;
+	font-size: 14px;
+	flex-shrink: 0;
+}
+
+.water-tooltip__alert {
+	padding: 8px 16px;
+	font-size: 11px;
+	font-weight: 700;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+}
+
+.water-tooltip__alert--advisory {
+	background: #eff6ff;
+	color: #1e40af;
+}
+
+.water-tooltip__alert--alert {
+	background: #fefce8;
+	color: #854d0e;
+}
+
+.water-tooltip__alert--warning {
+	background: #fff7ed;
+	color: #9a3412;
+}
+
+.water-tooltip__alert--critical {
+	background: #fef2f2;
+	color: #991b1b;
+}
+
+.water-tooltip__body {
+	padding: 14px 16px;
+	background: #fff;
+}
+
+.water-tooltip__station {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 6px 0;
+}
+
+.water-tooltip__station-left {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.water-tooltip__dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.water-tooltip__station-name {
+	font-size: 13px;
+	font-weight: 500;
+	color: #1e293b;
+}
+
+.water-tooltip__value {
+	font-size: 13px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+/* =========================================================================
+   SCREEN READER ONLY
+   ========================================================================= */
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* =========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================= */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+	.water-level-title,
+	.precipitation-title {
+		font-size: 19px;
+	}
+
+	.water-level-title__icon,
+	.precipitation-title__icon {
+		font-size: 19px;
+	}
+
+	.date-picker-inline {
+		font-size: 12px;
+		gap: 5px;
+	}
+
+	.date-picker-inline__input {
+		padding: 7px 10px;
+		height: 34px;
+		font-size: 12px;
+		min-width: 130px;
+	}
+
+	.export-btn-inline {
+		padding: 7px 10px;
+		height: 34px;
+		font-size: 12px;
+	}
+
+	.chart-controls,
+	.precipitation-header__controls {
+		gap: 10px;
+	}
+
+	.chart-nav-arrow {
+		width: 36px;
+		height: 36px;
+	}
+
+	.chart-nav-arrow i {
+		font-size: 13px;
+	}
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+	.water-level-title,
+	.precipitation-title {
+		font-size: 18px;
+	}
+
+	.chart-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 12px;
+	}
+
+	.chart-controls,
+	.precipitation-header__controls {
+		width: 100%;
+		justify-content: space-between;
+		gap: 8px;
+	}
+
+	.date-picker-inline {
+		font-size: 11px;
+		gap: 4px;
+	}
+
+	.date-picker-inline span:not(.sr-only),
+	.date-picker-label {
+		font-size: 11px;
+	}
+
+	.date-picker-inline__input {
+		padding: 6px 8px;
+		height: 32px;
+		font-size: 12px;
+		min-width: 110px;
+	}
+
+	.export-btn-inline {
+		padding: 6px 8px;
+		height: 32px;
+		font-size: 12px;
+	}
+
+	.export-btn-inline i {
+		font-size: 11px;
+	}
+
+	.chart-nav-arrow {
+		width: 32px;
+		height: 32px;
+	}
+
+	.chart-nav-arrow i {
+		font-size: 12px;
+	}
+
+	.chart-nav-arrow--left {
+		left: 8px;
+	}
+
+	.chart-nav-arrow--right {
+		right: 8px;
+	}
+
+	/* Mobile Tooltips */
+	.water-tooltip {
+		width: 200px !important;
+	}
+
+	.water-tooltip__header {
+		padding: 6px 10px;
+		font-size: 10px;
+		font-weight: 600;
+	}
+
+	.water-tooltip__warning {
+		padding: 5px 8px;
+		font-size: 9px;
+		gap: 4px;
+	}
+
+	.water-tooltip__warning i {
+		font-size: 10px;
+	}
+
+	.water-tooltip__body {
+		padding: 8px 10px;
+	}
+
+	.water-tooltip__station {
+		padding: 3px 0;
+	}
+
+	.water-tooltip__station-left {
+		gap: 4px;
+	}
+
+	.water-tooltip__dot {
+		width: 6px;
+		height: 6px;
+	}
+
+	.water-tooltip__station-name {
+		font-size: 9px;
+		font-weight: 500;
+	}
+
+	.water-tooltip__value {
+		font-size: 9px;
+		font-weight: 600;
+	}
+}
+
+/* Extra small screens (< 480px) */
+@media (max-width: 480px) {
+	.water-level-title,
+	.precipitation-title {
+		font-size: 16px;
+	}
+
+	.water-level-title__icon,
+	.precipitation-title__icon {
+		font-size: 14px;
+	}
+
+	.date-picker-inline {
+		font-size: 10px;
+		gap: 3px;
+	}
+
+	.date-picker-inline i {
+		font-size: 10px;
+	}
+
+	.date-picker-inline span:not(.sr-only),
+	.date-picker-label {
+		font-size: 10px;
+	}
+
+	.date-picker-inline__input {
+		padding: 4px 6px;
+		height: 28px;
+		font-size: 11px;
+		min-width: 100px;
+	}
+
+	.export-btn-inline {
+		padding: 4px 6px;
+		height: 28px;
+		font-size: 11px;
+	}
+
+	.export-btn-inline i {
+		font-size: 10px;
+	}
+
+	.chart-controls,
+	.precipitation-header__controls {
+		gap: 6px;
+	}
+
+	.chart-nav-arrow {
+		width: 28px;
+		height: 28px;
+	}
+
+	.chart-nav-arrow i {
+		font-size: 10px;
+	}
+
+	.chart-nav-arrow--left {
+		left: 4px;
+	}
+
+	.chart-nav-arrow--right {
+		right: 4px;
+	}
+
+	/* Extra Small Tooltips */
+	.water-tooltip {
+		width: 180px !important;
+	}
+
+	.water-tooltip__header {
+		padding: 5px 8px;
+		font-size: 9px;
+	}
+
+	.water-tooltip__warning {
+		padding: 4px 6px;
+		font-size: 8px;
+	}
+
+	.water-tooltip__warning i {
+		font-size: 9px;
+	}
+
+	.water-tooltip__body {
+		padding: 6px 8px;
+	}
+
+	.water-tooltip__station {
+		padding: 2px 0;
+	}
+
+	.water-tooltip__station-left {
+		gap: 3px;
+	}
+
+	.water-tooltip__dot {
+		width: 5px;
+		height: 5px;
+	}
+
+	.water-tooltip__station-name {
+		font-size: 8px;
+	}
+
+	.water-tooltip__value {
+		font-size: 8px;
+	}
+}
+
+/* =========================================================================
+   PRINT STYLES (Optional but professional)
+   ========================================================================= */
+
+@media print {
+	.chart-nav-arrow,
+	.export-btn-inline,
+	.date-picker-inline {
+		display: none !important;
+	}
+
+	.chart-wrapper {
+		box-shadow: none;
+		border: 1px solid #e2e8f0;
+	}
+
+	.chart-alert-banner {
+		animation: none;
+	}
+}

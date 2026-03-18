@@ -1,0 +1,193 @@
+/*----------------------------------------*/
+/*  SPACE CSS START
+/*----------------------------------------*/
+
+.my-80 {
+    margin: clamp(48px, 4.167vw, 160px) 0;
+    @include media-query(575px) {
+        margin: 40px 0;
+    }
+}
+.mt-80 {
+    margin-top: clamp(48px, 4.167vw, 160px);
+    @include media-query(575px) {
+        margin-top: 40px;
+    }
+}
+.mb-80 {
+    margin-bottom: clamp(48px, 4.167vw, 160px);
+    @include media-query(575px) {
+        margin-bottom: 40px;
+    }
+}
+.mt-64 {
+    margin-top: clamp(32px, 3.33vw, 128px);
+    @include media-query(767px) {
+        margin-top: 26px;
+    }
+}
+.mb-64 {
+    margin-bottom: clamp(32px, 3.33vw, 128px);
+    @include media-query(767px) {
+        margin-bottom: 26px;
+    }
+}
+.my-40 {
+    margin: clamp(24px, 2.08vw, 80px) 0;
+    @include media-query(575px) {
+        margin: 20px 0;
+    }
+}
+.mt-40 {
+    margin-top: clamp(24px, 2.08vw, 80px);
+    @include media-query(575px) {
+        margin-top: 20px;
+    }
+}
+.mb-40 {
+    margin-bottom: clamp(24px, 2.08vw, 80px);
+    @include media-query(575px) {
+        margin-bottom: 20px;
+    }
+}
+.my-48 {
+    margin: clamp(24px, 2.5vw, 96px) 0;
+    @include media-query(767px) {
+        margin: 23px 0;
+    }
+}
+.mb-48 {
+    margin-bottom: clamp(24px, 2.5vw, 96px);
+    @include media-query(767px) {
+        margin-bottom: 23px;
+    }
+}
+.mt-48 {
+    margin-top: clamp(24px, 2.5vw, 96px);
+    @include media-query(767px) {
+        margin-top: 23px;
+    }
+}
+
+.mb-32 {
+    margin-bottom: 32px;
+    @include media-query(1599px) {
+        margin-bottom: 29px;
+    }
+    @include media-query(1399px) {
+        margin-bottom: 27px;
+    }
+    @include media-query(1199px) {
+        margin-bottom: 25px;
+    }
+    @include media-query(991px) {
+        margin-bottom: 22px;
+    }
+    @include media-query(767px) {
+        margin-bottom: 20px;
+    }
+}
+
+.mb-24 {
+    margin-bottom: 24px;
+    @include media-query(1199px) {
+        margin-bottom: 22px;
+    }
+    @include media-query(991px) {
+        margin-bottom: 22px;
+    }
+    @include media-query(767px) {
+        margin-bottom: 18px;
+    }
+}
+.mb-20 {
+    margin-bottom: 20px;
+    @include media-query(1199px) {
+        margin-bottom: 18px;
+    }
+    @include media-query(991px) {
+        margin-bottom: 16px;
+    }
+    @include media-query(767px) {
+        margin-bottom: 14px;
+    }
+}
+.mb-16 {
+    margin-bottom: 16px;
+    @include media-query(1199px) {
+        margin-bottom: 15px;
+    }
+    @include media-query(991px) {
+        margin-bottom: 14px;
+    }
+    @include media-query(767px) {
+        margin-bottom: 12px;
+    }
+}
+.mb-12 {
+    margin-bottom: 12px;
+    @include media-query(1199px) {
+        margin-bottom: 11px;
+    }
+    @include media-query(991px) {
+        margin-bottom: 10px;
+    }
+    @include media-query(767px) {
+        margin-bottom: 8px;
+    }
+}
+.mb-8 {
+    margin-bottom: 8px;
+    @include media-query(767px) {
+        margin-bottom: 4px;
+    }
+}
+
+.mb-4p {
+    margin-bottom: 4px;
+}
+
+// ----Padding ----
+.py-80 {
+    padding: clamp(48px, 4.167vw, 160px) 0;
+    @include media-query(575px) {
+        padding: 40px 0;
+    }
+}
+.pt-80 {
+    padding-top: clamp(48px, 4.167vw, 160px);
+    @include media-query(575px) {
+        padding-top: 40px;
+    }
+}
+.pb-80 {
+    padding-bottom: clamp(48px, 4.167vw, 160px);
+    @include media-query(575px) {
+        padding-bottom: 40px;
+    }
+}
+
+.py-40 {
+    padding: clamp(24px, 2.083vw, 80px) 0;
+    @include media-query(575px) {
+        padding: 20px 0;
+    }
+}
+.pt-40 {
+    padding-top: clamp(24px, 2.083vw, 80px);
+    @include media-query(575px) {
+        padding-top: 20px;
+    }
+}
+.pb-40 {
+    padding-bottom: clamp(24px, 2.083vw, 80px);
+    @include media-query(575px) {
+        padding-bottom: 20px;
+    }
+}
+.pe-64{
+    padding-right: clamp(24px, 3.3vw, 100px);
+    @include media-query(575px) {
+        padding-right: 0;
+    }
+}

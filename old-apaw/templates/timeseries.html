@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %} Dashboard {% endblock title %}
+
+<!-- Specific CSS goes HERE  -->
+{% block stylesheets %}
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+    <!-- ### $App Screen Content ### -->
+    <main class='main-content bgc-grey-100'>
+      <div id='mainContent'>
+        <div class="row gap-20 masonry pos-r">
+          <div class="masonry-sizer col-md-6">Real-time Weather Data from Camarines Sur Polytechnic Colleges' Local Weather Station</div>
+          <div class="masonry-item col-12">
+            <!-- #Site Visits ==================== -->
+            <div class="bd bgc-white">
+              <div class="peers fxw-nw@lg+ ai-s">
+                <div class="peer peer-greed w-70p@lg+ w-100@lg- p-20">
+                  <div class="layers">
+                    <div class="layer w-100">
+                      <!-- #Weather ==================== -->
+                      <div class="bd bgc-white p-20">
+                        <div class="layers">
+                          <!-- Widget Title -->
+                          <div class="layer w-100 mB-20">
+                            <h6 class="lh-1">Temperature Time Series</h6>
+                          </div>
+
+                          <!-- Today Weather -->
+                          <div class="layer w-100">
+                            <div class="peers ai-c jc-sb fxw-nw">
+                              <div id="chart-temperature" style="width: 100% !important; height: 350px !important;"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="peers fxw-nw@lg+ ai-s">
+                <div class="peer peer-greed w-70p@lg+ w-100@lg- p-20">
+                  <div class="layers">
+                    <div class="layer w-100">
+                      <!-- #Weather ==================== -->
+                      <div class="bd bgc-white p-20">
+                        <div class="layers">
+                          <!-- Widget Title -->
+                          <div class="layer w-100 mB-20">
+                            <h6 class="lh-1">Heat Index Time Series</h6>
+                          </div>
+
+                          <!-- Today Weather -->
+                          <div class="layer w-100">
+                            <div class="peers ai-c jc-sb fxw-nw">
+                              <div id="chart-heatindex" style="width: 100% !important; height: 350px !important;"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="peers fxw-nw@lg+ ai-s">
+                <div class="peer peer-greed w-70p@lg+ w-100@lg- p-20">
+                  <div class="layers">
+                    <div class="layer w-100">
+                      <!-- #Weather ==================== -->
+                      <div class="bd bgc-white p-20">
+                        <div class="layers">
+                          <!-- Widget Title -->
+                          <div class="layer w-100 mB-20">
+                            <h6 class="lh-1">Wind Speed Time Series</h6>
+                          </div>
+
+                          <!-- Today Weather -->
+                          <div class="layer w-100">
+                            <div class="peers ai-c jc-sb fxw-nw">
+                              <div id="chart-windspeed" style="width: 100% !important; height: 350px !important;"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!--<div class="peers fxw-nw@lg+ ai-s">-->
+              <!--  <div class="peer peer-greed w-70p@lg+ w-100@lg- p-20">-->
+              <!--    <div class="layers">-->
+              <!--      <div class="layer w-100">-->
+                      <!-- #Weather ==================== -->
+              <!--        <div class="bd bgc-white p-20">-->
+              <!--          <div class="layers">-->
+                          <!-- Widget Title -->
+              <!--            <div class="layer w-100 mB-20">-->
+              <!--              <h6 class="lh-1">Humidity Time Series</h6>-->
+              <!--            </div>-->
+
+                          <!-- Today Weather -->
+              <!--            <div class="layer w-100">-->
+              <!--              <div class="peers ai-c jc-sb fxw-nw">-->
+              <!--                <div id="chart-humidity" style="width: 100% !important; height: 350px !important;"></div>-->
+              <!--              </div>-->
+              <!--            </div>-->
+              <!--          </div>-->
+              <!--        </div>-->
+              <!--      </div>-->
+              <!--    </div>-->
+              <!--  </div>-->
+              <!--</div>-->
+              <div class="peers fxw-nw@lg+ ai-s">
+                <div class="peer peer-greed w-70p@lg+ w-100@lg- p-20">
+                  <div class="layers">
+                    <div class="layer w-100">
+                      <!-- #Weather ==================== -->
+                      <div class="bd bgc-white p-20">
+                        <div class="layers">
+                          <!-- Widget Title -->
+                          <div class="layer w-100 mB-20">
+                            <h6 class="lh-1">Rainfall Time Series</h6>
+                          </div>
+
+                          <!-- Today Weather -->
+                          <div class="layer w-100">
+                            <div class="peers ai-c jc-sb fxw-nw">
+                              <div id="chart-rainfall" style="width: 100% !important; height: 350px !important;"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+  var options = {
+  chart: {
+      width: '100%',
+      height: '350',
+      type: 'line',
+  },
+  dataLabels: {
+      enabled: false
+  },
+  series: [],
+  noData: {
+    text: 'Loading...'
+  },
+  stroke: {
+    curve: 'smooth',
+  },
+  xaxis: {
+    type: 'datetime'
+  },
+  colors:['#32612D']  
+}
+
+
+
+var chart = new ApexCharts(
+  document.querySelector("#chart-temperature"),
+  options
+);
+
+chart.render();
+
+var chart2 = new ApexCharts(
+  document.querySelector("#chart-heatindex"),
+  options
+);
+
+chart2.render();
+
+var chart3 = new ApexCharts(
+  document.querySelector("#chart-windspeed"),
+  options
+);
+
+chart3.render();
+
+var chart4 = new ApexCharts(
+  document.querySelector("#chart-humidity"),
+  options
+);
+
+chart4.render();
+
+var chart5 = new ApexCharts(
+  document.querySelector("#chart-rainfall"),
+  options
+);
+
+chart5.render();
+
+
+$(function(){
+  setInterval(oneMinuteFunction, 1000);
+});
+
+function oneMinuteFunction() {
+  $.getJSON("/timeseries/data?col=temperature", function(response) {
+    chart.updateSeries([{
+      name: 'Temperature',
+      data: response.data.sensor_data
+    }]);
+  });
+
+  $.getJSON("/timeseries/data?col=heatindex", function(response) {
+    chart2.updateSeries([{
+      name: 'Heat Index',
+      data: response.data.sensor_data
+    }]);
+  });
+
+  $.getJSON("/timeseries/data?col=windspeed", function(response) {
+    chart3.updateSeries([{
+      name: 'Wind Speed',
+      data: response.data.sensor_data
+    }]);
+  });
+
+  $.getJSON("/timeseries/data?col=humidity", function(response) {
+    chart4.updateSeries([{
+      name: 'Humidity',
+      data: response.data.sensor_data
+    }]);
+  });
+
+  $.getJSON("/timeseries/data?col=hourlyrain", function(response) {
+    chart5.updateSeries([{
+      name: 'Hourly Rainfall',
+      data: response.data.sensor_data
+    }]);
+  });
+}
+</script>
+
+
+{% endblock javascripts %}

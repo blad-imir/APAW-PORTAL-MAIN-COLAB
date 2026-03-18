@@ -1,0 +1,154 @@
+/*----------------------------------------*/
+/*  Button CSS
+/*----------------------------------------*/
+
+.cus-btn {
+	position: relative;
+	z-index: 1;
+	overflow: hidden;
+	font-size: clamp(14px, 0.83vw, 20px);
+	font-weight: 500;
+	line-height: 150%;
+	padding: clamp(12px, 0.83vw, 20px) clamp(24px, 1.66vw, 40px);
+	border-radius: 5px;
+	width: fit-content;
+	display: flex;
+	border: 0;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
+	transition: $transition;
+	background-color: $accent !important;
+	color: $white !important;
+
+	svg {
+		width: clamp(20px, 1.25vw, 32px);
+		height: clamp(20px, 1.25vw, 32px);
+		path {
+			fill: $white !important;
+		}
+	}
+
+	span {
+		position: absolute;
+		display: block;
+		width: 0;
+		height: 0;
+		color: $white;
+		border-radius: 50%;
+		transition: width 0.4s ease-in-out, height 0.4s ease-in-out;
+		transform: translate(-50%, -50%);
+		background: $dark-gray;
+		z-index: -1;
+	}
+
+	&:hover {
+		span {
+			width: 225%;
+			height: 562.5px;
+			z-index: -1;
+		}
+	}
+
+	&.sec {
+		background-color: $accent-2 !important;
+		span {
+			background-color: $accent !important;
+		}
+	}
+}
+
+/*----------------------------------------*/
+/* Slider Buttons
+/*----------------------------------------*/
+.slider-arrows {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: clamp(16px, 1.25vw, 32px);
+
+	.arrow {
+		width: clamp(40px, 3vw, 84px);
+		height: clamp(40px, 3vw, 84px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: $white;
+		border: none;
+		background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='5' ry='5' stroke='%23985A86FF' stroke-width='2' stroke-dasharray='5%2c 5' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
+		border-radius: 5px;
+		transition: $transition;
+		padding: 0;
+
+		svg {
+			transition: $transition;
+			width: clamp(24px, 1.66vw, 48px);
+			height: clamp(24px, 1.66vw, 48px);
+			path {
+				transition: $transition;
+				stroke: $accent;
+			}
+		}
+
+		&:hover {
+			background-color: $accent;
+			box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+			svg {
+				path {
+					transition: $transition;
+					stroke: $white;
+				}
+			}
+		}
+	}
+}
+
+/*----------------------------------------*/
+/* Scroll to Top Button - FIXED
+/*----------------------------------------*/
+.scroll-top {
+	position: fixed;
+	right: 30px;
+	bottom: 30px;
+	height: clamp(36px, 2.5vw, 64px);
+	width: clamp(36px, 2.5vw, 64px);
+	cursor: pointer;
+	display: grid;
+	justify-content: center;
+	align-content: center;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+	z-index: 9999;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(15px);
+	transition: all 200ms linear;
+
+	// FIXED: Use FontAwesome via <i> tag instead of ::after pseudo-element
+	// Remove problematic ::after that was using undefined $font-awesome
+	i {
+		color: $accent;
+		font-size: clamp(14.5px, 1.042vw, 32px);
+		transition: all 200ms linear;
+	}
+
+	// Keep the circle animation
+	.scroll-top__circle {
+		path {
+			stroke: $accent;
+		}
+	}
+
+	&.show {
+		opacity: 1;
+		visibility: visible;
+		transform: translateY(0);
+	}
+
+	&:hover {
+		i {
+			color: $white;
+		}
+		background-color: $accent;
+	}
+}

@@ -1,0 +1,687 @@
+/* ============================================================================
+   WATER LEVEL CHART - FLOOD MONITORING STYLES
+   ============================================================================
+   
+   File: static/sass/layout/_water-level.scss
+   
+   Add this import to your app.scss:
+   @import 'layout/water-level';
+   
+   ============================================================================ */
+
+/* =============================================================================
+   VARIABLES (reuse from your existing styles)
+   ============================================================================= */
+
+$accent: #409ac7;
+$white: #fff;
+$dark-gray: #1a202c;
+$transition: all 0.2s ease;
+/* Alert Banner */
+.water-alert-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 20px;
+	border-radius: 8px;
+	margin-bottom: 16px;
+	border-left: 4px solid;
+	animation: alertPulse 2s ease-in-out infinite;
+}
+
+.water-alert-banner.hidden {
+	display: none !important;
+}
+
+.water-alert-banner--advisory {
+	background: #eff6ff;
+	border-color: #3b82f6;
+	color: #1e40af;
+}
+
+.water-alert-banner--alert {
+	background: #fefce8;
+	border-color: #eab308;
+	color: #854d0e;
+}
+
+.water-alert-banner--warning {
+	background: #fff7ed;
+	border-color: #f97316;
+	color: #9a3412;
+}
+
+.water-alert-banner--critical {
+	background: #fef2f2;
+	border-color: #dc2626;
+	color: #991b1b;
+	animation: criticalPulse 1s ease-in-out infinite;
+}
+
+.water-alert-banner__message {
+	font-size: 14px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+@keyframes alertPulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.85;
+	}
+}
+
+@keyframes criticalPulse {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.9;
+		transform: scale(1.02);
+	}
+}
+
+/* Section */
+.water-level-section {
+	margin-bottom: 2rem;
+}
+
+/* Header */
+.water-level-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 16px;
+}
+
+.water-level-title {
+	font-size: 20px;
+	font-weight: 600;
+	color: #1a202c;
+	margin: 0;
+}
+
+.water-level-title__icon {
+	color: #409ac7;
+	margin-right: 8px;
+}
+
+/* Chart Container */
+.chart-container {
+	position: relative;
+	margin-bottom: 16px;
+	/* ✅ Allow arrows to be visible outside container */
+}
+
+.chart-wrapper {
+	position: relative;
+	background: #fff;
+	border-radius: 12px;
+	padding: 16px 24px 16px 24px; /* Reduced top padding */
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	overflow: visible; /* ✅ Changed from hidden to visible for arrows */
+}
+
+/* Chart Header Inside Wrapper */
+.chart-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.chart-controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.chart-canvas {
+	min-height: 200px;
+}
+
+/* Navigation Arrows */
+.chart-nav-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 20; /* ✅ High z-index to ensure clickable */
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(64, 154, 199, 0.9);
+	color: #fff;
+	border: none;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	transition: all 0.2s ease;
+	pointer-events: auto; /* ✅ Ensure buttons receive clicks */
+}
+
+.chart-nav-arrow:hover:not(:disabled) {
+	background: #409ac7;
+	transform: translateY(-50%) scale(1.1);
+}
+
+.chart-nav-arrow:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.chart-nav-arrow--left {
+	left: -16px;
+}
+
+.chart-nav-arrow--right {
+	right: -16px;
+}
+
+/* Loading State */
+.chart-loading {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.95);
+	z-index: 10;
+}
+
+.chart-loading.hidden {
+	display: none !important;
+}
+
+.chart-loading__spinner {
+	width: 36px;
+	height: 36px;
+	border: 3px solid #e2e8f0;
+	border-top-color: #409ac7;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+.chart-loading__text {
+	margin-top: 12px;
+	color: #64748b;
+	font-size: 14px;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Error State */
+.chart-error {
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+	text-align: center;
+}
+
+.chart-error.show {
+	display: flex !important;
+}
+
+.chart-error__icon {
+	font-size: 48px;
+	color: #dc2626;
+	margin-bottom: 16px;
+}
+
+.chart-error__title {
+	font-size: 20px;
+	font-weight: 600;
+	color: #1e293b;
+	margin-bottom: 8px;
+}
+
+.chart-error__message {
+	font-size: 14px;
+	color: #64748b;
+	margin-bottom: 20px;
+	max-width: 400px;
+}
+
+.chart-error__btn {
+	padding: 10px 24px;
+	background: #409ac7;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.chart-error__btn:hover {
+	background: #357a99;
+}
+
+/* Tooltips */
+.water-tooltip {
+	width: 280px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	overflow: hidden;
+	border: 2px solid #409ac7;
+}
+
+.water-tooltip__header {
+	padding: 12px 16px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+	text-align: left;
+}
+
+.water-tooltip__warning {
+	padding: 10px 16px; /* ✅ FIXED: was 8px */
+	background: #fef3c7;
+	border-left: 4px solid #f59e0b; /* ✅ FIXED: was 3px */
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px; /* ✅ FIXED: was 11px */
+	font-weight: 600;
+	color: #92400e;
+}
+
+.water-tooltip__warning i {
+	color: #f59e0b;
+	font-size: 14px; /* ✅ FIXED: was 12px */
+	flex-shrink: 0;
+}
+
+.water-tooltip__alert {
+	padding: 8px 16px;
+	font-size: 11px;
+	font-weight: 700;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+}
+
+.water-tooltip__alert--advisory {
+	background: #eff6ff;
+	color: #1e40af;
+}
+
+.water-tooltip__alert--alert {
+	background: #fefce8;
+	color: #854d0e;
+}
+
+.water-tooltip__alert--warning {
+	background: #fff7ed;
+	color: #9a3412;
+}
+
+.water-tooltip__alert--critical {
+	background: #fef2f2;
+	color: #991b1b;
+}
+
+.water-tooltip__body {
+	padding: 14px 16px;
+	background: #fff;
+}
+
+.water-tooltip__station {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 6px 0;
+}
+
+.water-tooltip__station-left {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.water-tooltip__dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.water-tooltip__station-name {
+	font-size: 13px;
+	font-weight: 500;
+	color: #1e293b;
+}
+
+.water-tooltip__value {
+	font-size: 13px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+/* Date Controls */
+.date-picker-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	color: #64748b;
+}
+
+.date-picker-inline i {
+	color: #409ac7;
+}
+
+.date-picker-inline__input {
+	padding: 8px 12px;
+	height: 36px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	font-size: 13px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.date-picker-inline__input:hover {
+	border-color: #409ac7;
+}
+
+.date-picker-inline__input:focus {
+	outline: none;
+	border-color: #409ac7;
+	box-shadow: 0 0 0 3px rgba(64, 154, 199, 0.15);
+}
+
+.export-btn-inline {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 12px;
+	height: 36px;
+	background: #fff;
+	color: #1a202c;
+	border: 1px solid #409ac7;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.export-btn-inline:hover {
+	background: #409ac7;
+	color: #fff;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* Mobile Responsive */
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) and (min-width: 768px) {
+	.water-level-title {
+		font-size: 19px;
+	}
+
+	.date-picker-inline {
+		font-size: 12px;
+	}
+
+	.date-picker-inline__input {
+		padding: 7px 10px;
+		height: 34px;
+		font-size: 12px;
+	}
+
+	.export-btn-inline {
+		padding: 7px 10px;
+		height: 34px;
+		font-size: 12px;
+	}
+
+	.chart-controls {
+		gap: 10px;
+	}
+
+	/* ✅ Make arrow buttons smaller on tablet */
+	.chart-nav-arrow {
+		width: 36px;
+		height: 36px;
+	}
+
+	.chart-nav-arrow i {
+		font-size: 13px;
+	}
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+	.water-tooltip {
+		width: 200px !important; /* Significantly smaller on mobile */
+	}
+
+	.water-tooltip__header {
+		padding: 6px 10px;
+		font-size: 10px;
+		font-weight: 600;
+	}
+
+	.water-tooltip__warning {
+		padding: 5px 8px;
+		font-size: 9px;
+		gap: 4px;
+	}
+
+	.water-tooltip__warning i {
+		font-size: 10px;
+	}
+
+	.water-tooltip__body {
+		padding: 8px 10px;
+	}
+
+	.water-tooltip__station {
+		padding: 3px 0;
+	}
+
+	.water-tooltip__station-left {
+		gap: 4px;
+	}
+
+	.water-tooltip__dot {
+		width: 6px;
+		height: 6px;
+	}
+
+	.water-tooltip__station-name {
+		font-size: 9px;
+		font-weight: 500;
+	}
+
+	.water-tooltip__value {
+		font-size: 9px;
+		font-weight: 600;
+	}
+
+	.water-level-title {
+		font-size: 18px;
+	}
+
+	.chart-controls {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.date-picker-inline {
+		font-size: 11px;
+	}
+
+	/* ✅ KEPT: "Select Date:" label now shows on mobile */
+
+	.date-picker-inline__input {
+		padding: 6px 8px;
+		height: 32px;
+		font-size: 12px;
+	}
+
+	.export-btn-inline {
+		padding: 6px 8px; /* ✅ MATCHED: Same padding as date picker */
+		height: 32px;
+		font-size: 12px;
+	}
+
+	.export-btn-inline i {
+		font-size: 11px;
+	}
+
+	/* ✅ Make arrow buttons smaller on mobile */
+	.chart-nav-arrow {
+		width: 32px;
+		height: 32px;
+	}
+
+	.chart-nav-arrow i {
+		font-size: 12px;
+	}
+
+	.chart-nav-arrow--left {
+		left: 8px;
+	}
+
+	.chart-nav-arrow--right {
+		right: 8px;
+	}
+}
+
+/* Extra small screens - even tinier */
+@media (max-width: 480px) {
+	.water-tooltip {
+		width: 180px !important; /* Tiny on very small screens */
+	}
+
+	.water-tooltip__header {
+		padding: 5px 8px;
+		font-size: 9px;
+	}
+
+	.water-tooltip__warning {
+		padding: 4px 6px;
+		font-size: 8px;
+	}
+
+	.water-tooltip__warning i {
+		font-size: 9px;
+	}
+
+	.water-tooltip__body {
+		padding: 6px 8px;
+	}
+
+	.water-tooltip__station {
+		padding: 2px 0;
+	}
+
+	.water-tooltip__station-left {
+		gap: 3px;
+	}
+
+	.water-tooltip__dot {
+		width: 5px;
+		height: 5px;
+	}
+
+	.water-tooltip__station-name {
+		font-size: 8px;
+	}
+
+	.water-tooltip__value {
+		font-size: 8px;
+	}
+
+	.water-level-title {
+		font-size: 16px;
+	}
+
+	.water-level-title__icon {
+		font-size: 14px;
+	}
+
+	.date-picker-inline {
+		font-size: 10px;
+	}
+
+	.date-picker-inline i {
+		font-size: 10px;
+	}
+
+	.date-picker-inline__input {
+		padding: 4px 6px;
+		height: 28px;
+		font-size: 11px;
+	}
+
+	.export-btn-inline {
+		padding: 4px 6px; /* ✅ MATCHED: Same padding as date picker */
+		height: 28px;
+		font-size: 11px;
+	}
+
+	/* ✅ KEPT: "Export CSV" text now shows on tiny mobile */
+
+	.export-btn-inline i {
+		font-size: 10px;
+	}
+
+	/* ✅ Make arrow buttons even smaller on extra small screens */
+	.chart-nav-arrow {
+		width: 28px;
+		height: 28px;
+	}
+
+	.chart-nav-arrow i {
+		font-size: 10px;
+	}
+
+	.chart-nav-arrow--left {
+		left: 4px;
+	}
+
+	.chart-nav-arrow--right {
+		right: 4px;
+	}
+}

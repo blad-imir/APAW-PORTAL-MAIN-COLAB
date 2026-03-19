@@ -1102,14 +1102,14 @@ def humidity_trends_periods():
 def alert_history():
     """
     Get historical threshold breaches for notification bell.
-    Returns water level alerts and heavy rainfall events from last N days.
+    Returns water level, rainfall, and heat index alerts from last N days.
     Uses per-station thresholds from SiteConfig.WATER_LEVEL_THRESHOLDS.
     
     Optimized: Pre-filters data to only process recent readings instead of
     looping through entire dataset (which could be 2+ months of data).
     """
     from datetime import timedelta
-    from config import WeatherThresholds, SiteConfig
+    from config import WeatherThresholds, SiteConfig, HeatIndexConfig
     
     days = request.args.get('days', 10, type=int)
     days = min(max(days, 1), 30)  # Clamp between 1-30 days
@@ -1229,6 +1229,45 @@ def alert_history():
                     'timestamp': timestamp.isoformat(),
                     'message': _format_rainfall_message(rain_level, station_name, rainfall, timestamp)
                 })
+
+        # Check heat index thresholds (all stations with valid temperature + humidity)
+        temperature = safe_float(reading.get('Temperature'))
+        humidity = safe_float(reading.get('Humidity'))
+        if temperature is not None and humidity is not None:
+            heat_index = HeatIndexConfig.calculate_heat_index(temperature, humidity)
+            heat_level = 'normal'
+            if heat_index is not None:
+                if heat_index >= HeatIndexConfig.EXTREME_DANGER:
+                    heat_level = 'extreme_danger'
+                elif heat_index >= HeatIndexConfig.DANGER:
+                    heat_level = 'danger'
+                elif heat_index >= HeatIndexConfig.EXTREME_CAUTION:
+                    heat_level = 'extreme_caution'
+                elif heat_index >= HeatIndexConfig.CAUTION:
+                    heat_level = 'caution'
+
+            # Heat alerts start at PAGASA caution threshold (>= 27C heat index)
+            if heat_level != 'normal' and heat_index is not None:
+                heat_key = f"temp_{station_id}_{hour_key}"
+
+                if heat_key not in seen_alerts:
+                    seen_alerts.add(heat_key)
+                    notifications.append({
+                        'id': heat_key,
+                        'type': 'temperature',
+                        'level': heat_level,
+                        'station_id': station_id,
+                        'station_name': station_name,
+                        'value': round(heat_index, 1),
+                        'unit': '°C',
+                        'timestamp': timestamp.isoformat(),
+                        'message': _format_temperature_message(
+                            heat_level,
+                            station_name,
+                            heat_index,
+                            timestamp
+                        )
+                    })
     
     # Sort by timestamp descending (newest first)
     notifications.sort(key=lambda x: x['timestamp'], reverse=True)
@@ -1267,3 +1306,28 @@ def _format_rainfall_message(level, station_name, value, timestamp):
         'moderate': f"Moderate Rainfall: {station_name} recorded {value:.1f}mm/hr at {time_str}"
     }
     return messages.get(level, f"Rainfall: {station_name} - {value:.1f}mm/hr")
+
+
+def _format_temperature_message(level, station_name, value, timestamp):
+    """Format heat index alert message with practical safety suggestions."""
+    time_str = timestamp.strftime('%I:%M %p').lstrip('0')
+
+    messages = {
+        'extreme_danger': (
+            f"Extreme Danger Heat Index: {station_name} reached {value:.1f}°C at {time_str} - "
+            "Avoid outdoor activity and seek cooler shelter immediately"
+        ),
+        'danger': (
+            f"Danger Heat Index: {station_name} reached {value:.1f}°C at {time_str} - "
+            "Limit outdoor exposure, hydrate, and watch for heat stress"
+        ),
+        'extreme_caution': (
+            f"Extreme Caution Heat Index: {station_name} reached {value:.1f}°C at {time_str} - "
+            "Take frequent shade breaks and drink water"
+        ),
+        'caution': (
+            f"Caution Heat Index: {station_name} reached {value:.1f}°C at {time_str} - "
+            "Stay hydrated and reduce strenuous outdoor activity"
+        )
+    }
+    return messages.get(level, f"Heat Index: {station_name} - {value:.1f}°C")

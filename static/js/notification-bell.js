@@ -1,6 +1,7 @@
 /**
  * Notification Bell - Alert History Dropdown
- * Fetches and displays historical threshold breaches (flood alerts, heavy rainfall)
+ * Fetches and displays historical threshold breaches
+ * (flood alerts, heavy rainfall, heat index alerts)
  */
 
 const NotificationBell = {
@@ -409,6 +410,35 @@ const NotificationBell = {
 			return `<img src="/static/media/icons/${iconFile}" alt="${level}" style="width: 40px; height: 40px; object-fit: contain">`;
 		}
 
+		if (type === "temperature") {
+			const temperatureIconMap = {
+				extreme_danger: {
+					icon: "fa-temperature-full",
+					color: this.colors.alert.critical,
+				},
+				danger: {
+					icon: "fa-temperature-three-quarters",
+					color: this.colors.alert.warning,
+				},
+				extreme_caution: {
+					icon: "fa-temperature-half",
+					color: this.colors.alert.alert,
+				},
+				caution: {
+					icon: "fa-temperature-quarter",
+					color: this.colors.alert.advisory,
+				},
+			};
+
+			const temperatureConfig =
+				temperatureIconMap[level] || temperatureIconMap.caution;
+			const bgColor = this._hexToRgba(temperatureConfig.color, 0.1);
+
+			return `<div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: ${bgColor}">
+			<i class="fas ${temperatureConfig.icon}" style="font-size: 1rem; color: ${temperatureConfig.color}"></i>
+		</div>`;
+		}
+
 		// Rainfall - use colors from config.py via APP_CONFIG
 		const isHeavy = level === "heavy";
 		const iconColor = isHeavy
@@ -458,6 +488,26 @@ const NotificationBell = {
 			const label = levelLabels[item.level] || "Alert";
 
 			return `${emphasis(label + ":")} Water level at ${emphasis(stationName)} reached ${emphasis(value + " " + unit)} at ${emphasis(timeStr)}.`;
+		}
+
+		if (item.type === "temperature") {
+			const tempLabels = {
+				extreme_danger: "Extreme Danger Heat Index",
+				danger: "Danger Heat Index",
+				extreme_caution: "Extreme Caution Heat Index",
+				caution: "Caution Heat Index",
+			};
+			const tempAdvice = {
+				extreme_danger: "Avoid outdoor activity and seek cooler shelter immediately.",
+				danger: "Limit outdoor exposure, hydrate, and watch for heat stress.",
+				extreme_caution: "Take frequent shade breaks and drink water.",
+				caution: "Stay hydrated and reduce strenuous outdoor activity.",
+			};
+
+			const label = tempLabels[item.level] || "Heat Index";
+			const advice = tempAdvice[item.level] || "Stay hydrated.";
+
+			return `${emphasis(label + ":")} ${emphasis(stationName)} recorded ${emphasis(value + " " + unit)} at ${emphasis(timeStr)}. ${advice}`;
 		}
 
 		// Rainfall

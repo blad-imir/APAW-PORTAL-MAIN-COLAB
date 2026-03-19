@@ -6,11 +6,24 @@ class RealTimeWeatherCard {
 	constructor(config = {}) {
 		// Load station config from config.py
 		const weatherCardConfig = window.APP_CONFIG?.weatherCardConfig || {};
+		const stationConfigList = Array.isArray(window.APP_CONFIG?.stations)
+			? window.APP_CONFIG.stations
+			: [];
+		const fallbackStationIds = stationConfigList
+			.filter((s) => s?.id)
+			.map((s) => s.id);
+		const stationCycleIds =
+			config.stationCycleIds ||
+			(fallbackStationIds.length > 0
+				? fallbackStationIds
+				: weatherCardConfig.stationIds || [weatherCardConfig.stationId || "St5"]);
 
 		// Configuration - consolidate all settings here
 		this.config = {
-			stationId: config.stationId || weatherCardConfig.stationId || "St5",
+			stationId:
+				config.stationId || weatherCardConfig.stationId || stationCycleIds[0] || "St5",
 			stationIds: config.stationIds || weatherCardConfig.stationIds || ["St5"],
+			stationCycleIds,
 			stationName:
 				config.stationName ||
 				weatherCardConfig.stationName ||
@@ -34,6 +47,9 @@ class RealTimeWeatherCard {
 		this.lastSuccessfulFetch = null;
 		this.consecutiveErrors = 0;
 		this.backoffMultiplier = 1;
+
+		this.stationInfoMap = this._buildStationInfoMap(stationConfigList);
+		this.currentStationIndex = this._resolveInitialStationIndex();
 	}
 
 	async initialize() {
@@ -44,6 +60,57 @@ class RealTimeWeatherCard {
 		}
 
 		this.setupRefreshButton();
+		this.setupStationNavigation();
+	}
+
+	_buildStationInfoMap(stationConfigList) {
+		const map = {};
+		stationConfigList.forEach((station) => {
+			if (!station?.id) return;
+			map[station.id] = {
+				name: station.name || station.id,
+				ids:
+					Array.isArray(station.station_ids) && station.station_ids.length > 0
+						? station.station_ids
+						: [station.id],
+			};
+		});
+		return map;
+	}
+
+	_resolveInitialStationIndex() {
+		const idx = this.config.stationCycleIds.indexOf(this.config.stationId);
+		return idx >= 0 ? idx : 0;
+	}
+
+	getCurrentStationId() {
+		return this.config.stationCycleIds[this.currentStationIndex] || this.config.stationId;
+	}
+
+	getCurrentStationAliases() {
+		const stationId = this.getCurrentStationId();
+		const info = this.stationInfoMap[stationId];
+		if (info?.ids?.length) return info.ids;
+		return [stationId];
+	}
+
+	updateStationHeader(stationId) {
+		const stationLabelEl = document.querySelector(".weather-card__station-name");
+		if (!stationLabelEl) return;
+
+		const info = this.stationInfoMap[stationId];
+		const displayName = info?.name || stationId;
+		stationLabelEl.textContent = `${stationId} - ${displayName}`;
+	}
+
+	navigateStation(direction) {
+		const total = this.config.stationCycleIds.length;
+		if (total <= 1) return;
+
+		this.currentStationIndex = (this.currentStationIndex + direction + total) % total;
+		this.config.stationId = this.getCurrentStationId();
+		this.updateStationHeader(this.config.stationId);
+		this.updateWeatherCard();
 	}
 
 	async updateWeatherCard() {
@@ -76,7 +143,9 @@ class RealTimeWeatherCard {
 				this.retryCount = 0;
 				this.hideErrorIndicator();
 			} else {
-				throw new Error(`No data for station ${this.config.stationId}`);
+				this.showNoDataState();
+				this.retryCount = 0;
+				this.hideErrorIndicator();
 			}
 		} catch (error) {
 			if (error.name === "AbortError") return;
@@ -130,8 +199,8 @@ class RealTimeWeatherCard {
 	findDisplayStationData(dataArray) {
 		if (!Array.isArray(dataArray) || dataArray.length === 0) return null;
 
-		// Use station IDs from config
-		const targetStationIds = this.config.stationIds;
+		// Use active station (and aliases, if configured)
+		const targetStationIds = this.getCurrentStationAliases();
 		const stationReadings = dataArray.filter((r) =>
 			targetStationIds.includes(r.StationID),
 		);
@@ -149,6 +218,7 @@ class RealTimeWeatherCard {
 
 	updateCardElements(data) {
 		const timestamp = this.formatTimestamp(data.DateTime || data.DateTimeStamp);
+		this.updateStationHeader(this.config.stationId);
 		this.updateElement(
 			".weather-card__latest-reading",
 			`Last Update: ${timestamp}`,
@@ -204,6 +274,30 @@ class RealTimeWeatherCard {
 		const dataTimestamp = data.DateTime || data.DateTimeStamp;
 		this.updateWeatherIcon(rainfall);
 		this.pulseCard();
+	}
+
+	showNoDataState() {
+		this.updateStationHeader(this.config.stationId);
+		this.updateElement(".weather-card__latest-reading", "No sensor data");
+		this.updateElement(
+			".weather-card__main-value",
+			`--<small>mm/hr</small>`,
+		);
+
+		this.updateMetricValue(
+			"wind speed",
+			`--<span class="weather-card__unit text-secondary fw-normal">m/s</span>`,
+		);
+		this.updateMetricValue(
+			"wind direction",
+			`--<span class="weather-card__unit text-secondary fw-normal">&deg;</span>`,
+		);
+		this.updateWaterLevel(null);
+		this.updateMetricValue(
+			"temperature",
+			`--<span class="weather-card__unit text-secondary fw-normal"> &deg;C</span>`,
+		);
+		this.updateWeatherIcon(0);
 	}
 
 	updateMetricValue(metricType, html) {
@@ -334,6 +428,22 @@ class RealTimeWeatherCard {
 				await this.updateWeatherCard();
 			});
 		}
+	}
+
+	setupStationNavigation() {
+		const prevBtn = document.getElementById("weather-card-prev-station");
+		const nextBtn = document.getElementById("weather-card-next-station");
+
+		if (!prevBtn || !nextBtn) return;
+
+		prevBtn.addEventListener("click", () => this.navigateStation(-1));
+		nextBtn.addEventListener("click", () => this.navigateStation(1));
+
+		const canNavigate = this.config.stationCycleIds.length > 1;
+		prevBtn.disabled = !canNavigate;
+		nextBtn.disabled = !canNavigate;
+
+		this.updateStationHeader(this.getCurrentStationId());
 	}
 
 	handleUpdateError(error) {

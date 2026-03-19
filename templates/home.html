@@ -65,6 +65,24 @@ metrics.highest_alert_count > 0 %}
 		{# Weather Card #}
 		<div class="col-12 col-lg-6">
 			<div class="weather-card">
+				<button
+					type="button"
+					class="weather-card__nav-arrow weather-card__nav-arrow--left"
+					id="weather-card-prev-station"
+					aria-label="View previous weather station"
+				>
+					<i class="fas fa-chevron-left" aria-hidden="true"></i>
+				</button>
+
+				<button
+					type="button"
+					class="weather-card__nav-arrow weather-card__nav-arrow--right"
+					id="weather-card-next-station"
+					aria-label="View next weather station"
+				>
+					<i class="fas fa-chevron-right" aria-hidden="true"></i>
+				</button>
+
 				<div class="weather-card__header">
 					<div class="weather-card__title-block">
 						<h4 class="weather-card__title color-white fw-600">
@@ -72,7 +90,9 @@ metrics.highest_alert_count > 0 %}
 						</h4>
 						<div class="weather-card__station">
 							<i class="fas fa-map-marker-alt me-1"></i>
-							{{ weather_card_station_name }}
+							<span class="weather-card__station-name"
+								>{{ weather_card_station_name }}</span
+							>
 						</div>
 					</div>
 					<div class="weather-card__data-time">

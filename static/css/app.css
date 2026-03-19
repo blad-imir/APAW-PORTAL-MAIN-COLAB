@@ -2298,6 +2298,7 @@ body.locked {
   display: flex;
   flex-direction: column;
   padding: 16px;
+  position: relative;
 }
 @media (min-width: 576px) {
   .weather-card {
@@ -2325,6 +2326,49 @@ body.locked {
 @media (min-width: 576px) {
   .weather-card__header {
     margin-bottom: 20px;
+  }
+}
+
+.weather-card__nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: #1f7db0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+.weather-card__nav-arrow i {
+  font-size: 12px;
+}
+.weather-card__nav-arrow:hover:not(:disabled) {
+  background: #16658f;
+  transform: translateY(-50%) scale(1.08);
+}
+.weather-card__nav-arrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.weather-card__nav-arrow--left {
+  left: 8px;
+}
+.weather-card__nav-arrow--right {
+  right: 8px;
+}
+
+@media (max-width: 575px) {
+  .weather-card__nav-arrow {
+    width: 34px;
+    height: 34px;
   }
 }
 

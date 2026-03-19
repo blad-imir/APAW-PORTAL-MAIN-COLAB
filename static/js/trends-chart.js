@@ -1,5 +1,5 @@
 /**
- * Unified Trends Chart - Daily rainfall OR water level visualization
+ * Unified Trends Chart - Daily rainfall, water level, temperature, or humidity visualization
  * Uses window.CHART_CONFIG from config.py - no hardcoded values
  * Mobile: 6-month pagination (Jan-Jun, Jul-Dec) with nav buttons
  *
@@ -10,21 +10,27 @@
 
 class TrendsChart {
 	constructor(config) {
-		// Data type: 'rainfall' or 'waterlevel'
+		// Data type: 'rainfall', 'waterlevel', 'temperature', or 'humidity'
 		this.dataType = config.dataType || "rainfall";
 
 		// Chart identifiers
-		this.chartId =
-			config.chartId ||
-			(this.dataType === "rainfall"
-				? "rainfallTrendsChart"
-				: "waterLevelTrendsChart");
+		const defaultChartIdMap = {
+			rainfall: "rainfallTrendsChart",
+			waterlevel: "waterLevelTrendsChart",
+			temperature: "temperatureTrendsChart",
+			humidity: "humidityTrendsChart",
+		};
+		this.chartId = config.chartId || defaultChartIdMap[this.dataType] || "rainfallTrendsChart";
 
 		// API endpoints based on data type
+		const defaultEndpointMap = {
+			rainfall: "/api/rainfall-trends",
+			waterlevel: "/api/water-level-trends",
+			temperature: "/api/temperature-trends",
+			humidity: "/api/humidity-trends",
+		};
 		const defaultEndpoint =
-			this.dataType === "rainfall"
-				? "/api/rainfall-trends"
-				: "/api/water-level-trends";
+			defaultEndpointMap[this.dataType] || "/api/rainfall-trends";
 		this.apiEndpoint = config.apiEndpoint || defaultEndpoint;
 		this.periodsEndpoint =
 			config.periodsEndpoint || `${defaultEndpoint}/periods`;
@@ -60,9 +66,20 @@ class TrendsChart {
 		this.currentHalf = 0;
 
 		// Unit configuration based on data type
-		this.unit = this.dataType === "rainfall" ? "mm" : "cm";
-		this.yAxisTitle =
-			this.dataType === "rainfall" ? "Daily Rainfall (mm)" : "Water Level (cm)";
+		const unitMap = {
+			rainfall: "mm",
+			waterlevel: "cm",
+			temperature: "degC",
+			humidity: "%",
+		};
+		const yAxisTitleMap = {
+			rainfall: "Daily Rainfall (mm)",
+			waterlevel: "Water Level (cm)",
+			temperature: "Temperature (degC)",
+			humidity: "Humidity (%)",
+		};
+		this.unit = unitMap[this.dataType] || "";
+		this.yAxisTitle = yAxisTitleMap[this.dataType] || "";
 
 		console.log(`[${this.chartId}] ${this.dataType} chart initialized`);
 	}
@@ -387,6 +404,9 @@ class TrendsChart {
 						label: point.label,
 						stationName: config.name,
 						count: point.count || 0,
+						avg: point.avg,
+						min: point.min,
+						max: point.max,
 					}));
 			}
 
@@ -525,7 +545,7 @@ class TrendsChart {
 				lineColor: styling.lineColor || "#e2e8f0",
 				gridColor: styling.gridColor || "#f1f5f9",
 				tickColor: styling.tickColor || "#e2e8f0",
-				minimum: 0,
+				minimum: this.dataType === "temperature" ? undefined : 0,
 				suffix: ` ${this.unit}`,
 			},
 
@@ -682,7 +702,22 @@ class TrendsChart {
 				displayValue = this.dataType === "rainfall" ? "No Rain" : "0 cm";
 				valueColor = offlineColor;
 			} else {
-				displayValue = `${value.toFixed(1)} ${this.unit}`;
+				if (this.dataType === "temperature" || this.dataType === "humidity") {
+					const avg = entry?.dataPoint?.avg;
+					const min = entry?.dataPoint?.min;
+					const max = entry?.dataPoint?.max;
+
+					if (avg !== undefined && avg !== null) {
+						displayValue = `Avg ${avg.toFixed(1)} ${this.unit}`;
+						if (min !== undefined && min !== null && max !== undefined && max !== null) {
+							displayValue += ` | Min ${min.toFixed(1)} | Max ${max.toFixed(1)}`;
+						}
+					} else {
+						displayValue = `${value.toFixed(1)} ${this.unit}`;
+					}
+				} else {
+					displayValue = `${value.toFixed(1)} ${this.unit}`;
+				}
 				valueColor = config.color;
 			}
 

@@ -7,6 +7,14 @@ class CSVExporter {
 		return this._export(data, dateStr, "water_level");
 	}
 
+	exportTemperatureData(data, dateStr = null) {
+		return this._export(data, dateStr, "temperature");
+	}
+
+	exportHumidityData(data, dateStr = null) {
+		return this._export(data, dateStr, "humidity");
+	}
+
 	_export(data, dateStr, type = "precipitation") {
 		try {
 			// Validate data
@@ -34,7 +42,13 @@ class CSVExporter {
 		const stationIds = Object.keys(stations).sort();
 
 		const headers = ["Time"];
-		const unit = type === "precipitation" ? "(mm/hr)" : "(m)";
+		const unitMap = {
+			precipitation: "(mm/hr)",
+			water_level: "(cm)",
+			temperature: "(degC)",
+			humidity: "(%)",
+		};
+		const unit = unitMap[type] || "";
 
 		stationIds.forEach((id) => {
 			const stationName = stations[id].name || id;
@@ -94,7 +108,7 @@ class CSVExporter {
 	}
 
 	getVersion() {
-		return "2.0.0 - Water Level Support";
+		return "3.0.0 - Water, Temperature, Humidity Support";
 	}
 }
 

@@ -188,6 +188,26 @@ metrics.highest_alert_count > 0 %}
 </section>
 
 <section class="pt-40">
+	{{ chart_section( chart_id='temperatureChart', title='Hourly Temperature
+	Monitoring', icon_class='fa-thermometer-half',
+	title_class='temperature-title', picker_id='temperatureDatePicker',
+	export_btn_id='btn-export-temperature-csv',
+	prev_btn_id='btn-prev-temperature-day',
+	next_btn_id='btn-next-temperature-day',
+	loading_id='temperature-chart-loading', error_id='temperature-chart-error',
+	data_type='temperature' ) }}
+</section>
+
+<section class="pt-40">
+	{{ chart_section( chart_id='humidityChart', title='Hourly Humidity
+	Monitoring', icon_class='fa-tint', title_class='humidity-title',
+	picker_id='humidityDatePicker', export_btn_id='btn-export-humidity-csv',
+	prev_btn_id='btn-prev-humidity-day', next_btn_id='btn-next-humidity-day',
+	loading_id='humidity-chart-loading', error_id='humidity-chart-error',
+	data_type='humidity' ) }}
+</section>
+
+<section class="pt-40">
 	{# Consolidated Header with Controls (Desktop only) #}
 	<div
 		class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2"
@@ -325,6 +345,30 @@ metrics.highest_alert_count > 0 %}
 					<i class="fas fa-water" aria-hidden="true"></i>
 					<span>Water Level</span>
 				</button>
+				<button
+					type="button"
+					class="trends-tab"
+					id="tabTemperature"
+					role="tab"
+					aria-selected="false"
+					aria-controls="temperatureTrendsChart"
+					data-tab="temperature"
+				>
+					<i class="fas fa-thermometer-half" aria-hidden="true"></i>
+					<span>Temperature</span>
+				</button>
+				<button
+					type="button"
+					class="trends-tab"
+					id="tabHumidity"
+					role="tab"
+					aria-selected="false"
+					aria-controls="humidityTrendsChart"
+					data-tab="humidity"
+				>
+					<i class="fas fa-tint" aria-hidden="true"></i>
+					<span>Humidity</span>
+				</button>
 			</div>
 		</div>
 
@@ -363,6 +407,20 @@ metrics.highest_alert_count > 0 %}
 			class="chart-canvas trends-chart-panel hidden"
 			role="tabpanel"
 			aria-labelledby="tabWaterLevel"
+		></div>
+
+		<div
+			id="temperatureTrendsChart"
+			class="chart-canvas trends-chart-panel hidden"
+			role="tabpanel"
+			aria-labelledby="tabTemperature"
+		></div>
+
+		<div
+			id="humidityTrendsChart"
+			class="chart-canvas trends-chart-panel hidden"
+			role="tabpanel"
+			aria-labelledby="tabHumidity"
 		></div>
 
 		<button
@@ -408,6 +466,7 @@ metrics.highest_alert_count > 0 %}
 <script src="{{ url_for('static', filename='js/csv-exporter.js') }}"></script>
 <script src="{{ url_for('static', filename='js/precipitation-chart.js') }}"></script>
 <script src="{{ url_for('static', filename='js/water-level-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/hourly-metric-chart.js') }}"></script>
 <script src="{{ url_for('static', filename='js/trends-chart.js') }}"></script>
 
 {# Home Page Initialization #}

@@ -22,11 +22,19 @@ logger = logging.getLogger(__name__)
 class DataType(Enum):
     PRECIPITATION = 'precipitation'
     WATER_LEVEL = 'water_level'
+    TEMPERATURE = 'temperature'
+    HUMIDITY = 'humidity'
 
 
 # Water level sensor validation range (centimeters)
 MIN_VALID_WATER_LEVEL_CM = 0.0
 MAX_VALID_WATER_LEVEL_CM = 1500.0
+
+# Environmental sensor validation ranges
+MIN_VALID_TEMPERATURE_C = -40.0
+MAX_VALID_TEMPERATURE_C = 60.0
+MIN_VALID_HUMIDITY_PERCENT = 0.0
+MAX_VALID_HUMIDITY_PERCENT = 100.0
 
 
 @dataclass
@@ -148,7 +156,17 @@ class ChartDataService:
     ) -> Dict[str, Dict[datetime, List[float]]]:
         """Group weather readings by both station and hourly time interval."""
         station_data = defaultdict(lambda: defaultdict(list))
-        field_name = 'HourlyRain' if data_type == DataType.PRECIPITATION else 'WaterLevel'
+        field_map = {
+            DataType.PRECIPITATION: 'HourlyRain',
+            DataType.WATER_LEVEL: 'WaterLevel',
+            DataType.TEMPERATURE: 'Temperature',
+            DataType.HUMIDITY: 'Humidity'
+        }
+        field_name = field_map.get(data_type)
+
+        if not field_name:
+            logger.warning("Unsupported data type for hourly grouping: %s", data_type)
+            return station_data
 
         for reading in weather_data:
             try:
@@ -172,6 +190,12 @@ class ChartDataService:
                     continue
                 if data_type == DataType.WATER_LEVEL:
                     if not (MIN_VALID_WATER_LEVEL_CM <= value <= MAX_VALID_WATER_LEVEL_CM):
+                        continue
+                if data_type == DataType.TEMPERATURE:
+                    if not (MIN_VALID_TEMPERATURE_C <= value <= MAX_VALID_TEMPERATURE_C):
+                        continue
+                if data_type == DataType.HUMIDITY:
+                    if not (MIN_VALID_HUMIDITY_PERCENT <= value <= MAX_VALID_HUMIDITY_PERCENT):
                         continue
 
                 for interval_time in intervals:
@@ -204,9 +228,15 @@ class ChartDataService:
             if data_type == DataType.PRECIPITATION:
                 level = self.metrics_service.get_rainfall_level(avg_value)
                 y_value = round(avg_value, 1)
-            else:
+            elif data_type == DataType.WATER_LEVEL:
                 level = self.metrics_service.get_alert_level(avg_value)
                 y_value = round(avg_value, 2)
+            elif data_type == DataType.TEMPERATURE:
+                level = 'normal'
+                y_value = round(avg_value, 1)
+            else:  # HUMIDITY
+                level = 'normal'
+                y_value = round(avg_value, 1)
 
             show_label = (interval_time.hour % ChartConfig.LABEL_INTERVAL_HOURS == 0)
 
@@ -329,6 +359,46 @@ class WaterLevelService:
 
     def get_summary_statistics(self, data_points: List[ChartDataPoint]) -> Dict:
         return self._service.get_water_level_summary(data_points)
+
+
+class TemperatureService:
+    """Wrapper for hourly temperature chart endpoints."""
+
+    def __init__(self, metrics_service):
+        self._service = ChartDataService(metrics_service)
+
+    def get_24hour_intervals_per_station(
+        self,
+        weather_data: List[Dict],
+        sites: List[Dict],
+        target_date: Optional[datetime] = None
+    ) -> Dict[str, List[ChartDataPoint]]:
+        return self._service.get_24hour_intervals_per_station(
+            weather_data, sites, DataType.TEMPERATURE, target_date
+        )
+
+    def get_available_date_range(self, weather_data: List[Dict]) -> Optional[Dict]:
+        return self._service.get_available_date_range(weather_data)
+
+
+class HumidityService:
+    """Wrapper for hourly humidity chart endpoints."""
+
+    def __init__(self, metrics_service):
+        self._service = ChartDataService(metrics_service)
+
+    def get_24hour_intervals_per_station(
+        self,
+        weather_data: List[Dict],
+        sites: List[Dict],
+        target_date: Optional[datetime] = None
+    ) -> Dict[str, List[ChartDataPoint]]:
+        return self._service.get_24hour_intervals_per_station(
+            weather_data, sites, DataType.HUMIDITY, target_date
+        )
+
+    def get_available_date_range(self, weather_data: List[Dict]) -> Optional[Dict]:
+        return self._service.get_available_date_range(weather_data)
 
 # =============================================================================
 # RAINFALL TRENDS - Yearly daily rainfall visualization
@@ -924,3 +994,307 @@ class WaterLevelTrendsService:
             'months_by_year': formatted_months,
             'current_year': datetime.now().year
         }
+
+
+@dataclass
+class DailyEnvironmentalDataPoint:
+    """Data point for daily temperature/humidity trends with min/max/avg."""
+    date: str
+    y: float  # Daily average
+    label: str
+    count: int
+    min_value: float = None
+    max_value: float = None
+    avg_value: float = None
+
+
+class BaseEnvironmentalTrendsService:
+    """Shared daily trends processor for temperature and humidity."""
+
+    MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    FULL_MONTH_NAMES = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ]
+
+    field_name = None
+    value_name = 'value'
+    min_valid = None
+    max_valid = None
+
+    def __init__(self, metrics_service):
+        self.metrics_service = metrics_service
+
+    def get_environmental_data(
+        self,
+        weather_data: List[Dict],
+        sites: List[Dict],
+        period: str = None,
+        year: int = None,
+        month: int = None
+    ) -> Dict:
+        if not weather_data:
+            return {'stations': {}, 'date_range': None}
+
+        date_range = self._calculate_date_range(weather_data, period, year, month)
+        if not date_range:
+            return {'stations': {}, 'date_range': None}
+
+        station_daily_data = self._group_all_by_station_and_date(weather_data)
+
+        result = {}
+        for site in sites:
+            station_id = site['id']
+            daily_data = station_daily_data.get(station_id, {})
+            formatted_data = self._format_range_data(
+                daily_data,
+                date_range['start'],
+                date_range['end']
+            )
+            result[station_id] = {
+                'name': site.get('name', station_id),
+                'data': [
+                    {
+                        'date': dp.date,
+                        'y': dp.y,
+                        'avg': dp.avg_value,
+                        'label': dp.label,
+                        'count': dp.count,
+                        'min': dp.min_value,
+                        'max': dp.max_value
+                    } for dp in formatted_data
+                ]
+            }
+
+        return {
+            'stations': result,
+            'date_range': {
+                'start': date_range['start'].isoformat(),
+                'end': date_range['end'].isoformat(),
+                'label': date_range['label'],
+                'type': date_range['type']
+            },
+            'period': period,
+            'year': year,
+            'month': month
+        }
+
+    def _calculate_date_range(
+        self,
+        weather_data: List[Dict],
+        period: str,
+        year: int,
+        month: int
+    ) -> Optional[Dict]:
+        today = datetime.now()
+
+        if period == 'last12':
+            earliest = self._get_earliest_date(weather_data)
+            if not earliest:
+                return None
+
+            end_date = today
+            start_12_months_ago = today - timedelta(days=365)
+            start_date = max(earliest, start_12_months_ago)
+
+            return {
+                'start': start_date,
+                'end': end_date,
+                'label': 'Last 12 months',
+                'type': 'last12'
+            }
+
+        elif year:
+            if month:
+                start_date = datetime(year, month, 1)
+                if month == 12:
+                    end_date = datetime(year, 12, 31)
+                else:
+                    end_date = datetime(year, month + 1, 1) - timedelta(days=1)
+
+                if end_date > today:
+                    end_date = today
+
+                return {
+                    'start': start_date,
+                    'end': end_date,
+                    'label': f'{self.FULL_MONTH_NAMES[month-1]} {year}',
+                    'type': 'month'
+                }
+
+            return {
+                'start': datetime(year, 1, 1),
+                'end': datetime(year, 12, 31),
+                'label': str(year),
+                'type': 'year'
+            }
+
+        current_year = today.year
+        return {
+            'start': datetime(current_year, 1, 1),
+            'end': datetime(current_year, 12, 31),
+            'label': str(current_year),
+            'type': 'year'
+        }
+
+    def _get_earliest_date(self, weather_data: List[Dict]) -> Optional[datetime]:
+        earliest = None
+        for reading in weather_data:
+            timestamp = parse_weather_timestamp(
+                reading.get('DateTime') or reading.get('DateTimeStamp')
+            )
+            if timestamp and (earliest is None or timestamp < earliest):
+                earliest = timestamp
+        return earliest
+
+    def _group_all_by_station_and_date(
+        self,
+        weather_data: List[Dict]
+    ) -> Dict[str, Dict[str, List[float]]]:
+        station_data = defaultdict(lambda: defaultdict(list))
+
+        for reading in weather_data:
+            try:
+                timestamp = parse_weather_timestamp(
+                    reading.get('DateTime') or reading.get('DateTimeStamp')
+                )
+                if not timestamp:
+                    continue
+
+                station_id = reading.get('StationID')
+                value = safe_float(reading.get(self.field_name))
+
+                if not station_id or value is None:
+                    continue
+
+                if self.min_valid is not None and value < self.min_valid:
+                    continue
+                if self.max_valid is not None and value > self.max_valid:
+                    continue
+
+                date_key = timestamp.strftime('%Y-%m-%d')
+                station_data[station_id][date_key].append(value)
+
+            except Exception as e:
+                logger.warning("Error processing %s reading: %s", self.value_name, e)
+                continue
+
+        return station_data
+
+    def _format_range_data(
+        self,
+        daily_data: Dict[str, List[float]],
+        start_date: datetime,
+        end_date: datetime
+    ) -> List[DailyEnvironmentalDataPoint]:
+        result = []
+        current_date = start_date
+
+        while current_date <= end_date:
+            date_key = current_date.strftime('%Y-%m-%d')
+            month = current_date.month
+            day = current_date.day
+
+            values = daily_data.get(date_key, [])
+
+            if values:
+                avg_value = sum(values) / len(values)
+                min_value = min(values)
+                max_value = max(values)
+                count = len(values)
+            else:
+                avg_value = None
+                min_value = None
+                max_value = None
+                count = 0
+
+            result.append(DailyEnvironmentalDataPoint(
+                date=date_key,
+                y=round(avg_value, 1) if avg_value is not None else None,
+                label=f'{self.MONTH_NAMES[month-1]} {day}',
+                count=count,
+                min_value=round(min_value, 1) if min_value is not None else None,
+                max_value=round(max_value, 1) if max_value is not None else None,
+                avg_value=round(avg_value, 1) if avg_value is not None else None
+            ))
+
+            current_date += timedelta(days=1)
+
+        return result
+
+    def get_available_periods(self, weather_data: List[Dict]) -> Dict:
+        years_with_data = set()
+        months_by_year = defaultdict(set)
+
+        for reading in weather_data:
+            value = safe_float(reading.get(self.field_name))
+            if value is None:
+                continue
+
+            if self.min_valid is not None and value < self.min_valid:
+                continue
+            if self.max_valid is not None and value > self.max_valid:
+                continue
+
+            timestamp = parse_weather_timestamp(
+                reading.get('DateTime') or reading.get('DateTimeStamp')
+            )
+            if timestamp:
+                years_with_data.add(timestamp.year)
+                months_by_year[timestamp.year].add(timestamp.month)
+
+        sorted_years = sorted(years_with_data, reverse=True)
+
+        periods = [{'value': 'last12', 'label': 'Last 12 months'}]
+        for year in sorted_years:
+            periods.append({'value': str(year), 'label': str(year)})
+
+        formatted_months = {}
+        for year, months in months_by_year.items():
+            formatted_months[year] = [
+                {'value': m, 'label': self.FULL_MONTH_NAMES[m-1]}
+                for m in sorted(months)
+            ]
+
+        return {
+            'periods': periods,
+            'years': sorted_years,
+            'months_by_year': formatted_months,
+            'current_year': datetime.now().year
+        }
+
+
+class TemperatureTrendsService(BaseEnvironmentalTrendsService):
+    field_name = 'Temperature'
+    value_name = 'temperature'
+    min_valid = MIN_VALID_TEMPERATURE_C
+    max_valid = MAX_VALID_TEMPERATURE_C
+
+    def get_temperature_data(
+        self,
+        weather_data: List[Dict],
+        sites: List[Dict],
+        period: str = None,
+        year: int = None,
+        month: int = None
+    ) -> Dict:
+        return self.get_environmental_data(weather_data, sites, period, year, month)
+
+
+class HumidityTrendsService(BaseEnvironmentalTrendsService):
+    field_name = 'Humidity'
+    value_name = 'humidity'
+    min_valid = MIN_VALID_HUMIDITY_PERCENT
+    max_valid = MAX_VALID_HUMIDITY_PERCENT
+
+    def get_humidity_data(
+        self,
+        weather_data: List[Dict],
+        sites: List[Dict],
+        period: str = None,
+        year: int = None,
+        month: int = None
+    ) -> Dict:
+        return self.get_environmental_data(weather_data, sites, period, year, month)

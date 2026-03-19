@@ -902,21 +902,93 @@ class PrecipitationChart {
 		return hour;
 	}
 
+	_getDaylightFactor(hour) {
+		// 0 = full night, 1 = full daylight, smooth transitions at dawn/dusk
+		if (hour >= 7 && hour < 17) return 1;
+		if (hour >= 19 || hour < 5) return 0;
+
+		if (hour >= 5 && hour < 7) {
+			return (hour - 5) / 2;
+		}
+
+		if (hour >= 17 && hour < 19) {
+			return 1 - (hour - 17) / 2;
+		}
+
+		return 0;
+	}
+
+	_lerpHexColor(fromHex, toHex, t) {
+		const from = fromHex.replace("#", "");
+		const to = toHex.replace("#", "");
+		const clampT = Math.max(0, Math.min(1, t));
+
+		const fromR = parseInt(from.substring(0, 2), 16);
+		const fromG = parseInt(from.substring(2, 4), 16);
+		const fromB = parseInt(from.substring(4, 6), 16);
+
+		const toR = parseInt(to.substring(0, 2), 16);
+		const toG = parseInt(to.substring(2, 4), 16);
+		const toB = parseInt(to.substring(4, 6), 16);
+
+		const r = Math.round(fromR + (toR - fromR) * clampT);
+		const g = Math.round(fromG + (toG - fromG) * clampT);
+		const b = Math.round(fromB + (toB - fromB) * clampT);
+
+		return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+	}
+
+	_svgToDataUrl(svg) {
+		return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+	}
+
 	_getWeatherIcon(rainfall, hour) {
-		const isNight = hour >= 18 || hour <= 5;
+		const daylight = this._getDaylightFactor(hour);
+		const isNightIcon = daylight < 0.5;
 
 		if (rainfall > 0.5) {
-			// Rain cloud - flat style
-			return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%2390A4AE' d='M75 45c0-1.7-0.2-3.3-0.5-4.9C72.2 27.6 61.5 18 48.5 18c-10.8 0-20.1 6.5-24.2 15.8C23.6 33.3 22.8 33 22 33c-7.2 0-13 5.8-13 13s5.8 13 13 13h53c6.1 0 11-4.9 11-11 0-5.5-4-10-9.2-10.8-.5-.1-.8-.1-.8-.2z'/%3E%3Cpath fill='%2364B5F6' d='M30 65l-4 12M40 65l-4 12M50 65l-4 12M60 65l-4 12M70 65l-4 12' stroke='%2364B5F6' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E";
+			const cloudColor = this._lerpHexColor("#6B7C93", "#90A4AE", daylight);
+			const rainColor = this._lerpHexColor("#4FC3F7", "#64B5F6", daylight);
+
+			return this._svgToDataUrl(
+				`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+					<path fill='${cloudColor}' d='M75 45c0-1.7-0.2-3.3-0.5-4.9C72.2 27.6 61.5 18 48.5 18c-10.8 0-20.1 6.5-24.2 15.8C23.6 33.3 22.8 33 22 33c-7.2 0-13 5.8-13 13s5.8 13 13 13h53c6.1 0 11-4.9 11-11 0-5.5-4-10-9.2-10.8-.5-.1-.8-.1-.8-.2z'/>
+					<path fill='${rainColor}' d='M30 65l-4 12M40 65l-4 12M50 65l-4 12M60 65l-4 12M70 65l-4 12' stroke='${rainColor}' stroke-width='3' stroke-linecap='round'/>
+				</svg>`,
+			);
 		}
 
-		if (isNight) {
-			// Moon - flat crescent
-			return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23FFD54F' d='M50 20c-16.6 0-30 13.4-30 30s13.4 30 30 30c4.1 0 8-0.8 11.6-2.3-9.3-3.6-15.9-12.6-15.9-23.2 0-13.7 9.2-25.1 21.8-28.6C62.3 22 56.4 20 50 20z'/%3E%3C/svg%3E";
+		if (isNightIcon) {
+			const moonColor = this._lerpHexColor("#F4E08A", "#9EC5FE", 1 - daylight);
+			const starColor = this._lerpHexColor("#FFE082", "#D6E4FF", 1 - daylight);
+
+			return this._svgToDataUrl(
+				`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+					<path fill='${moonColor}' d='M50 20c-16.6 0-30 13.4-30 30s13.4 30 30 30c4.1 0 8-0.8 11.6-2.3-9.3-3.6-15.9-12.6-15.9-23.2 0-13.7 9.2-25.1 21.8-28.6C62.3 22 56.4 20 50 20z'/>
+					<circle cx='73' cy='28' r='2.5' fill='${starColor}'/>
+					<circle cx='80' cy='38' r='1.5' fill='${starColor}'/>
+				</svg>`,
+			);
 		}
 
-		// Sun - flat style
-		return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='%23FFD54F'/%3E%3Cg stroke='%23FFD54F' stroke-width='3' stroke-linecap='round'%3E%3Cline x1='50' y1='15' x2='50' y2='25'/%3E%3Cline x1='50' y1='75' x2='50' y2='85'/%3E%3Cline x1='15' y1='50' x2='25' y2='50'/%3E%3Cline x1='75' y1='50' x2='85' y2='50'/%3E%3Cline x1='25.3' y1='25.3' x2='32.3' y2='32.3'/%3E%3Cline x1='67.7' y1='67.7' x2='74.7' y2='74.7'/%3E%3Cline x1='25.3' y1='74.7' x2='32.3' y2='67.7'/%3E%3Cline x1='67.7' y1='32.3' x2='74.7' y2='25.3'/%3E%3C/g%3E%3C/svg%3E";
+		const sunCore = this._lerpHexColor("#FFD54F", "#FFC857", 1 - daylight);
+		const sunRay = this._lerpHexColor("#FDBA74", "#F59E0B", 1 - daylight);
+
+		return this._svgToDataUrl(
+			`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+				<circle cx='50' cy='50' r='20' fill='${sunCore}'/>
+				<g stroke='${sunRay}' stroke-width='3.5' stroke-linecap='round'>
+					<line x1='50' y1='15' x2='50' y2='25'/>
+					<line x1='50' y1='75' x2='50' y2='85'/>
+					<line x1='15' y1='50' x2='25' y2='50'/>
+					<line x1='75' y1='50' x2='85' y2='50'/>
+					<line x1='25.3' y1='25.3' x2='32.3' y2='32.3'/>
+					<line x1='67.7' y1='67.7' x2='74.7' y2='74.7'/>
+					<line x1='25.3' y1='74.7' x2='32.3' y2='67.7'/>
+					<line x1='67.7' y1='32.3' x2='74.7' y2='25.3'/>
+				</g>
+			</svg>`,
+		);
 	}
 
 	_clearWeatherIcons() {

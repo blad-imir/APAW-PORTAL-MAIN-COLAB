@@ -65,11 +65,12 @@ metrics.highest_alert_count > 0 %}
 		{# Weather Card #}
 		<div class="col-12 col-lg-6">
 			<div class="weather-card">
+				{# Station Navigation Arrows #}
 				<button
 					type="button"
 					class="weather-card__nav-arrow weather-card__nav-arrow--left"
 					id="weather-card-prev-station"
-					aria-label="View previous weather station"
+					aria-label="View previous station"
 				>
 					<i class="fas fa-chevron-left" aria-hidden="true"></i>
 				</button>
@@ -78,7 +79,7 @@ metrics.highest_alert_count > 0 %}
 					type="button"
 					class="weather-card__nav-arrow weather-card__nav-arrow--right"
 					id="weather-card-next-station"
-					aria-label="View next weather station"
+					aria-label="View next station"
 				>
 					<i class="fas fa-chevron-right" aria-hidden="true"></i>
 				</button>
@@ -90,9 +91,7 @@ metrics.highest_alert_count > 0 %}
 						</h4>
 						<div class="weather-card__station">
 							<i class="fas fa-map-marker-alt me-1"></i>
-							<span class="weather-card__station-name"
-								>{{ weather_card_station_name }}</span
-							>
+							<span class="weather-card__station-name">{{ weather_card_station_name }}</span>
 						</div>
 					</div>
 					<div class="weather-card__data-time">
@@ -209,22 +208,20 @@ metrics.highest_alert_count > 0 %}
 
 <section class="pt-40">
 	{{ chart_section( chart_id='temperatureChart', title='Hourly Temperature
-	Monitoring', icon_class='fa-thermometer-half',
-	title_class='temperature-title', picker_id='temperatureDatePicker',
-	export_btn_id='btn-export-temperature-csv',
-	prev_btn_id='btn-prev-temperature-day',
-	next_btn_id='btn-next-temperature-day',
-	loading_id='temperature-chart-loading', error_id='temperature-chart-error',
-	data_type='temperature' ) }}
+	Monitoring', icon_class='fa-temperature-half', title_class='precipitation-title',
+	picker_id='tempDatePicker', export_btn_id='btn-export-temp-csv',
+	prev_btn_id='btn-prev-temp-day', next_btn_id='btn-next-temp-day',
+	loading_id='temp-chart-loading', error_id='temp-chart-error', data_type='temperature'
+	) }}
 </section>
 
 <section class="pt-40">
-	{{ chart_section( chart_id='humidityChart', title='Hourly Humidity
-	Monitoring', icon_class='fa-tint', title_class='humidity-title',
+	{{ chart_section( chart_id='humidityChart', title='Hourly Humidity Monitoring',
+	icon_class='fa-droplet', title_class='water-level-title',
 	picker_id='humidityDatePicker', export_btn_id='btn-export-humidity-csv',
 	prev_btn_id='btn-prev-humidity-day', next_btn_id='btn-next-humidity-day',
-	loading_id='humidity-chart-loading', error_id='humidity-chart-error',
-	data_type='humidity' ) }}
+	loading_id='humidity-chart-loading', error_id='humidity-chart-error', data_type='humidity'
+	) }}
 </section>
 
 <section class="pt-40">
@@ -374,7 +371,7 @@ metrics.highest_alert_count > 0 %}
 					aria-controls="temperatureTrendsChart"
 					data-tab="temperature"
 				>
-					<i class="fas fa-thermometer-half" aria-hidden="true"></i>
+					<i class="fas fa-temperature-half" aria-hidden="true"></i>
 					<span>Temperature</span>
 				</button>
 				<button
@@ -386,7 +383,7 @@ metrics.highest_alert_count > 0 %}
 					aria-controls="humidityTrendsChart"
 					data-tab="humidity"
 				>
-					<i class="fas fa-tint" aria-hidden="true"></i>
+					<i class="fas fa-droplet" aria-hidden="true"></i>
 					<span>Humidity</span>
 				</button>
 			</div>
@@ -429,6 +426,7 @@ metrics.highest_alert_count > 0 %}
 			aria-labelledby="tabWaterLevel"
 		></div>
 
+		{# Temperature Trends Chart - hidden by default #}
 		<div
 			id="temperatureTrendsChart"
 			class="chart-canvas trends-chart-panel hidden"
@@ -436,6 +434,7 @@ metrics.highest_alert_count > 0 %}
 			aria-labelledby="tabTemperature"
 		></div>
 
+		{# Humidity Trends Chart - hidden by default #}
 		<div
 			id="humidityTrendsChart"
 			class="chart-canvas trends-chart-panel hidden"
@@ -486,7 +485,7 @@ metrics.highest_alert_count > 0 %}
 <script src="{{ url_for('static', filename='js/csv-exporter.js') }}"></script>
 <script src="{{ url_for('static', filename='js/precipitation-chart.js') }}"></script>
 <script src="{{ url_for('static', filename='js/water-level-chart.js') }}"></script>
-<script src="{{ url_for('static', filename='js/hourly-metric-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/environmental-chart.js') }}"></script>
 <script src="{{ url_for('static', filename='js/trends-chart.js') }}"></script>
 
 {# Home Page Initialization #}

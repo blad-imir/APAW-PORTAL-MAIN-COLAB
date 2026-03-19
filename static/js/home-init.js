@@ -173,27 +173,12 @@ const HomeInit = (function () {
 		if (precipChart) precipChart.loadSpecificDate(newDate);
 	}
 
-	function navigateHourlyChart(days, picker, chartInstance) {
-		if (!picker?.value || !chartInstance) return;
-
-		const date = new Date(picker.value);
-		date.setDate(date.getDate() + days);
-		const newDate = date.toISOString().split("T")[0];
-
-		picker.value = newDate;
-		chartInstance.loadSpecificDate(newDate);
-	}
-
 	async function initializeCharts(stationConfig) {
 		const today = new Date().toISOString().split("T")[0];
 		const precipPicker = document.getElementById("datePicker");
-		const temperaturePicker = document.getElementById("temperatureDatePicker");
-		const humidityPicker = document.getElementById("humidityDatePicker");
 		const waterPickerAll = document.getElementById("waterPickerAll");
 
 		if (precipPicker) precipPicker.value = today;
-		if (temperaturePicker) temperaturePicker.value = today;
-		if (humidityPicker) humidityPicker.value = today;
 		if (waterPickerAll) waterPickerAll.value = today;
 
 		const csvExporter = new (
@@ -221,42 +206,38 @@ const HomeInit = (function () {
 			await precipChart.init();
 		}
 
-		if (
-			document.getElementById("temperatureChart") &&
-			window.HourlyMetricChart
-		) {
-			temperatureChart = new HourlyMetricChart({
+		if (document.getElementById("temperatureChart") && window.EnvironmentalChart) {
+			temperatureChart = new EnvironmentalChart({
 				chartId: "temperatureChart",
-				metricType: "temperature",
 				apiEndpoint: "/api/temperature-data",
 				dateRangeEndpoint: "/api/temperature-date-range",
-				datePickerId: "temperatureDatePicker",
-				loadingId: "temperature-chart-loading",
-				errorId: "temperature-chart-error",
 				unit: "degC",
 				yAxisTitle: "Temperature (degC)",
-				valueDecimals: 1,
+				loadingId: "temp-chart-loading",
+				errorId: "temp-chart-error",
+				datePickerId: "tempDatePicker",
+				prevBtnId: "btn-prev-temp-day",
+				nextBtnId: "btn-next-temp-day",
 				stationConfig,
+				autoLoad: true,
 			});
 			await temperatureChart.init();
 		}
 
-		if (
-			document.getElementById("humidityChart") &&
-			window.HourlyMetricChart
-		) {
-			humidityChart = new HourlyMetricChart({
+		if (document.getElementById("humidityChart") && window.EnvironmentalChart) {
+			humidityChart = new EnvironmentalChart({
 				chartId: "humidityChart",
-				metricType: "humidity",
 				apiEndpoint: "/api/humidity-data",
 				dateRangeEndpoint: "/api/humidity-date-range",
-				datePickerId: "humidityDatePicker",
-				loadingId: "humidity-chart-loading",
-				errorId: "humidity-chart-error",
 				unit: "%",
 				yAxisTitle: "Humidity (%)",
-				valueDecimals: 1,
+				loadingId: "humidity-chart-loading",
+				errorId: "humidity-chart-error",
+				datePickerId: "humidityDatePicker",
+				prevBtnId: "btn-prev-humidity-day",
+				nextBtnId: "btn-next-humidity-day",
 				stationConfig,
+				autoLoad: true,
 			});
 			await humidityChart.init();
 		}
@@ -362,11 +343,10 @@ const HomeInit = (function () {
 		}
 
 		bindPrecipNavigation(precipPicker);
-		bindTemperatureNavigation(temperaturePicker);
-		bindHumidityNavigation(humidityPicker);
+		bindEnvironmentalNavigation();
 		bindWaterNavigation();
-		bindDatePickerEvents(precipPicker, temperaturePicker, humidityPicker);
-		bindExportEvents(csvExporter, precipPicker, temperaturePicker, humidityPicker);
+		bindDatePickerEvents(precipPicker);
+		bindExportEvents(csvExporter, precipPicker);
 		bindRetryEvents();
 		bindTrendsEvents();
 	}
@@ -374,42 +354,31 @@ const HomeInit = (function () {
 	function bindTrendsEvents() {
 		// Tab switching
 		const tabs = document.querySelectorAll(".trends-tab");
-		const panels = {
-			rainfall: document.getElementById("rainfallTrendsChart"),
-			waterlevel: document.getElementById("waterLevelTrendsChart"),
-			temperature: document.getElementById("temperatureTrendsChart"),
-			humidity: document.getElementById("humidityTrendsChart"),
+		const rainfallPanel = document.getElementById("rainfallTrendsChart");
+		const waterLevelPanel = document.getElementById("waterLevelTrendsChart");
+		const temperaturePanel = document.getElementById("temperatureTrendsChart");
+		const humidityPanel = document.getElementById("humidityTrendsChart");
+
+		const getActiveTrendsChart = () => {
+			if (activeTrendsTab === "rainfall") return trendsChart;
+			if (activeTrendsTab === "waterlevel") return waterLevelTrendsChart;
+			if (activeTrendsTab === "temperature") return temperatureTrendsChart;
+			if (activeTrendsTab === "humidity") return humidityTrendsChart;
+			return null;
 		};
 
-		const tabCharts = {
-			rainfall: trendsChart,
-			waterlevel: waterLevelTrendsChart,
-			temperature: temperatureTrendsChart,
-			humidity: humidityTrendsChart,
-		};
+		const showPanel = (tabName) => {
+			rainfallPanel?.classList.add("hidden");
+			waterLevelPanel?.classList.add("hidden");
+			temperaturePanel?.classList.add("hidden");
+			humidityPanel?.classList.add("hidden");
 
-		const getCurrentFilter = () => {
-			const periodSelect = document.getElementById("trendsPeriodSelect");
-			const monthSelect = document.getElementById("trendsMonthSelect");
-
-			let period = null;
-			let year = null;
-			let month = null;
-
-			if (periodSelect) {
-				const val = periodSelect.value;
-				if (val === "last12") {
-					period = "last12";
-				} else {
-					year = parseInt(val, 10);
-				}
-			}
-
-			if (monthSelect && monthSelect.value) {
-				month = parseInt(monthSelect.value, 10);
-			}
-
-			return { period, year, month };
+			if (tabName === "rainfall") rainfallPanel?.classList.remove("hidden");
+			if (tabName === "waterlevel")
+				waterLevelPanel?.classList.remove("hidden");
+			if (tabName === "temperature")
+				temperaturePanel?.classList.remove("hidden");
+			if (tabName === "humidity") humidityPanel?.classList.remove("hidden");
 		};
 
 		tabs.forEach((tab) => {
@@ -425,26 +394,32 @@ const HomeInit = (function () {
 				tab.classList.add("trends-tab--active");
 				tab.setAttribute("aria-selected", "true");
 
-				Object.keys(panels).forEach((panelKey) => {
-					if (panels[panelKey]) {
-						panels[panelKey].classList.toggle(
-							"hidden",
-							panelKey !== targetTab,
-						);
-					}
-				});
+				const periodSelect = document.getElementById("trendsPeriodSelect");
+				const monthSelect = document.getElementById("trendsMonthSelect");
 
+				let period = null;
+				let year = null;
+				let month = null;
+
+				if (periodSelect) {
+					const val = periodSelect.value;
+					if (val === "last12") {
+						period = "last12";
+					} else {
+						year = parseInt(val, 10);
+					}
+				}
+				if (monthSelect && monthSelect.value) {
+					month = parseInt(monthSelect.value, 10);
+				}
+
+				showPanel(targetTab);
 				activeTrendsTab = targetTab;
 
 				requestAnimationFrame(() => {
-					const chart = tabCharts[targetTab];
-					if (!chart) return;
-
-					if (chart.chartData) {
-						chart._renderChart(chart.chartData);
-					} else {
-						const { period, year, month } = getCurrentFilter();
-						chart.loadData(period, year, month);
+					const activeChart = getActiveTrendsChart();
+					if (activeChart) {
+						activeChart.loadData(period, year, month);
 					}
 				});
 			});
@@ -477,14 +452,7 @@ const HomeInit = (function () {
 			}
 
 			// Reset pagination and load data for active chart
-			const activeChartMap = {
-				rainfall: trendsChart,
-				waterlevel: waterLevelTrendsChart,
-				temperature: temperatureTrendsChart,
-				humidity: humidityTrendsChart,
-			};
-
-			const activeChart = activeChartMap[activeTrendsTab];
+			const activeChart = getActiveTrendsChart();
 			if (activeChart) {
 				activeChart.currentHalf = 0;
 				activeChart.currentMonth = null;
@@ -521,14 +489,7 @@ const HomeInit = (function () {
 				}
 			}
 
-			const activeChartMap = {
-				rainfall: trendsChart,
-				waterlevel: waterLevelTrendsChart,
-				temperature: temperatureTrendsChart,
-				humidity: humidityTrendsChart,
-			};
-
-			const activeChart = activeChartMap[activeTrendsTab];
+			const activeChart = getActiveTrendsChart();
 			if (activeChart) {
 				activeChart.currentHalf = 0;
 				activeChart.loadData(period, year, month);
@@ -539,36 +500,18 @@ const HomeInit = (function () {
 		document
 			.querySelector('[data-action="retry-trends"]')
 			?.addEventListener("click", () => {
-				const activeChartMap = {
-					rainfall: trendsChart,
-					waterlevel: waterLevelTrendsChart,
-					temperature: temperatureTrendsChart,
-					humidity: humidityTrendsChart,
-				};
-				const activeChart = activeChartMap[activeTrendsTab];
+				const activeChart = getActiveTrendsChart();
 				if (activeChart) activeChart.retry();
 			});
 
 		// Nav buttons for mobile pagination
 		document.getElementById("trendsPrevBtn")?.addEventListener("click", () => {
-			const activeChartMap = {
-				rainfall: trendsChart,
-				waterlevel: waterLevelTrendsChart,
-				temperature: temperatureTrendsChart,
-				humidity: humidityTrendsChart,
-			};
-			const activeChart = activeChartMap[activeTrendsTab];
+			const activeChart = getActiveTrendsChart();
 			if (activeChart) activeChart._navigateHalf(-1);
 		});
 
 		document.getElementById("trendsNextBtn")?.addEventListener("click", () => {
-			const activeChartMap = {
-				rainfall: trendsChart,
-				waterlevel: waterLevelTrendsChart,
-				temperature: temperatureTrendsChart,
-				humidity: humidityTrendsChart,
-			};
-			const activeChart = activeChartMap[activeTrendsTab];
+			const activeChart = getActiveTrendsChart();
 			if (activeChart) activeChart._navigateHalf(1);
 		});
 	}
@@ -580,32 +523,6 @@ const HomeInit = (function () {
 		document.getElementById("btn-next-day")?.addEventListener("click", () => {
 			navigatePrecipChart(1, precipPicker);
 		});
-	}
-
-	function bindTemperatureNavigation(temperaturePicker) {
-		document
-			.getElementById("btn-prev-temperature-day")
-			?.addEventListener("click", () => {
-				navigateHourlyChart(-1, temperaturePicker, temperatureChart);
-			});
-		document
-			.getElementById("btn-next-temperature-day")
-			?.addEventListener("click", () => {
-				navigateHourlyChart(1, temperaturePicker, temperatureChart);
-			});
-	}
-
-	function bindHumidityNavigation(humidityPicker) {
-		document
-			.getElementById("btn-prev-humidity-day")
-			?.addEventListener("click", () => {
-				navigateHourlyChart(-1, humidityPicker, humidityChart);
-			});
-		document
-			.getElementById("btn-next-humidity-day")
-			?.addEventListener("click", () => {
-				navigateHourlyChart(1, humidityPicker, humidityChart);
-			});
 	}
 
 	function bindWaterNavigation() {
@@ -624,22 +541,30 @@ const HomeInit = (function () {
 		});
 	}
 
-	function bindDatePickerEvents(precipPicker, temperaturePicker, humidityPicker) {
+	function bindEnvironmentalNavigation() {
+		document.getElementById("btn-prev-temp-day")?.addEventListener("click", () => {
+			if (temperatureChart) temperatureChart.slidePrev();
+		});
+		document.getElementById("btn-next-temp-day")?.addEventListener("click", () => {
+			if (temperatureChart) temperatureChart.slideNext();
+		});
+
+		document
+			.getElementById("btn-prev-humidity-day")
+			?.addEventListener("click", () => {
+				if (humidityChart) humidityChart.slidePrev();
+			});
+		document
+			.getElementById("btn-next-humidity-day")
+			?.addEventListener("click", () => {
+				if (humidityChart) humidityChart.slideNext();
+			});
+	}
+
+	function bindDatePickerEvents(precipPicker) {
 		precipPicker?.addEventListener("change", (e) => {
 			if (e.target.value && precipChart) {
 				precipChart.loadSpecificDate(e.target.value);
-			}
-		});
-
-		temperaturePicker?.addEventListener("change", (e) => {
-			if (e.target.value && temperatureChart) {
-				temperatureChart.loadSpecificDate(e.target.value);
-			}
-		});
-
-		humidityPicker?.addEventListener("change", (e) => {
-			if (e.target.value && humidityChart) {
-				humidityChart.loadSpecificDate(e.target.value);
 			}
 		});
 
@@ -648,14 +573,23 @@ const HomeInit = (function () {
 		waterPickerAll?.addEventListener("change", (e) => {
 			if (e.target.value) syncAllWaterCharts(e.target.value);
 		});
+
+		document.getElementById("tempDatePicker")?.addEventListener("change", (e) => {
+			if (e.target.value && temperatureChart) {
+				temperatureChart.loadSpecificDate(e.target.value);
+			}
+		});
+
+		document
+			.getElementById("humidityDatePicker")
+			?.addEventListener("change", (e) => {
+				if (e.target.value && humidityChart) {
+					humidityChart.loadSpecificDate(e.target.value);
+				}
+			});
 	}
 
-	function bindExportEvents(
-		csvExporter,
-		precipPicker,
-		temperaturePicker,
-		humidityPicker,
-	) {
+	function bindExportEvents(csvExporter, precipPicker) {
 		document.getElementById("btn-export-csv")?.addEventListener("click", () => {
 			if (precipChart?.chartData) {
 				csvExporter.exportPrecipitationData(
@@ -666,32 +600,6 @@ const HomeInit = (function () {
 				alert("No precipitation data available to export");
 			}
 		});
-
-		document
-			.getElementById("btn-export-temperature-csv")
-			?.addEventListener("click", () => {
-				if (temperatureChart?.chartData) {
-					csvExporter.exportTemperatureData(
-						temperatureChart.chartData,
-						temperaturePicker?.value,
-					);
-				} else {
-					alert("No temperature data available to export");
-				}
-			});
-
-		document
-			.getElementById("btn-export-humidity-csv")
-			?.addEventListener("click", () => {
-				if (humidityChart?.chartData) {
-					csvExporter.exportHumidityData(
-						humidityChart.chartData,
-						humidityPicker?.value,
-					);
-				} else {
-					alert("No humidity data available to export");
-				}
-			});
 
 		// Consolidated water level export
 		document.getElementById("exportWaterAll")?.addEventListener("click", () => {
@@ -705,6 +613,32 @@ const HomeInit = (function () {
 			}
 			alert("No water level data available to export");
 		});
+
+		document
+			.getElementById("btn-export-temp-csv")
+			?.addEventListener("click", () => {
+				if (temperatureChart?.chartData) {
+					csvExporter.exportTemperatureData(
+						temperatureChart.chartData,
+						document.getElementById("tempDatePicker")?.value,
+					);
+				} else {
+					alert("No temperature data available to export");
+				}
+			});
+
+		document
+			.getElementById("btn-export-humidity-csv")
+			?.addEventListener("click", () => {
+				if (humidityChart?.chartData) {
+					csvExporter.exportHumidityData(
+						humidityChart.chartData,
+						document.getElementById("humidityDatePicker")?.value,
+					);
+				} else {
+					alert("No humidity data available to export");
+				}
+			});
 	}
 
 	function bindRetryEvents() {
@@ -724,7 +658,7 @@ const HomeInit = (function () {
 		});
 
 		document
-			.querySelector("#temperature-chart-error .chart-error__btn")
+			.querySelector("#temp-chart-error .chart-error__btn")
 			?.addEventListener("click", () => {
 				if (temperatureChart) temperatureChart.retry();
 			});

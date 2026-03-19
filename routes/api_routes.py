@@ -410,76 +410,10 @@ def water_level_date_range():
     })
 
 
-@api_bp.route('/temperature-data')
-@handle_api_errors
-def temperature_data():
-    target_date, error_response = validate_and_get_date(request)
-    if error_response:
-        return error_response
-
-    station_id = request.args.get('station_id')
-
-    weather_data = current_app.weather_service.fetch_weather_data()
-    cache_status = current_app.weather_service.get_cache_status()
-
-    if not weather_data:
-        stale_data = current_app.weather_service._cache.get_stale_data()
-        if stale_data:
-            logger.warning("Temperature: Serving stale cached data")
-            weather_data = stale_data
-        else:
-            return create_api_error_response(
-                'Weather data temporarily unavailable. Please try again.',
-                503,
-                extra_data={'reason': 'no_data'}
-            )
-
-    per_station_data = current_app.temperature_service.get_24hour_intervals_per_station(
-        weather_data=weather_data,
-        sites=current_app.config['SITES'],
-        target_date=target_date
-    )
-
-    if station_id:
-        per_station_data = {k: v for k, v in per_station_data.items() if k == station_id}
-
-    stations_response = _format_chart_response(
-        per_station_data,
-        current_app.config['SITES'],
-        level_key='status'
-    )
-
-    display_date = target_date or datetime.now()
-    age_seconds = cache_status.get('age_seconds') or 0
-    is_stale = age_seconds > 300 if age_seconds else False
-
-    response_data = {
-        'stations': stations_response,
-        'unit': 'degC',
-        'interval': '1 hour',
-        'date': display_date.strftime('%Y-%m-%d'),
-        'date_display': display_date.strftime('%B %d, %Y'),
-        'station_id': station_id,
-        'generated_at': datetime.now().isoformat(),
-        'cache_status': {
-            'is_cached': age_seconds > 5 if age_seconds else False,
-            'is_stale': is_stale,
-            'age_seconds': age_seconds,
-            'age_minutes': round(age_seconds / 60, 1) if age_seconds else 0,
-            'warning': 'Data may be outdated' if is_stale else None
-        }
-    }
-
-    response = make_response(create_api_success_response(response_data))
-    response.headers['Cache-Control'] = 'public, max-age=30'
-    return response
-
-
 @api_bp.route('/temperature-date-range')
 @handle_api_errors
 def temperature_date_range():
     weather_data = current_app.weather_service.fetch_weather_data()
-
     if not weather_data:
         stale_data = current_app.weather_service._cache.get_stale_data()
         if stale_data:
@@ -502,76 +436,10 @@ def temperature_date_range():
     })
 
 
-@api_bp.route('/humidity-data')
-@handle_api_errors
-def humidity_data():
-    target_date, error_response = validate_and_get_date(request)
-    if error_response:
-        return error_response
-
-    station_id = request.args.get('station_id')
-
-    weather_data = current_app.weather_service.fetch_weather_data()
-    cache_status = current_app.weather_service.get_cache_status()
-
-    if not weather_data:
-        stale_data = current_app.weather_service._cache.get_stale_data()
-        if stale_data:
-            logger.warning("Humidity: Serving stale cached data")
-            weather_data = stale_data
-        else:
-            return create_api_error_response(
-                'Weather data temporarily unavailable. Please try again.',
-                503,
-                extra_data={'reason': 'no_data'}
-            )
-
-    per_station_data = current_app.humidity_service.get_24hour_intervals_per_station(
-        weather_data=weather_data,
-        sites=current_app.config['SITES'],
-        target_date=target_date
-    )
-
-    if station_id:
-        per_station_data = {k: v for k, v in per_station_data.items() if k == station_id}
-
-    stations_response = _format_chart_response(
-        per_station_data,
-        current_app.config['SITES'],
-        level_key='status'
-    )
-
-    display_date = target_date or datetime.now()
-    age_seconds = cache_status.get('age_seconds') or 0
-    is_stale = age_seconds > 300 if age_seconds else False
-
-    response_data = {
-        'stations': stations_response,
-        'unit': 'percent',
-        'interval': '1 hour',
-        'date': display_date.strftime('%Y-%m-%d'),
-        'date_display': display_date.strftime('%B %d, %Y'),
-        'station_id': station_id,
-        'generated_at': datetime.now().isoformat(),
-        'cache_status': {
-            'is_cached': age_seconds > 5 if age_seconds else False,
-            'is_stale': is_stale,
-            'age_seconds': age_seconds,
-            'age_minutes': round(age_seconds / 60, 1) if age_seconds else 0,
-            'warning': 'Data may be outdated' if is_stale else None
-        }
-    }
-
-    response = make_response(create_api_success_response(response_data))
-    response.headers['Cache-Control'] = 'public, max-age=30'
-    return response
-
-
 @api_bp.route('/humidity-date-range')
 @handle_api_errors
 def humidity_date_range():
     weather_data = current_app.weather_service.fetch_weather_data()
-
     if not weather_data:
         stale_data = current_app.weather_service._cache.get_stale_data()
         if stale_data:
@@ -936,12 +804,141 @@ def water_level_trends_periods():
 
 
 # =============================================================================
-# TEMPERATURE TRENDS API
+# TEMPERATURE DATA API (Hourly Monitoring & Daily Trends)
 # =============================================================================
+
+@api_bp.route('/temperature-data')
+@handle_api_errors
+def temperature_data():
+    """Get hourly temperature data for all stations."""
+    target_date, error_response = validate_and_get_date(request)
+    if error_response:
+        return error_response
+
+    station_id = request.args.get('station_id')
+    weather_data = current_app.weather_service.fetch_weather_data()
+    cache_status = current_app.weather_service.get_cache_status()
+    
+    if not weather_data:
+        stale_data = current_app.weather_service._cache.get_stale_data()
+        if stale_data:
+            weather_data = stale_data
+        else:
+            return create_api_error_response(
+                'Weather data temporarily unavailable. Please try again.',
+                503,
+                extra_data={'reason': 'no_data'}
+            )
+
+    per_station_data = current_app.temperature_service.get_24hour_intervals_per_station(
+        weather_data=weather_data,
+        sites=current_app.config['SITES'],
+        target_date=target_date
+    )
+
+    if station_id:
+        per_station_data = {k: v for k, v in per_station_data.items() if k == station_id}
+
+    stations_response = _format_chart_response(
+        per_station_data,
+        current_app.config['SITES'],
+        level_key='level'
+    )
+
+    display_date = target_date or datetime.now()
+    age_seconds = cache_status.get('age_seconds') or 0
+    is_stale = age_seconds > 300 if age_seconds else False
+    
+    response_data = {
+        'stations': stations_response,
+        'unit': '°C',
+        'interval': '1 hour',
+        'date': display_date.strftime('%Y-%m-%d'),
+        'date_display': display_date.strftime('%B %d, %Y'),
+        'station_id': station_id,
+        'generated_at': datetime.now().isoformat(),
+        'cache_status': {
+            'is_cached': age_seconds > 5 if age_seconds else False,
+            'is_stale': is_stale,
+            'age_seconds': age_seconds,
+            'age_minutes': round(age_seconds / 60, 1) if age_seconds else 0,
+            'warning': 'Data may be outdated' if is_stale else None
+        }
+    }
+    
+    response = make_response(create_api_success_response(response_data))
+    response.headers['Cache-Control'] = 'public, max-age=30'
+    return response
+
+
+@api_bp.route('/humidity-data')
+@handle_api_errors
+def humidity_data():
+    """Get hourly humidity data for all stations."""
+    target_date, error_response = validate_and_get_date(request)
+    if error_response:
+        return error_response
+
+    station_id = request.args.get('station_id')
+    weather_data = current_app.weather_service.fetch_weather_data()
+    cache_status = current_app.weather_service.get_cache_status()
+    
+    if not weather_data:
+        stale_data = current_app.weather_service._cache.get_stale_data()
+        if stale_data:
+            weather_data = stale_data
+        else:
+            return create_api_error_response(
+                'Weather data temporarily unavailable. Please try again.',
+                503,
+                extra_data={'reason': 'no_data'}
+            )
+
+    per_station_data = current_app.humidity_service.get_24hour_intervals_per_station(
+        weather_data=weather_data,
+        sites=current_app.config['SITES'],
+        target_date=target_date
+    )
+
+    if station_id:
+        per_station_data = {k: v for k, v in per_station_data.items() if k == station_id}
+
+    stations_response = _format_chart_response(
+        per_station_data,
+        current_app.config['SITES'],
+        level_key='level'
+    )
+
+    display_date = target_date or datetime.now()
+    age_seconds = cache_status.get('age_seconds') or 0
+    is_stale = age_seconds > 300 if age_seconds else False
+    
+    response_data = {
+        'stations': stations_response,
+        'unit': '%',
+        'interval': '1 hour',
+        'date': display_date.strftime('%Y-%m-%d'),
+        'date_display': display_date.strftime('%B %d, %Y'),
+        'station_id': station_id,
+        'generated_at': datetime.now().isoformat(),
+        'cache_status': {
+            'is_cached': age_seconds > 5 if age_seconds else False,
+            'is_stale': is_stale,
+            'age_seconds': age_seconds,
+            'age_minutes': round(age_seconds / 60, 1) if age_seconds else 0,
+            'warning': 'Data may be outdated' if is_stale else None
+        }
+    }
+    
+    response = make_response(create_api_success_response(response_data))
+    response.headers['Cache-Control'] = 'public, max-age=30'
+    return response
+
 
 @api_bp.route('/temperature-trends')
 @handle_api_errors
 def temperature_trends():
+    """Get daily temperature trends data with flexible filtering."""
     period = request.args.get('period')
     year_param = request.args.get('year')
     month_param = request.args.get('month')
@@ -991,7 +988,7 @@ def temperature_trends():
             'year': year,
             'month': month
         },
-        'unit': 'degC',
+        'unit': '°C',
         'generated_at': datetime.now().isoformat()
     })
 
@@ -999,6 +996,7 @@ def temperature_trends():
 @api_bp.route('/temperature-trends/periods')
 @handle_api_errors
 def temperature_trends_periods():
+    """Get available period/year/month options for temperature filtering."""
     weather_data = current_app.weather_service.fetch_weather_data()
 
     if not weather_data:
@@ -1016,13 +1014,10 @@ def temperature_trends_periods():
     return create_api_success_response(periods_data)
 
 
-# =============================================================================
-# HUMIDITY TRENDS API
-# =============================================================================
-
 @api_bp.route('/humidity-trends')
 @handle_api_errors
 def humidity_trends():
+    """Get daily humidity trends data with flexible filtering."""
     period = request.args.get('period')
     year_param = request.args.get('year')
     month_param = request.args.get('month')
@@ -1072,7 +1067,7 @@ def humidity_trends():
             'year': year,
             'month': month
         },
-        'unit': 'percent',
+        'unit': '%',
         'generated_at': datetime.now().isoformat()
     })
 
@@ -1080,6 +1075,7 @@ def humidity_trends():
 @api_bp.route('/humidity-trends/periods')
 @handle_api_errors
 def humidity_trends_periods():
+    """Get available period/year/month options for humidity filtering."""
     weather_data = current_app.weather_service.fetch_weather_data()
 
     if not weather_data:

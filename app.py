@@ -7,14 +7,10 @@ from routes.api_routes import api_bp
 from services.weather_service import WeatherService
 from services.metrics_service import MetricsService
 from services.chart_data_service import (
-    PrecipitationService,
-    WaterLevelService,
-    TemperatureService,
-    HumidityService,
-    RainfallTrendsService,
-    WaterLevelTrendsService,
-    TemperatureTrendsService,
-    HumidityTrendsService
+    PrecipitationService, WaterLevelService, 
+    TemperatureService, HumidityService,
+    RainfallTrendsService, WaterLevelTrendsService,
+    TemperatureTrendsService, HumidityTrendsService
 )
 from utils.helpers import format_datetime, format_datetime_full, format_weather_value
 from utils.error_handlers import register_error_handlers
@@ -57,10 +53,10 @@ def create_app(config_name='development'):
     flask_app.metrics_service = MetricsService(sites=flask_app.config['SITES'])
     flask_app.precipitation_service = PrecipitationService(flask_app.metrics_service)
     flask_app.water_level_service = WaterLevelService(flask_app.metrics_service)
-    flask_app.temperature_service = TemperatureService(flask_app.metrics_service)
-    flask_app.humidity_service = HumidityService(flask_app.metrics_service)
     flask_app.rainfall_trends_service = RainfallTrendsService(flask_app.metrics_service)
     flask_app.water_level_trends_service = WaterLevelTrendsService(flask_app.metrics_service)
+    flask_app.temperature_service = TemperatureService(flask_app.metrics_service)
+    flask_app.humidity_service = HumidityService(flask_app.metrics_service)
     flask_app.temperature_trends_service = TemperatureTrendsService(flask_app.metrics_service)
     flask_app.humidity_trends_service = HumidityTrendsService(flask_app.metrics_service)
 

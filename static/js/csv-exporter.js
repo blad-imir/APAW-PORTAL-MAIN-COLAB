@@ -42,13 +42,16 @@ class CSVExporter {
 		const stationIds = Object.keys(stations).sort();
 
 		const headers = ["Time"];
-		const unitMap = {
-			precipitation: "(mm/hr)",
-			water_level: "(cm)",
-			temperature: "(degC)",
-			humidity: "(%)",
-		};
-		const unit = unitMap[type] || "";
+		let unit = "";
+		if (type === "precipitation") {
+			unit = "(mm/hr)";
+		} else if (type === "water_level") {
+			unit = "(m)";
+		} else if (type === "temperature") {
+			unit = "(degC)";
+		} else if (type === "humidity") {
+			unit = "(%)";
+		}
 
 		stationIds.forEach((id) => {
 			const stationName = stations[id].name || id;
@@ -108,7 +111,7 @@ class CSVExporter {
 	}
 
 	getVersion() {
-		return "3.0.0 - Water, Temperature, Humidity Support";
+		return "3.0.0 - Water Level, Temperature, Humidity Support";
 	}
 }
 

@@ -480,7 +480,7 @@ def cache_status():
 @api_bp.route('/weather-predictions')
 @handle_api_errors
 def weather_predictions():
-    """Get CGAN-LSTM inspired hourly, daily, and weekly predictions per station."""
+    """Get CGAN-Markov Chain inspired hourly, daily, and weekly predictions per station."""
     station_id = request.args.get('station_id')
     horizon = request.args.get('horizon')
 

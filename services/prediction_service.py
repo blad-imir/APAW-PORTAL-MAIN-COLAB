@@ -16,6 +16,7 @@ import random
 from statistics import mean, pstdev
 from typing import Any, Dict, List, Tuple
 
+from config import DataFreshnessConfig
 from utils.helpers import parse_weather_timestamp, safe_float
 
 
@@ -146,10 +147,13 @@ class WeatherPredictionService:
         steps: int,
     ) -> Dict[str, Any]:
         station_payload = {}
+        now = datetime.now()
 
         for station_id, site in stations_by_id.items():
             metric_payload = {}
             station_data = station_histories.get(station_id, {})
+            latest_ts = self._get_latest_station_timestamp(station_data)
+            status = self._get_station_status(latest_ts, now)
 
             for metric in self.METRICS:
                 if metric == "WaterLevel" and not site.get("has_water_level", False):
@@ -168,9 +172,48 @@ class WeatherPredictionService:
             station_payload[station_id] = {
                 "station_name": site.get("name", station_id),
                 "metrics": metric_payload,
+                "status": status,
+                "latest_timestamp": latest_ts.isoformat() if latest_ts else None,
             }
 
         return station_payload
+
+    @staticmethod
+    def _get_latest_station_timestamp(
+        station_data: Dict[str, List[Tuple[datetime, float]]]
+    ) -> datetime | None:
+        latest = None
+        for metric_series in station_data.values():
+            if not metric_series:
+                continue
+            ts = metric_series[-1][0]
+            if latest is None or ts > latest:
+                latest = ts
+        return latest
+
+    @staticmethod
+    def _get_station_status(latest_ts: datetime | None, now: datetime) -> Dict[str, Any]:
+        if not latest_ts:
+            return {
+                "status": "offline",
+                "label": "OFFLINE",
+                "minutes_since_update": None,
+                "is_offline": True,
+            }
+
+        age_minutes = (now - latest_ts).total_seconds() / 60.0
+        status_cfg = DataFreshnessConfig.get_status(age_minutes)
+        status_text = (status_cfg.get("status") or "Offline").lower()
+
+        is_offline = status_text == "offline"
+        label = "OFFLINE" if is_offline else status_cfg.get("status", "Online").upper()
+
+        return {
+            "status": status_text,
+            "label": label,
+            "minutes_since_update": round(age_minutes, 1),
+            "is_offline": is_offline,
+        }
 
     def _aggregate_metric(
         self,

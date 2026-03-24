@@ -79,6 +79,17 @@
     gap: 12px;
 }
 
+.prediction-offline-banner {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #9f1239;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+}
+
 .prediction-stat-card {
     background: #f7fbfe;
     border: 1px solid #d9e9f4;

@@ -21,6 +21,7 @@
         statConfidence: document.getElementById("statConfidence"),
         statGeneratedAt: document.getElementById("statGeneratedAt"),
         modelName: document.getElementById("modelName"),
+        offlineBanner: document.getElementById("predictionOfflineBanner"),
     };
 
     const metricNames = {
@@ -146,10 +147,36 @@
             ? new Date(payload.generated_at).toLocaleString()
             : "--";
 
-        el.statStation.textContent = stationData.station_name || state.stationId;
+        const status = stationData.status || {};
+        const isOffline = Boolean(status.is_offline);
+        const stationLabel = stationData.station_name || state.stationId;
+
+        el.statStation.textContent = isOffline ? `${stationLabel} (OFFLINE)` : stationLabel;
         el.statPoints.textContent = String(metricData.points.length);
         el.statConfidence.textContent = `${Math.round((metricData.confidence || 0) * 100)}%`;
         el.statGeneratedAt.textContent = generatedAt;
+
+        updateOfflinePrompt(status);
+    }
+
+    function updateOfflinePrompt(status) {
+        if (!el.offlineBanner) {
+            return;
+        }
+
+        const isOffline = Boolean(status && status.is_offline);
+        if (!isOffline) {
+            el.offlineBanner.classList.add("d-none");
+            return;
+        }
+
+        const ageText =
+            status.minutes_since_update !== null && status.minutes_since_update !== undefined
+                ? ` Last update was ${status.minutes_since_update} minutes ago.`
+                : "";
+
+        el.offlineBanner.textContent = `OFFLINE: This station is currently offline.${ageText}`;
+        el.offlineBanner.classList.remove("d-none");
     }
 
     function renderChart(stationName, points) {
@@ -226,6 +253,9 @@
         `;
         el.statPoints.textContent = "0";
         el.statConfidence.textContent = "--";
+        if (el.offlineBanner) {
+            el.offlineBanner.classList.add("d-none");
+        }
     }
 
     function setLoading(isLoading) {

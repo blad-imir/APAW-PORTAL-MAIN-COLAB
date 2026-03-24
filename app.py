@@ -6,6 +6,7 @@ from routes.web_routes import web_bp
 from routes.api_routes import api_bp
 from services.weather_service import WeatherService
 from services.metrics_service import MetricsService
+from services.prediction_service import WeatherPredictionService
 from services.chart_data_service import (
     PrecipitationService, WaterLevelService, 
     TemperatureService, HumidityService,
@@ -59,6 +60,7 @@ def create_app(config_name='development'):
     flask_app.humidity_service = HumidityService(flask_app.metrics_service)
     flask_app.temperature_trends_service = TemperatureTrendsService(flask_app.metrics_service)
     flask_app.humidity_trends_service = HumidityTrendsService(flask_app.metrics_service)
+    flask_app.prediction_service = WeatherPredictionService(lookback_steps=48)
 
     @flask_app.context_processor
     def inject_config():

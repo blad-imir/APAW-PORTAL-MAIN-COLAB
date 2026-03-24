@@ -109,6 +109,13 @@ def contact():
     return render_template('contact.html')
 
 
+@web_bp.route('/weather-prediction')
+@handle_service_errors
+def weather_prediction():
+    """Render CGAN-LSTM weather prediction page."""
+    return render_template('weather_prediction.html')
+
+
 @web_bp.route('/flood-alert-simulation')
 def test_home():
     """

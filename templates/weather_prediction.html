@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Weather Prediction | Project APAW{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/prediction.css') }}" />
+{% endblock %}
+
+{% block content %}
+<section class="py-40 prediction-page">
+    <div class="prediction-hero mb-4">
+        <div>
+            <h2 class="prediction-title mb-2">Weather Prediction Window</h2>
+            <p class="prediction-subtitle mb-0">
+                CGAN-LSTM hybrid forecast for all stations with hourly, daily, and weekly horizons.
+            </p>
+        </div>
+        <div class="prediction-model-chip">
+            <span class="chip-label">Model</span>
+            <strong id="modelName">CGAN-LSTM Hybrid</strong>
+        </div>
+    </div>
+
+    <div class="prediction-controls mb-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-4 col-lg-3">
+                <label for="predictionStation" class="form-label">Station</label>
+                <select id="predictionStation" class="form-select"></select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <label for="predictionMetric" class="form-label">Metric</label>
+                <select id="predictionMetric" class="form-select">
+                    <option value="Temperature">Temperature (deg C)</option>
+                    <option value="Humidity">Humidity (%)</option>
+                    <option value="HourlyRain">Rainfall (mm/hr)</option>
+                    <option value="WaterLevel">Water Level (cm)</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3">
+                <label class="form-label d-block">Horizon</label>
+                <div class="horizon-tabs" id="horizonTabs">
+                    <button type="button" class="horizon-tab active" data-horizon="hourly">Hourly</button>
+                    <button type="button" class="horizon-tab" data-horizon="daily">Daily</button>
+                    <button type="button" class="horizon-tab" data-horizon="weekly">Weekly</button>
+                </div>
+            </div>
+            <div class="col-12 col-lg-3 text-lg-end">
+                <button id="refreshPrediction" type="button" class="btn btn-primary">
+                    <i class="fas fa-rotate-right me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="prediction-stats mb-3">
+        <div class="prediction-stat-card">
+            <span class="stat-label">Station</span>
+            <span class="stat-value" id="statStation">--</span>
+        </div>
+        <div class="prediction-stat-card">
+            <span class="stat-label">Horizon Points</span>
+            <span class="stat-value" id="statPoints">--</span>
+        </div>
+        <div class="prediction-stat-card">
+            <span class="stat-label">Model Confidence</span>
+            <span class="stat-value" id="statConfidence">--</span>
+        </div>
+        <div class="prediction-stat-card">
+            <span class="stat-label">Generated At</span>
+            <span class="stat-value" id="statGeneratedAt">--</span>
+        </div>
+    </div>
+
+    <div class="prediction-card mb-4">
+        <div id="predictionLoading" class="prediction-loading">
+            <div class="spinner-border text-primary" role="status"></div>
+            <span>Generating forecast...</span>
+        </div>
+        <div id="predictionError" class="prediction-error d-none"></div>
+        <div id="predictionChart" class="prediction-chart"></div>
+    </div>
+
+    <div class="prediction-card">
+        <div class="table-responsive">
+            <table class="table prediction-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Predicted Value</th>
+                    </tr>
+                </thead>
+                <tbody id="predictionTableBody">
+                    <tr>
+                        <td colspan="2" class="text-center text-muted py-4">No prediction data yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/vendor/canvasjs.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/weather-prediction.js') }}"></script>
+{% endblock %}

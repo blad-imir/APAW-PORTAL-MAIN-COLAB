@@ -477,6 +477,61 @@ def cache_status():
         return create_api_error_response(str(e), 500)
 
 
+@api_bp.route('/weather-predictions')
+@handle_api_errors
+def weather_predictions():
+    """Get CGAN-LSTM inspired hourly, daily, and weekly predictions per station."""
+    station_id = request.args.get('station_id')
+    horizon = request.args.get('horizon')
+
+    valid_horizons = {'hourly', 'daily', 'weekly'}
+    if horizon and horizon not in valid_horizons:
+        return create_api_error_response(
+            'Invalid horizon. Use hourly, daily, or weekly.',
+            400
+        )
+
+    weather_data = current_app.weather_service.fetch_weather_data()
+    if not weather_data:
+        stale_data = current_app.weather_service._cache.get_stale_data()
+        if stale_data:
+            weather_data = stale_data
+        else:
+            return create_api_error_response(
+                'Weather data temporarily unavailable',
+                503,
+                extra_data={'reason': 'no_data'}
+            )
+
+    predictions = current_app.prediction_service.generate_predictions(
+        weather_data=weather_data,
+        sites=current_app.config['SITES'],
+        hourly_steps=24,
+        daily_steps=7,
+        weekly_steps=4,
+    )
+
+    if horizon:
+        predictions['horizons'] = {
+            horizon: predictions['horizons'].get(horizon, {})
+        }
+
+    if station_id:
+        for horizon_key, horizon_data in predictions['horizons'].items():
+            stations = horizon_data.get('stations', {})
+            if station_id in stations:
+                horizon_data['stations'] = {station_id: stations[station_id]}
+            else:
+                horizon_data['stations'] = {}
+
+    predictions['filters'] = {
+        'station_id': station_id,
+        'horizon': horizon,
+    }
+
+    return create_api_success_response(predictions)
+
+
 def _format_chart_response(per_station_data, sites, level_key='level'):
     """
     Convert ChartDataPoint objects to JSON-serializable dicts.

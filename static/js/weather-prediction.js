@@ -4,6 +4,7 @@
         metric: "Temperature",
         horizon: "hourly",
         stations: [],
+        stationStatuses: {},
         chart: null,
         latestPayload: null,
     };
@@ -31,7 +32,7 @@
         WaterLevel: "Water Level (cm)",
     };
 
-    function init() {
+    async function init() {
         const stations = (window.APP_CONFIG && window.APP_CONFIG.stations) || [];
         state.stations = stations;
 
@@ -39,15 +40,51 @@
             return;
         }
 
-        el.station.innerHTML = stations
-            .map((station) => `<option value="${station.id}">${station.name}</option>`)
-            .join("");
+        renderStationOptions();
 
         state.stationId = stations[0].id;
         el.station.value = state.stationId;
 
+        await preloadStationStatuses();
+        renderStationOptions();
+        el.station.value = state.stationId;
+
         bindEvents();
         loadPrediction();
+    }
+
+    function renderStationOptions() {
+        if (!el.station) {
+            return;
+        }
+
+        el.station.innerHTML = state.stations
+            .map((station) => {
+                const status = state.stationStatuses[station.id] || {};
+                const suffix = status.is_offline ? " - OFFLINE" : "";
+                return `<option value="${station.id}">${station.name}${suffix}</option>`;
+            })
+            .join("");
+    }
+
+    async function preloadStationStatuses() {
+        try {
+            const response = await fetch("/api/weather-predictions?horizon=hourly");
+            const payload = await response.json();
+
+            if (!response.ok || !payload.success) {
+                return;
+            }
+
+            const horizonData = payload.horizons && payload.horizons.hourly;
+            const stations = (horizonData && horizonData.stations) || {};
+
+            Object.keys(stations).forEach((stationId) => {
+                state.stationStatuses[stationId] = stations[stationId].status || {};
+            });
+        } catch (error) {
+            // Keep default labels if status preload fails.
+        }
     }
 
     function bindEvents() {
@@ -150,6 +187,10 @@
         const status = stationData.status || {};
         const isOffline = Boolean(status.is_offline);
         const stationLabel = stationData.station_name || state.stationId;
+
+        state.stationStatuses[state.stationId] = status;
+        renderStationOptions();
+        el.station.value = state.stationId;
 
         el.statStation.textContent = isOffline ? `${stationLabel} (OFFLINE)` : stationLabel;
         el.statPoints.textContent = String(metricData.points.length);

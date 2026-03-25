@@ -1157,7 +1157,7 @@ def humidity_trends_periods():
 def alert_history():
     """
     Get historical threshold breaches for notification bell.
-    Returns water level, rainfall, and heat index alerts from last N days.
+    Returns water level, rainfall, humidity, and heat index alerts from last N days.
     Uses per-station thresholds from SiteConfig.WATER_LEVEL_THRESHOLDS.
     
     Optimized: Pre-filters data to only process recent readings instead of
@@ -1218,6 +1218,15 @@ def alert_history():
     
     notifications = []
     seen_alerts = set()
+
+    # Relative humidity thresholds (%RH) for notification alerts.
+    # Levels map to actionable conditions and are intentionally broad to avoid noise.
+    humidity_thresholds = {
+        'very_humid': 90.0,
+        'humid': 80.0,
+        'very_dry': 30.0,
+        'dry': 40.0,
+    }
     
     # Process only pre-filtered recent readings (timestamp already parsed)
     for reading, timestamp in recent_readings:
@@ -1284,6 +1293,41 @@ def alert_history():
                     'timestamp': timestamp.isoformat(),
                     'message': _format_rainfall_message(rain_level, station_name, rainfall, timestamp)
                 })
+
+        # Check humidity thresholds (all stations)
+        humidity = safe_float(reading.get('Humidity'))
+        if humidity is not None:
+            humidity_key = f"humidity_{station_id}_{hour_key}"
+
+            if humidity_key not in seen_alerts:
+                humidity_level = None
+                if humidity >= humidity_thresholds['very_humid']:
+                    humidity_level = 'very_humid'
+                elif humidity >= humidity_thresholds['humid']:
+                    humidity_level = 'humid'
+                elif humidity <= humidity_thresholds['very_dry']:
+                    humidity_level = 'very_dry'
+                elif humidity <= humidity_thresholds['dry']:
+                    humidity_level = 'dry'
+
+                if humidity_level:
+                    seen_alerts.add(humidity_key)
+                    notifications.append({
+                        'id': humidity_key,
+                        'type': 'humidity',
+                        'level': humidity_level,
+                        'station_id': station_id,
+                        'station_name': station_name,
+                        'value': round(humidity, 1),
+                        'unit': '%',
+                        'timestamp': timestamp.isoformat(),
+                        'message': _format_humidity_message(
+                            humidity_level,
+                            station_name,
+                            humidity,
+                            timestamp
+                        )
+                    })
 
         # Check heat index thresholds (all stations with valid temperature + humidity)
         temperature = safe_float(reading.get('Temperature'))
@@ -1361,6 +1405,31 @@ def _format_rainfall_message(level, station_name, value, timestamp):
         'moderate': f"Moderate Rainfall: {station_name} recorded {value:.1f}mm/hr at {time_str}"
     }
     return messages.get(level, f"Rainfall: {station_name} - {value:.1f}mm/hr")
+
+
+def _format_humidity_message(level, station_name, value, timestamp):
+    """Format humidity alert message with practical guidance."""
+    time_str = timestamp.strftime('%I:%M %p').lstrip('0')
+
+    messages = {
+        'very_humid': (
+            f"Very Humid: {station_name} reached {value:.1f}% at {time_str} - "
+            "Air may feel oppressive and heat stress risk can increase"
+        ),
+        'humid': (
+            f"Humid: {station_name} reached {value:.1f}% at {time_str} - "
+            "Monitor comfort levels and hydration"
+        ),
+        'very_dry': (
+            f"Very Dry: {station_name} dropped to {value:.1f}% at {time_str} - "
+            "Dry air may cause discomfort"
+        ),
+        'dry': (
+            f"Dry: {station_name} dropped to {value:.1f}% at {time_str} - "
+            "Consider hydration and ventilation adjustments"
+        )
+    }
+    return messages.get(level, f"Humidity: {station_name} - {value:.1f}%")
 
 
 def _format_temperature_message(level, station_name, value, timestamp):

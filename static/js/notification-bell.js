@@ -439,6 +439,22 @@ const NotificationBell = {
 		</div>`;
 		}
 
+		if (type === "humidity") {
+			const humidityIconMap = {
+				very_humid: { icon: "fa-droplet", color: this.colors.alert.warning },
+				humid: { icon: "fa-droplet", color: this.colors.alert.alert },
+				very_dry: { icon: "fa-wind", color: this.colors.alert.warning },
+				dry: { icon: "fa-wind", color: this.colors.alert.advisory },
+			};
+
+			const humidityConfig = humidityIconMap[level] || humidityIconMap.humid;
+			const bgColor = this._hexToRgba(humidityConfig.color, 0.1);
+
+			return `<div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: ${bgColor}">
+			<i class="fas ${humidityConfig.icon}" style="font-size: 1rem; color: ${humidityConfig.color}"></i>
+		</div>`;
+		}
+
 		// Rainfall - use colors from config.py via APP_CONFIG
 		const isHeavy = level === "heavy";
 		const iconColor = isHeavy
@@ -506,6 +522,27 @@ const NotificationBell = {
 
 			const label = tempLabels[item.level] || "Heat Index";
 			const advice = tempAdvice[item.level] || "Stay hydrated.";
+
+			return `${emphasis(label + ":")} ${emphasis(stationName)} recorded ${emphasis(value + " " + unit)} at ${emphasis(timeStr)}. ${advice}`;
+		}
+
+		if (item.type === "humidity") {
+			const humidityLabels = {
+				very_humid: "Very Humid",
+				humid: "Humid",
+				very_dry: "Very Dry",
+				dry: "Dry",
+			};
+			const humidityAdvice = {
+				very_humid:
+					"Air may feel oppressive and heat stress risk can increase.",
+				humid: "Monitor comfort levels and hydration.",
+				very_dry: "Dry air may cause discomfort.",
+				dry: "Consider hydration and ventilation adjustments.",
+			};
+
+			const label = humidityLabels[item.level] || "Humidity";
+			const advice = humidityAdvice[item.level] || "Monitor local conditions.";
 
 			return `${emphasis(label + ":")} ${emphasis(stationName)} recorded ${emphasis(value + " " + unit)} at ${emphasis(timeStr)}. ${advice}`;
 		}

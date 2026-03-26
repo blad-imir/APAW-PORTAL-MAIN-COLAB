@@ -11,6 +11,7 @@ const NotificationBell = {
 		loading: null,
 		empty: null,
 		period: null,
+			filterScrollContainer: null,
 		filterButtons: null,
 		readAllBtn: null,
 		// Mobile elements
@@ -21,6 +22,7 @@ const NotificationBell = {
 		mobileList: null,
 		mobileLoading: null,
 		mobileEmpty: null,
+			mobileFilterScrollContainer: null,
 		mobileFilterButtons: null,
 		mobileReadAllBtn: null,
 	},
@@ -52,6 +54,9 @@ const NotificationBell = {
 		this.elements.loading = document.getElementById("notificationLoading");
 		this.elements.empty = document.getElementById("notificationEmpty");
 		this.elements.period = document.getElementById("notificationPeriod");
+		this.elements.filterScrollContainer = document.querySelector(
+			".notification-filter-scroll",
+		);
 		this.elements.filterButtons = document.querySelectorAll(
 			".notification-filter",
 		);
@@ -81,6 +86,9 @@ const NotificationBell = {
 		this.elements.mobileEmpty = document.getElementById(
 			"mobileNotificationEmpty",
 		);
+		this.elements.mobileFilterScrollContainer = document.querySelector(
+			".mobile-notification-filter-scroll",
+		);
 		this.elements.mobileFilterButtons = document.querySelectorAll(
 			".mobile-notification-filter",
 		);
@@ -90,6 +98,7 @@ const NotificationBell = {
 
 		// Set up desktop filter button listeners
 		this.setupFilterListeners();
+		this.setupFilterScrollInteractions();
 
 		// Set up mobile handlers
 		this.setupMobileHandlers();
@@ -112,6 +121,81 @@ const NotificationBell = {
 
 		// Periodic refresh
 		setInterval(() => this.fetchBadgeCount(), this.config.refreshInterval);
+	},
+
+	setupFilterScrollInteractions() {
+		this.enableHorizontalScroll(this.elements.filterScrollContainer);
+		this.enableHorizontalScroll(this.elements.mobileFilterScrollContainer);
+	},
+
+	enableHorizontalScroll(container) {
+		if (!container) return;
+
+		let isPointerDown = false;
+		let dragStartX = 0;
+		let dragStartScrollLeft = 0;
+		let dragMoved = false;
+
+		container.addEventListener(
+			"wheel",
+			(event) => {
+				const hasHorizontalOverflow =
+					container.scrollWidth > container.clientWidth;
+				if (!hasHorizontalOverflow) return;
+
+				const scrollDelta =
+					Math.abs(event.deltaX) > Math.abs(event.deltaY)
+						? event.deltaX
+						: event.deltaY;
+
+				if (scrollDelta === 0) return;
+
+				event.preventDefault();
+				container.scrollLeft += scrollDelta;
+			},
+			{ passive: false },
+		);
+
+		container.addEventListener("mousedown", (event) => {
+			if (event.button !== 0) return;
+
+			isPointerDown = true;
+			dragMoved = false;
+			dragStartX = event.clientX;
+			dragStartScrollLeft = container.scrollLeft;
+			container.classList.add("is-dragging");
+		});
+
+		window.addEventListener("mousemove", (event) => {
+			if (!isPointerDown) return;
+
+			const deltaX = event.clientX - dragStartX;
+			if (Math.abs(deltaX) > 3) {
+				dragMoved = true;
+			}
+
+			container.scrollLeft = dragStartScrollLeft - deltaX;
+		});
+
+		const stopDragging = () => {
+			if (!isPointerDown) return;
+			isPointerDown = false;
+			container.classList.remove("is-dragging");
+		};
+
+		window.addEventListener("mouseup", stopDragging);
+		container.addEventListener("mouseleave", stopDragging);
+
+		container.addEventListener(
+			"click",
+			(event) => {
+				if (!dragMoved) return;
+				event.preventDefault();
+				event.stopPropagation();
+				dragMoved = false;
+			},
+			true,
+		);
 	},
 
 	_loadColors() {

@@ -1991,8 +1991,31 @@ body.locked {
   color: inherit !important;
 }
 
+.notification-filter-scroll,
+.mobile-notification-filter-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  cursor: grab;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.notification-filter-scroll::-webkit-scrollbar,
+.mobile-notification-filter-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.notification-filter-scroll.is-dragging,
+.mobile-notification-filter-scroll.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
 .notification-filter {
-  flex: 1;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2022,7 +2045,7 @@ body.locked {
 }
 
 .mobile-notification-filter {
-  flex: 1;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;

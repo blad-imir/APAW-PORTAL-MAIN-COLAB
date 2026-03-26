@@ -272,7 +272,7 @@ class RealTimeWeatherCard {
 		}
 
 		const dataTimestamp = data.DateTime || data.DateTimeStamp;
-		this.updateWeatherIcon(rainfall);
+		this.updateWeatherIcon(rainfall, dataTimestamp);
 		this.pulseCard();
 	}
 
@@ -297,7 +297,7 @@ class RealTimeWeatherCard {
 			"temperature",
 			`--<span class="weather-card__unit text-secondary fw-normal"> &deg;C</span>`,
 		);
-		this.updateWeatherIcon(0);
+		this.updateWeatherIcon(0, null);
 	}
 
 	updateMetricValue(metricType, html) {
@@ -363,15 +363,89 @@ class RealTimeWeatherCard {
 		return "";
 	}
 
+	getWeatherCondition(rainfall, timestamp = null) {
+		let category = "clear";
+		let isNight = false;
+
+		if (window.WeatherIcons) {
+			category = WeatherIcons.getRainfallCategory(rainfall);
+
+			let hour = new Date().getHours();
+			if (timestamp) {
+				const dt = timestamp instanceof Date ? timestamp : new Date(timestamp);
+				if (!isNaN(dt.getTime())) hour = dt.getHours();
+			}
+
+			isNight = WeatherIcons.isNightTime(hour);
+		} else {
+			const thresholds = window.APP_CONFIG?.thresholds?.rainfall || {
+				light: 0.5,
+				moderate: 2.5,
+				heavy: 7.5,
+			};
+
+			if (rainfall == null || rainfall < thresholds.light) category = "clear";
+			else if (rainfall < thresholds.moderate) category = "light";
+			else if (rainfall < thresholds.heavy) category = "moderate";
+			else category = "heavy";
+
+			let hour = new Date().getHours();
+			if (timestamp) {
+				const dt = timestamp instanceof Date ? timestamp : new Date(timestamp);
+				if (!isNaN(dt.getTime())) hour = dt.getHours();
+			}
+			isNight = hour >= 18 || hour < 6;
+		}
+
+		const timeLabel = isNight ? "night" : "day";
+		return {
+			category,
+			isNight,
+			themeClass: `weather-card--${timeLabel}-${category}`,
+		};
+	}
+
+	applyWeatherAnimation(condition) {
+		const card = document.querySelector(".weather-card");
+		if (!card) return;
+
+		const conditionClasses = [
+			"weather-card--day-clear",
+			"weather-card--day-light",
+			"weather-card--day-moderate",
+			"weather-card--day-heavy",
+			"weather-card--night-clear",
+			"weather-card--night-light",
+			"weather-card--night-moderate",
+			"weather-card--night-heavy",
+		];
+
+		card.classList.remove(...conditionClasses);
+		card.classList.add(condition.themeClass);
+
+		const iconWrapper = card.querySelector(".weather-card__icon");
+		if (iconWrapper) {
+			iconWrapper.setAttribute(
+				"data-weather-condition",
+				`${condition.isNight ? "night" : "day"}-${condition.category}`,
+			);
+		}
+	}
+
 	/**
 	 * Update weather icon using shared WeatherIcons utility
-	 * Uses current time for day/night icon (not data timestamp)
+	 * Applies icon and CSS animation theme based on rainfall + timestamp
 	 */
-	updateWeatherIcon(rainfall) {
+	updateWeatherIcon(rainfall, timestamp = null) {
 		const iconElement = document.querySelector(".weather-card__icon img");
-		if (!iconElement || !window.WeatherIcons) return;
+		if (!iconElement) return;
 
-		WeatherIcons.updateIcon(iconElement, rainfall);
+		const condition = this.getWeatherCondition(rainfall, timestamp);
+		this.applyWeatherAnimation(condition);
+
+		if (!window.WeatherIcons) return;
+
+		WeatherIcons.updateIcon(iconElement, rainfall, timestamp);
 	}
 
 	formatTimestamp(timestamp) {

@@ -107,6 +107,9 @@ metrics.highest_alert_count > 0 %}
 
 				<div class="weather-card__main">
 					<div class="weather-card__icon">
+						<span class="weather-card__fx weather-card__fx--sun" aria-hidden="true"></span>
+						<span class="weather-card__fx weather-card__fx--moon" aria-hidden="true"></span>
+						<span class="weather-card__fx weather-card__fx--rain" aria-hidden="true"></span>
 						<img
 							src="{{ url_for('static', filename='media/forecast-icons/sunny.png') }}"
 							alt="Weather condition"

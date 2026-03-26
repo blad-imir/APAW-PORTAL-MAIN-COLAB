@@ -2359,8 +2359,25 @@ body.locked {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   padding: 16px;
   position: relative;
+}
+
+.weather-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.weather-card::before,
+.weather-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 @media (min-width: 576px) {
   .weather-card {
@@ -2384,6 +2401,71 @@ body.locked {
   align-items: flex-start;
   gap: 8px;
   margin-bottom: 16px;
+}
+
+.weather-card--day-clear {
+  background: linear-gradient(180deg, #1591cf 0%, #0f79ad 100%);
+}
+
+.weather-card--day-light,
+.weather-card--night-light {
+  background: linear-gradient(180deg, #2ea3dc 0%, #1b8ac5 55%, #187db5 100%);
+}
+
+.weather-card--day-moderate,
+.weather-card--day-heavy {
+  background: linear-gradient(180deg, #4f7897 0%, #2a5b82 100%);
+}
+
+.weather-card--night-clear {
+  background: linear-gradient(180deg, #1e345c 0%, #102340 100%);
+}
+
+.weather-card--night-moderate,
+.weather-card--night-heavy {
+  background: linear-gradient(180deg, #23395f 0%, #132948 100%);
+}
+
+.weather-card--day-clear::before,
+.weather-card--day-light::before {
+  opacity: 0.48;
+  background-image:
+    radial-gradient(40% 24% at 14% 22%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(42% 23% at 66% 16%, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(44% 23% at 80% 36%, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0) 100%);
+  animation: weatherCloudDrift 20s linear infinite;
+}
+
+.weather-card--night-clear::before,
+.weather-card--night-light::before,
+.weather-card--night-moderate::before,
+.weather-card--night-heavy::before {
+  opacity: 0.22;
+  background-image:
+    radial-gradient(34% 20% at 18% 28%, rgba(221, 231, 246, 0.6) 0%, rgba(221, 231, 246, 0) 100%),
+    radial-gradient(40% 22% at 74% 18%, rgba(204, 218, 238, 0.55) 0%, rgba(204, 218, 238, 0) 100%);
+  animation: weatherCloudDrift 24s linear infinite;
+}
+
+.weather-card--day-moderate::after,
+.weather-card--day-heavy::after,
+.weather-card--night-moderate::after,
+.weather-card--night-heavy::after {
+  opacity: 0.4;
+  background-image: repeating-linear-gradient(
+    104deg,
+    rgba(205, 232, 255, 0.65) 0px,
+    rgba(205, 232, 255, 0.65) 2px,
+    rgba(205, 232, 255, 0) 2px,
+    rgba(205, 232, 255, 0) 13px
+  );
+  animation: weatherRainSweep 0.9s linear infinite;
+}
+
+.weather-card--day-heavy::after,
+.weather-card--night-heavy::after {
+  opacity: 0.58;
+  animation-duration: 0.62s;
 }
 @media (min-width: 576px) {
   .weather-card__header {
@@ -2516,6 +2598,8 @@ body.locked {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 @media (min-width: 576px) {
   .weather-card__icon {
@@ -2540,6 +2624,180 @@ body.locked {
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.weather-card__fx {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.weather-card__fx--sun {
+  width: 56px;
+  height: 56px;
+  top: -8px;
+  right: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 221, 122, 0.95) 0%, rgba(255, 192, 66, 0.45) 58%, rgba(255, 192, 66, 0) 72%);
+  box-shadow: 0 0 20px rgba(255, 196, 88, 0.65);
+}
+
+.weather-card__fx--moon {
+  width: 44px;
+  height: 44px;
+  top: -4px;
+  right: -3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 38%, rgba(249, 250, 251, 0.95) 0%, rgba(216, 223, 236, 0.92) 55%, rgba(188, 200, 220, 0.85) 100%);
+  box-shadow: -10px 0 0 0 rgba(20, 43, 78, 0.8);
+}
+
+.weather-card__fx--rain {
+  width: 74px;
+  height: 74px;
+  inset: 0;
+  margin: auto;
+  border-radius: 10px;
+  background-image: repeating-linear-gradient(
+    105deg,
+    rgba(204, 235, 255, 0.9) 0px,
+    rgba(204, 235, 255, 0.9) 2px,
+    rgba(204, 235, 255, 0) 2px,
+    rgba(204, 235, 255, 0) 10px
+  );
+  background-size: 100% 100%;
+}
+
+.weather-card--day-clear .weather-card__fx--sun,
+.weather-card--day-light .weather-card__fx--sun {
+  opacity: 1;
+  animation: weatherSunSpin 12s linear infinite;
+}
+
+.weather-card--day-light .weather-card__fx--sun {
+  opacity: 0.65;
+}
+
+.weather-card--night-clear .weather-card__fx--moon,
+.weather-card--night-light .weather-card__fx--moon,
+.weather-card--night-moderate .weather-card__fx--moon,
+.weather-card--night-heavy .weather-card__fx--moon {
+  opacity: 1;
+  animation: weatherMoonPulse 3.5s ease-in-out infinite;
+}
+
+.weather-card--day-moderate .weather-card__fx--rain,
+.weather-card--night-moderate .weather-card__fx--rain {
+  opacity: 0.45;
+  animation: weatherRainFall 0.8s linear infinite;
+}
+
+.weather-card--day-heavy .weather-card__fx--rain,
+.weather-card--night-heavy .weather-card__fx--rain {
+  opacity: 0.7;
+  animation: weatherRainFall 0.62s linear infinite;
+}
+
+.weather-card--day-clear .weather-card__icon img,
+.weather-card--day-light .weather-card__icon img,
+.weather-card--night-clear .weather-card__icon img {
+  animation: weatherIconFloat 3.2s ease-in-out infinite;
+}
+
+.weather-card--day-moderate .weather-card__icon img,
+.weather-card--day-heavy .weather-card__icon img,
+.weather-card--night-moderate .weather-card__icon img,
+.weather-card--night-heavy .weather-card__icon img {
+  animation: weatherRainIconBob 1.9s ease-in-out infinite;
+}
+
+@keyframes weatherSunSpin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.04);
+  }
+}
+
+@keyframes weatherMoonPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.07);
+    opacity: 1;
+  }
+}
+
+@keyframes weatherCloudDrift {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-7%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes weatherRainSweep {
+  from {
+    transform: translateY(-18px);
+  }
+  to {
+    transform: translateY(18px);
+  }
+}
+
+@keyframes weatherRainFall {
+  from {
+    transform: translateY(-8px);
+  }
+  to {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes weatherIconFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes weatherRainIconBob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-1px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(1px) rotate(1deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-card::before,
+  .weather-card::after,
+  .weather-card__fx,
+  .weather-card__icon img,
+  .weather-card--pulse {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 .weather-card__main-value {

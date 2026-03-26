@@ -1952,8 +1952,70 @@ body.locked {
   max-height: 380px;
 }
 
+.notification-read-all {
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+
+.notification-read-all--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.mark-read-btn {
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0;
+  min-width: 44px;
+  text-align: right;
+}
+
+.notification-read-state {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a7a7a;
+  letter-spacing: 0.03em;
+}
+
+.notification-item--read {
+  background: #f3f4f6 !important;
+  color: #6f6f6f;
+}
+
+.notification-item--read p,
+.notification-item--read span,
+.notification-item--read small {
+  color: inherit !important;
+}
+
+.notification-filter-scroll,
+.mobile-notification-filter-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  cursor: grab;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.notification-filter-scroll::-webkit-scrollbar,
+.mobile-notification-filter-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.notification-filter-scroll.is-dragging,
+.mobile-notification-filter-scroll.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
 .notification-filter {
-  flex: 1;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1983,7 +2045,7 @@ body.locked {
 }
 
 .mobile-notification-filter {
-  flex: 1;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -403,6 +403,45 @@ body.locked {
 	max-height: 380px;
 }
 
+.notification-read-all {
+	font-size: 11px;
+	font-weight: 700;
+	text-decoration: none;
+	letter-spacing: 0.04em;
+}
+
+.notification-read-all--disabled {
+	opacity: 0.45;
+	pointer-events: none;
+}
+
+.mark-read-btn {
+	font-size: 11px;
+	font-weight: 700;
+	text-decoration: none;
+	padding: 0;
+	min-width: 44px;
+	text-align: right;
+}
+
+.notification-read-state {
+	font-size: 11px;
+	font-weight: 700;
+	color: #7a7a7a;
+	letter-spacing: 0.03em;
+}
+
+.notification-item--read {
+	background: #f3f4f6 !important;
+	color: #6f6f6f;
+
+	p,
+	span,
+	small {
+		color: inherit !important;
+	}
+}
+
 // Filter Buttons (shared between desktop & mobile)
 .notification-filter {
 	flex: 1;

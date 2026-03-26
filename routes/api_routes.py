@@ -1,7 +1,11 @@
 """API routes for JSON endpoints with caching support."""
 
+import json
 import logging
+import os
+import tempfile
 from datetime import datetime
+from pathlib import Path
 from flask import Blueprint, request, current_app, make_response
 from config import UIColorSystem, ChartConfig, get_api_config
 from utils.helpers import (
@@ -15,6 +19,70 @@ from utils.error_handlers import handle_api_errors
 
 api_bp = Blueprint('api', __name__)
 logger = logging.getLogger(__name__)
+
+ALERT_READ_STATE_FILE = Path(__file__).resolve().parents[1] / 'cache' / 'alert_read_state.json'
+
+
+def _load_alert_read_ids():
+    """Load persisted alert IDs that are marked as read."""
+    try:
+        if not ALERT_READ_STATE_FILE.exists():
+            return set()
+
+        with open(ALERT_READ_STATE_FILE, 'r', encoding='utf-8') as f:
+            payload = json.load(f)
+
+        read_ids = payload.get('read_ids', [])
+        if not isinstance(read_ids, list):
+            return set()
+
+        return {str(alert_id).strip() for alert_id in read_ids if str(alert_id).strip()}
+
+    except Exception as e:
+        logger.warning(f"Failed to load alert read state: {e}")
+        return set()
+
+
+def _save_alert_read_ids(read_ids):
+    """Persist read alert IDs using atomic write."""
+    temp_path = None
+    try:
+        ALERT_READ_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            'read_ids': sorted(read_ids),
+            'updated_at': datetime.now().isoformat()
+        }
+
+        temp_fd, temp_path = tempfile.mkstemp(
+            dir=str(ALERT_READ_STATE_FILE.parent),
+            prefix='alert_read_',
+            suffix='.tmp'
+        )
+
+        try:
+            with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
+                json.dump(payload, f, separators=(',', ':'))
+        except Exception:
+            try:
+                os.close(temp_fd)
+            except Exception:
+                pass
+            raise
+
+        os.replace(temp_path, ALERT_READ_STATE_FILE)
+        temp_path = None
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to persist alert read state: {e}")
+        return False
+
+    finally:
+        if temp_path:
+            try:
+                Path(temp_path).unlink()
+            except Exception:
+                pass
 
 
 @api_bp.route('/config/stations')
@@ -1152,12 +1220,66 @@ def humidity_trends_periods():
 # ALERT HISTORY API (Notification Bell)
 # =============================================================================
 
+@api_bp.route('/alert-history/read', methods=['POST'])
+@handle_api_errors
+def mark_alert_read():
+    """Mark a single alert as read."""
+    payload = request.get_json(silent=True) or {}
+    alert_id = str(payload.get('id', '')).strip()
+
+    if not alert_id:
+        return create_api_error_response('Alert ID is required', 400)
+
+    read_ids = _load_alert_read_ids()
+    read_ids.add(alert_id)
+
+    if not _save_alert_read_ids(read_ids):
+        return create_api_error_response('Failed to save read state', 500)
+
+    return create_api_success_response({
+        'id': alert_id,
+        'marked_read': True,
+        'updated_at': datetime.now().isoformat()
+    })
+
+
+@api_bp.route('/alert-history/read-all', methods=['POST'])
+@handle_api_errors
+def mark_all_alerts_read():
+    """Mark multiple alerts as read."""
+    payload = request.get_json(silent=True) or {}
+    alert_ids = payload.get('ids') or []
+
+    if not isinstance(alert_ids, list):
+        return create_api_error_response('ids must be an array', 400)
+
+    normalized_ids = {
+        str(alert_id).strip() for alert_id in alert_ids if str(alert_id).strip()
+    }
+
+    if not normalized_ids:
+        return create_api_success_response({
+            'marked_count': 0,
+            'updated_at': datetime.now().isoformat()
+        })
+
+    read_ids = _load_alert_read_ids()
+    read_ids.update(normalized_ids)
+
+    if not _save_alert_read_ids(read_ids):
+        return create_api_error_response('Failed to save read state', 500)
+
+    return create_api_success_response({
+        'marked_count': len(normalized_ids),
+        'updated_at': datetime.now().isoformat()
+    })
+
 @api_bp.route('/alert-history')
 @handle_api_errors
 def alert_history():
     """
     Get historical threshold breaches for notification bell.
-    Returns water level, rainfall, and heat index alerts from last N days.
+    Returns water level, rainfall, humidity, and heat index alerts from last N days.
     Uses per-station thresholds from SiteConfig.WATER_LEVEL_THRESHOLDS.
     
     Optimized: Pre-filters data to only process recent readings instead of
@@ -1218,6 +1340,15 @@ def alert_history():
     
     notifications = []
     seen_alerts = set()
+
+    # Relative humidity thresholds (%RH) for notification alerts.
+    # Levels map to actionable conditions and are intentionally broad to avoid noise.
+    humidity_thresholds = {
+        'very_humid': 90.0,
+        'humid': 80.0,
+        'very_dry': 30.0,
+        'dry': 40.0,
+    }
     
     # Process only pre-filtered recent readings (timestamp already parsed)
     for reading, timestamp in recent_readings:
@@ -1285,6 +1416,41 @@ def alert_history():
                     'message': _format_rainfall_message(rain_level, station_name, rainfall, timestamp)
                 })
 
+        # Check humidity thresholds (all stations)
+        humidity = safe_float(reading.get('Humidity'))
+        if humidity is not None:
+            humidity_key = f"humidity_{station_id}_{hour_key}"
+
+            if humidity_key not in seen_alerts:
+                humidity_level = None
+                if humidity >= humidity_thresholds['very_humid']:
+                    humidity_level = 'very_humid'
+                elif humidity >= humidity_thresholds['humid']:
+                    humidity_level = 'humid'
+                elif humidity <= humidity_thresholds['very_dry']:
+                    humidity_level = 'very_dry'
+                elif humidity <= humidity_thresholds['dry']:
+                    humidity_level = 'dry'
+
+                if humidity_level:
+                    seen_alerts.add(humidity_key)
+                    notifications.append({
+                        'id': humidity_key,
+                        'type': 'humidity',
+                        'level': humidity_level,
+                        'station_id': station_id,
+                        'station_name': station_name,
+                        'value': round(humidity, 1),
+                        'unit': '%',
+                        'timestamp': timestamp.isoformat(),
+                        'message': _format_humidity_message(
+                            humidity_level,
+                            station_name,
+                            humidity,
+                            timestamp
+                        )
+                    })
+
         # Check heat index thresholds (all stations with valid temperature + humidity)
         temperature = safe_float(reading.get('Temperature'))
         humidity = safe_float(reading.get('Humidity'))
@@ -1330,10 +1496,17 @@ def alert_history():
     # Limit to reasonable count
     max_notifications = request.args.get('limit', 50, type=int)
     notifications = notifications[:max_notifications]
+
+    read_ids = _load_alert_read_ids()
+    for item in notifications:
+        item['is_read'] = item['id'] in read_ids
+
+    unread_count = sum(1 for item in notifications if not item.get('is_read'))
     
     return create_api_success_response({
         'notifications': notifications,
         'count': len(notifications),
+        'unread_count': unread_count,
         'days': days,
         'generated_at': datetime.now().isoformat()
     })
@@ -1361,6 +1534,31 @@ def _format_rainfall_message(level, station_name, value, timestamp):
         'moderate': f"Moderate Rainfall: {station_name} recorded {value:.1f}mm/hr at {time_str}"
     }
     return messages.get(level, f"Rainfall: {station_name} - {value:.1f}mm/hr")
+
+
+def _format_humidity_message(level, station_name, value, timestamp):
+    """Format humidity alert message with practical guidance."""
+    time_str = timestamp.strftime('%I:%M %p').lstrip('0')
+
+    messages = {
+        'very_humid': (
+            f"Very Humid: {station_name} reached {value:.1f}% at {time_str} - "
+            "Air may feel oppressive and heat stress risk can increase"
+        ),
+        'humid': (
+            f"Humid: {station_name} reached {value:.1f}% at {time_str} - "
+            "Monitor comfort levels and hydration"
+        ),
+        'very_dry': (
+            f"Very Dry: {station_name} dropped to {value:.1f}% at {time_str} - "
+            "Dry air may cause discomfort"
+        ),
+        'dry': (
+            f"Dry: {station_name} dropped to {value:.1f}% at {time_str} - "
+            "Consider hydration and ventilation adjustments"
+        )
+    }
+    return messages.get(level, f"Humidity: {station_name} - {value:.1f}%")
 
 
 def _format_temperature_message(level, station_name, value, timestamp):

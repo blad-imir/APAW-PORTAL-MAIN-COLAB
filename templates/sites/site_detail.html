@@ -527,11 +527,155 @@
 		</button>
 	</div>
 </section>
-{% endif %} {% endblock %} {% block extra_js %}
+{% endif %}
+
+<!-- HOURLY TEMPERATURE CHART -->
+<section class="pt-40">
+	<div class="chart-container">
+		<button
+			type="button"
+			class="chart-nav-arrow chart-nav-arrow--left"
+			id="btn-temp-prev-day"
+			aria-label="View previous day"
+		>
+			<i class="fas fa-chevron-left" aria-hidden="true"></i>
+		</button>
+		<div class="chart-wrapper">
+			<div class="chart-header">
+				<h5 class="chart-title">
+					<i class="fas fa-thermometer-half chart-title__icon" aria-hidden="true"></i>
+					{{ site.name }} - Hourly Temperature
+				</h5>
+				<div class="chart-controls">
+					<div class="date-picker-inline">
+						<i class="fas fa-calendar-alt" aria-hidden="true"></i>
+						<label for="temperatureDatePicker" class="sr-only">Select date</label>
+						<span class="date-picker-label" aria-hidden="true"
+							>Select Date:</span
+						>
+						<input
+							type="date"
+							id="temperatureDatePicker"
+							class="date-picker-inline__input"
+						/>
+					</div>
+				</div>
+			</div>
+			<div
+				class="chart-loading hidden"
+				id="temperature-chart-loading"
+				role="status"
+				aria-live="polite"
+			>
+				<div class="chart-loading__spinner" aria-hidden="true"></div>
+				<p class="chart-loading__text">Loading temperature data...</p>
+			</div>
+			<div
+				id="temperatureChart"
+				class="chart-canvas"
+				role="img"
+				aria-label="Temperature chart"
+			></div>
+			<div class="chart-error hidden" id="temperature-chart-error" role="alert">
+				<i
+					class="fas fa-exclamation-triangle chart-error__icon"
+					aria-hidden="true"
+				></i>
+				<h3 class="chart-error__title">Unable to Load Data</h3>
+				<p class="chart-error__message">Error loading temperature data.</p>
+				<button type="button" class="chart-error__btn" data-action="retry">
+					<i class="fas fa-redo" aria-hidden="true"></i> Retry
+				</button>
+			</div>
+		</div>
+		<button
+			type="button"
+			class="chart-nav-arrow chart-nav-arrow--right"
+			id="btn-temp-next-day"
+			aria-label="View next day"
+		>
+			<i class="fas fa-chevron-right" aria-hidden="true"></i>
+		</button>
+	</div>
+</section>
+
+<!-- HOURLY HUMIDITY CHART -->
+<section class="pt-40">
+	<div class="chart-container">
+		<button
+			type="button"
+			class="chart-nav-arrow chart-nav-arrow--left"
+			id="btn-humid-prev-day"
+			aria-label="View previous day"
+		>
+			<i class="fas fa-chevron-left" aria-hidden="true"></i>
+		</button>
+		<div class="chart-wrapper">
+			<div class="chart-header">
+				<h5 class="chart-title">
+					<i class="fas fa-droplet chart-title__icon" aria-hidden="true"></i>
+					{{ site.name }} - Hourly Humidity
+				</h5>
+				<div class="chart-controls">
+					<div class="date-picker-inline">
+						<i class="fas fa-calendar-alt" aria-hidden="true"></i>
+						<label for="humidityDatePicker" class="sr-only">Select date</label>
+						<span class="date-picker-label" aria-hidden="true"
+							>Select Date:</span
+						>
+						<input
+							type="date"
+							id="humidityDatePicker"
+							class="date-picker-inline__input"
+						/>
+					</div>
+				</div>
+			</div>
+			<div
+				class="chart-loading hidden"
+				id="humidity-chart-loading"
+				role="status"
+				aria-live="polite"
+			>
+				<div class="chart-loading__spinner" aria-hidden="true"></div>
+				<p class="chart-loading__text">Loading humidity data...</p>
+			</div>
+			<div
+				id="humidityChart"
+				class="chart-canvas"
+				role="img"
+				aria-label="Humidity chart"
+			></div>
+			<div class="chart-error hidden" id="humidity-chart-error" role="alert">
+				<i
+					class="fas fa-exclamation-triangle chart-error__icon"
+					aria-hidden="true"
+				></i>
+				<h3 class="chart-error__title">Unable to Load Data</h3>
+				<p class="chart-error__message">Error loading humidity data.</p>
+				<button type="button" class="chart-error__btn" data-action="retry">
+					<i class="fas fa-redo" aria-hidden="true"></i> Retry
+				</button>
+			</div>
+		</div>
+		<button
+			type="button"
+			class="chart-nav-arrow chart-nav-arrow--right"
+			id="btn-humid-next-day"
+			aria-label="View next day"
+		>
+			<i class="fas fa-chevron-right" aria-hidden="true"></i>
+		</button>
+	</div>
+</section>
+
+{% endblock %} {% block extra_js %}
 <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script src="{{ url_for('static', filename='js/csv-exporter.js') }}"></script>
 <script src="{{ url_for('static', filename='js/precipitation-chart.js') }}"></script>
 <script src="{{ url_for('static', filename='js/water-level-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/temperature-chart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/humidity-chart.js') }}"></script>
 <script src="{{ url_for('static', filename='js/trends-chart.js') }}"></script>
 
 <script>
@@ -646,7 +790,41 @@
 	        } else if (waterReady) {
 	            waterReady();
 	        }
+        // Temperature Chart
+        let temperatureChart = null;
+        const temperaturePicker = document.getElementById("temperatureDatePicker");
+        if (document.getElementById("temperatureChart")) {
+            temperatureChart = new TemperatureChart({
+                chartId: "temperatureChart",
+                apiEndpoint: "/api/temperature-data",
+                autoLoad: true,
+                stationConfig,
+                filterStations: [stationId],
+                onDataLoaded: (data) => {
+                    if (temperaturePicker && data.date) temperaturePicker.value = data.date;
+                },
+            });
+            await temperatureChart.init();
+            window.temperatureChart = temperatureChart;
+        }
 
+        // Humidity Chart
+        let humidityChart = null;
+        const humidityPicker = document.getElementById("humidityDatePicker");
+        if (document.getElementById("humidityChart")) {
+            humidityChart = new HumidityChart({
+                chartId: "humidityChart",
+                apiEndpoint: "/api/humidity-data",
+                autoLoad: true,
+                stationConfig,
+                filterStations: [stationId],
+                onDataLoaded: (data) => {
+                    if (humidityPicker && data.date) humidityPicker.value = data.date;
+                },
+            });
+            await humidityChart.init();
+            window.humidityChart = humidityChart;
+        }
 	        // Single-station config for trends charts (only show current station)
 	        const singleStationConfig = {
 	            [stationId]: stationConfig[stationId] || { name: siteName, color: stationColor }
@@ -765,47 +943,69 @@
 	        function syncCharts(newDate) {
 	            if (precipPicker) precipPicker.value = newDate;
 	            if (waterPicker) waterPicker.value = newDate;
-	            precipChart?.loadSpecificDate(newDate);
-	            waterChart?.loadSpecificDate(newDate);
-	        }
+            if (temperaturePicker) temperaturePicker.value = newDate;
+            if (humidityPicker) humidityPicker.value = newDate;
+            precipChart?.loadSpecificDate(newDate);
+            waterChart?.loadSpecificDate(newDate);
+            temperatureChart?.loadSpecificDate(newDate);
+            humidityChart?.loadSpecificDate(newDate);
+        }
 
-	        function navigateDay(days, sourcePicker) {
-	            const current = sourcePicker?.value || today;
-	            const date = new Date(current);
-	            date.setDate(date.getDate() + days);
-	            syncCharts(date.toISOString().split("T")[0]);
-	        }
+        function navigateDay(days, sourcePicker) {
+            const current = sourcePicker?.value || today;
+            const date = new Date(current);
+            date.setDate(date.getDate() + days);
+            syncCharts(date.toISOString().split("T")[0]);
+        }
 
-	        document
-	            .getElementById("btn-prev-day")
-	            ?.addEventListener("click", () => navigateDay(-1, precipPicker));
-	        document
-	            .getElementById("btn-next-day")
-	            ?.addEventListener("click", () => navigateDay(1, precipPicker));
-	        document
-	            .getElementById("btn-water-prev-day")
-	            ?.addEventListener("click", () => navigateDay(-1, waterPicker));
-	        document
-	            .getElementById("btn-water-next-day")
-	            ?.addEventListener("click", () => navigateDay(1, waterPicker));
+        document
+            .getElementById("btn-prev-day")
+            ?.addEventListener("click", () => navigateDay(-1, precipPicker));
+        document
+            .getElementById("btn-next-day")
+            ?.addEventListener("click", () => navigateDay(1, precipPicker));
+        document
+            .getElementById("btn-water-prev-day")
+            ?.addEventListener("click", () => navigateDay(-1, waterPicker));
+        document
+            .getElementById("btn-water-next-day")
+            ?.addEventListener("click", () => navigateDay(1, waterPicker));
+        document
+            .getElementById("btn-temp-prev-day")
+            ?.addEventListener("click", () => navigateDay(-1, temperaturePicker));
+        document
+            .getElementById("btn-temp-next-day")
+            ?.addEventListener("click", () => navigateDay(1, temperaturePicker));
+        document
+            .getElementById("btn-humid-prev-day")
+            ?.addEventListener("click", () => navigateDay(-1, humidityPicker));
+        document
+            .getElementById("btn-humid-next-day")
+            ?.addEventListener("click", () => navigateDay(1, humidityPicker));
 
-	        precipPicker?.addEventListener("change", (e) => {
-	            if (e.target.value) syncCharts(e.target.value);
-	        });
-	        waterPicker?.addEventListener("change", (e) => {
-	            if (e.target.value) syncCharts(e.target.value);
-	        });
+        precipPicker?.addEventListener("change", (e) => {
+            if (e.target.value) syncCharts(e.target.value);
+        });
+        waterPicker?.addEventListener("change", (e) => {
+            if (e.target.value) syncCharts(e.target.value);
+        });
+        temperaturePicker?.addEventListener("change", (e) => {
+            if (e.target.value) syncCharts(e.target.value);
+        });
+        humidityPicker?.addEventListener("change", (e) => {
+            if (e.target.value) syncCharts(e.target.value);
+        });
 
-	        document
-	            .getElementById("btn-export-csv")
-	            ?.addEventListener("click", () => {
-	                if (precipChart?.chartData)
-	                    csvExporter.exportPrecipitationData(
-	                        precipChart.chartData,
-	                        precipPicker?.value
-	                    );
-	                else alert("No data to export");
-	            });
+        document
+            .getElementById("btn-export-csv")
+            ?.addEventListener("click", () => {
+                if (precipChart?.chartData)
+                    csvExporter.exportPrecipitationData(
+                        precipChart.chartData,
+                        precipPicker?.value
+                    );
+                else alert("No data to export");
+            });
 	        document
 	            .getElementById("btn-export-water-csv")
 	            ?.addEventListener("click", () => {

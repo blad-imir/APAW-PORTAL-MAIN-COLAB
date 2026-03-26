@@ -107,13 +107,22 @@
 						<h6 class="mb-0 fw-semibold">
 							<i class="fas fa-bell me-2 text-primary"></i>Alert History
 						</h6>
-						<small class="text-muted" id="notificationPeriod"
-							>Last 10 days</small
-						>
+						<div class="d-flex align-items-center gap-2">
+							<button
+								type="button"
+								class="btn btn-link p-0 notification-read-all"
+								id="notificationReadAllBtn"
+							>
+								READ ALL
+							</button>
+							<small class="text-muted" id="notificationPeriod"
+								>Last 10 days</small
+							>
+						</div>
 					</div>
 
 					<!-- Filter Toggle Buttons -->
-					<div class="d-flex gap-2 p-2 border-bottom bg-white">
+					<div class="d-flex gap-2 p-2 border-bottom bg-white notification-filter-scroll">
 						<button
 							type="button"
 							class="notification-filter active"
@@ -146,6 +155,14 @@
 							<i class="fas fa-temperature-half"></i>
 							<span>Heat Index</span>
 						</button>
+						<button
+							type="button"
+							class="notification-filter"
+							data-filter="humidity"
+						>
+							<i class="fas fa-droplet"></i>
+							<span>Humidity</span>
+						</button>
 					</div>
 
 					<!-- Notification List -->
@@ -176,7 +193,7 @@
 					>
 						<small class="text-muted">
 							<i class="fas fa-info-circle me-1"></i>
-							Showing flood, rainfall &amp; heat index alerts
+							Showing flood, rainfall, humidity &amp; heat index alerts
 						</small>
 					</div>
 				</div>
@@ -252,14 +269,23 @@
 		<h5 class="mb-0 fw-semibold">
 			<i class="fas fa-bell me-2 text-primary"></i>Alert History
 		</h5>
-		<small class="text-muted mobile-notification-page__period"
-			>Last 10 days</small
-		>
+		<div class="d-flex align-items-center gap-2">
+			<button
+				type="button"
+				class="btn btn-link p-0 notification-read-all"
+				id="mobileNotificationReadAllBtn"
+			>
+				READ ALL
+			</button>
+			<small class="text-muted mobile-notification-page__period"
+				>Last 10 days</small
+			>
+		</div>
 	</div>
 
 	<!-- Filter Toggle Buttons -->
 	<div
-		class="d-flex gap-2 p-2 border-bottom bg-white sticky-top mobile-notification-page__filters"
+		class="d-flex gap-2 p-2 border-bottom bg-white sticky-top mobile-notification-page__filters mobile-notification-filter-scroll"
 	>
 		<button
 			type="button"
@@ -293,6 +319,14 @@
 			<i class="fas fa-temperature-half"></i>
 			<span>Heat Index</span>
 		</button>
+		<button
+			type="button"
+			class="mobile-notification-filter"
+			data-filter="humidity"
+		>
+			<i class="fas fa-droplet"></i>
+			<span>Humidity</span>
+		</button>
 	</div>
 
 	<!-- Mobile Notification List -->
@@ -318,7 +352,7 @@
 	<div class="border-top px-3 py-3 bg-light text-center">
 		<small class="text-muted">
 			<i class="fas fa-info-circle me-1"></i>
-			Showing flood, rainfall &amp; heat index alerts
+			Showing flood, rainfall, humidity &amp; heat index alerts
 		</small>
 	</div>
 </div>

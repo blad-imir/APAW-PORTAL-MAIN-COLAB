@@ -11,7 +11,9 @@ const NotificationBell = {
 		loading: null,
 		empty: null,
 		period: null,
+			filterScrollContainer: null,
 		filterButtons: null,
+		readAllBtn: null,
 		// Mobile elements
 		mobileBadge: null,
 		mobileToggle: null,
@@ -20,7 +22,9 @@ const NotificationBell = {
 		mobileList: null,
 		mobileLoading: null,
 		mobileEmpty: null,
+			mobileFilterScrollContainer: null,
 		mobileFilterButtons: null,
+		mobileReadAllBtn: null,
 	},
 
 	config: {
@@ -38,6 +42,7 @@ const NotificationBell = {
 	currentFilter: "all",
 	isLoaded: false,
 	totalCount: 0,
+	unreadCount: 0,
 
 	init() {
 		// Load colors from APP_CONFIG (injected from config.py)
@@ -49,8 +54,14 @@ const NotificationBell = {
 		this.elements.loading = document.getElementById("notificationLoading");
 		this.elements.empty = document.getElementById("notificationEmpty");
 		this.elements.period = document.getElementById("notificationPeriod");
+		this.elements.filterScrollContainer = document.querySelector(
+			".notification-filter-scroll",
+		);
 		this.elements.filterButtons = document.querySelectorAll(
 			".notification-filter",
+		);
+		this.elements.readAllBtn = document.getElementById(
+			"notificationReadAllBtn",
 		);
 
 		// Mobile elements
@@ -75,15 +86,25 @@ const NotificationBell = {
 		this.elements.mobileEmpty = document.getElementById(
 			"mobileNotificationEmpty",
 		);
+		this.elements.mobileFilterScrollContainer = document.querySelector(
+			".mobile-notification-filter-scroll",
+		);
 		this.elements.mobileFilterButtons = document.querySelectorAll(
 			".mobile-notification-filter",
+		);
+		this.elements.mobileReadAllBtn = document.getElementById(
+			"mobileNotificationReadAllBtn",
 		);
 
 		// Set up desktop filter button listeners
 		this.setupFilterListeners();
+		this.setupFilterScrollInteractions();
 
 		// Set up mobile handlers
 		this.setupMobileHandlers();
+
+		// Set up read/read-all listeners
+		this.setupReadListeners();
 
 		// Load on first dropdown open (lazy load) - Desktop
 		const dropdown = document.getElementById("notificationDropdown");
@@ -100,6 +121,81 @@ const NotificationBell = {
 
 		// Periodic refresh
 		setInterval(() => this.fetchBadgeCount(), this.config.refreshInterval);
+	},
+
+	setupFilterScrollInteractions() {
+		this.enableHorizontalScroll(this.elements.filterScrollContainer);
+		this.enableHorizontalScroll(this.elements.mobileFilterScrollContainer);
+	},
+
+	enableHorizontalScroll(container) {
+		if (!container) return;
+
+		let isPointerDown = false;
+		let dragStartX = 0;
+		let dragStartScrollLeft = 0;
+		let dragMoved = false;
+
+		container.addEventListener(
+			"wheel",
+			(event) => {
+				const hasHorizontalOverflow =
+					container.scrollWidth > container.clientWidth;
+				if (!hasHorizontalOverflow) return;
+
+				const scrollDelta =
+					Math.abs(event.deltaX) > Math.abs(event.deltaY)
+						? event.deltaX
+						: event.deltaY;
+
+				if (scrollDelta === 0) return;
+
+				event.preventDefault();
+				container.scrollLeft += scrollDelta;
+			},
+			{ passive: false },
+		);
+
+		container.addEventListener("mousedown", (event) => {
+			if (event.button !== 0) return;
+
+			isPointerDown = true;
+			dragMoved = false;
+			dragStartX = event.clientX;
+			dragStartScrollLeft = container.scrollLeft;
+			container.classList.add("is-dragging");
+		});
+
+		window.addEventListener("mousemove", (event) => {
+			if (!isPointerDown) return;
+
+			const deltaX = event.clientX - dragStartX;
+			if (Math.abs(deltaX) > 3) {
+				dragMoved = true;
+			}
+
+			container.scrollLeft = dragStartScrollLeft - deltaX;
+		});
+
+		const stopDragging = () => {
+			if (!isPointerDown) return;
+			isPointerDown = false;
+			container.classList.remove("is-dragging");
+		};
+
+		window.addEventListener("mouseup", stopDragging);
+		container.addEventListener("mouseleave", stopDragging);
+
+		container.addEventListener(
+			"click",
+			(event) => {
+				if (!dragMoved) return;
+				event.preventDefault();
+				event.stopPropagation();
+				dragMoved = false;
+			},
+			true,
+		);
 	},
 
 	_loadColors() {
@@ -202,6 +298,139 @@ const NotificationBell = {
 		});
 	},
 
+	setupReadListeners() {
+		if (this.elements.list) {
+			this.elements.list.addEventListener("click", (event) => {
+				const button = event.target.closest(".mark-read-btn");
+				if (!button) return;
+
+				event.preventDefault();
+				this.markAsRead(button.dataset.id);
+			});
+		}
+
+		if (this.elements.mobileList) {
+			this.elements.mobileList.addEventListener("click", (event) => {
+				const button = event.target.closest(".mark-read-btn");
+				if (!button) return;
+
+				event.preventDefault();
+				this.markAsRead(button.dataset.id);
+			});
+		}
+
+		if (this.elements.readAllBtn) {
+			this.elements.readAllBtn.addEventListener("click", (event) => {
+				event.preventDefault();
+				this.markAllAsRead();
+			});
+		}
+
+		if (this.elements.mobileReadAllBtn) {
+			this.elements.mobileReadAllBtn.addEventListener("click", (event) => {
+				event.preventDefault();
+				this.markAllAsRead();
+			});
+		}
+	},
+
+	getUnreadCount() {
+		return this.notifications.filter((item) => !item.is_read).length;
+	},
+
+	refreshReadStateUi() {
+		this.unreadCount = this.getUnreadCount();
+		this.totalCount = this.notifications.length;
+		this.updateBadge(this.unreadCount);
+		this.updateReadAllButtons();
+	},
+
+	updateReadAllButtons() {
+		const disable = this.unreadCount === 0;
+
+		if (this.elements.readAllBtn) {
+			this.elements.readAllBtn.disabled = disable;
+			this.elements.readAllBtn.classList.toggle(
+				"notification-read-all--disabled",
+				disable,
+			);
+		}
+
+		if (this.elements.mobileReadAllBtn) {
+			this.elements.mobileReadAllBtn.disabled = disable;
+			this.elements.mobileReadAllBtn.classList.toggle(
+				"notification-read-all--disabled",
+				disable,
+			);
+		}
+	},
+
+	async markAsRead(alertId) {
+		if (!alertId) return;
+
+		const target = this.notifications.find((item) => item.id === alertId);
+		if (!target || target.is_read) return;
+
+		target.is_read = true;
+		this.applyFilter();
+		this.render();
+		this.renderMobile();
+		this.refreshReadStateUi();
+
+		try {
+			const response = await fetch(`${this.config.endpoint}/read`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ id: alertId }),
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`);
+			}
+		} catch (error) {
+			console.warn("[NotificationBell] Failed to persist read state:", error);
+		}
+	},
+
+	async markAllAsRead() {
+		const unreadIds = this.notifications
+			.filter((item) => !item.is_read)
+			.map((item) => item.id);
+
+		if (unreadIds.length === 0) return;
+
+		this.notifications = this.notifications.map((item) => ({
+			...item,
+			is_read: true,
+		}));
+
+		this.applyFilter();
+		this.render();
+		this.renderMobile();
+		this.refreshReadStateUi();
+
+		try {
+			const response = await fetch(`${this.config.endpoint}/read-all`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ids: unreadIds }),
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`);
+			}
+		} catch (error) {
+			console.warn(
+				"[NotificationBell] Failed to persist read-all state:",
+				error,
+			);
+		}
+	},
+
 	setFilter(filter) {
 		this.currentFilter = filter;
 
@@ -240,9 +469,11 @@ const NotificationBell = {
 
 			const data = await response.json();
 			if (data.success) {
-				const count = data.notifications?.length || 0;
-				this.totalCount = count;
-				this.updateBadge(count);
+				const unreadCount = data.unread_count ?? 0;
+				this.unreadCount = unreadCount;
+				this.totalCount = data.count ?? (data.notifications?.length || 0);
+				this.updateBadge(unreadCount);
+				this.updateReadAllButtons();
 			}
 		} catch (error) {
 			console.warn("[NotificationBell] Badge fetch error:", error);
@@ -263,12 +494,14 @@ const NotificationBell = {
 			const data = await response.json();
 
 			if (data.success) {
-				this.notifications = data.notifications || [];
-				this.totalCount = this.notifications.length; // Store total count
+				this.notifications = (data.notifications || []).map((item) => ({
+					...item,
+					is_read: Boolean(item.is_read),
+				}));
 				this.applyFilter();
 				this.render();
 				this.renderMobile();
-				this.updateBadge(this.totalCount); // Always show total, not filtered
+				this.refreshReadStateUi();
 				this.isLoaded = true;
 			} else {
 				throw new Error(data.error || "Failed to load notifications");
@@ -367,15 +600,22 @@ const NotificationBell = {
 		const iconHtml = this.getIconHtml(item.type, item.level);
 		const formattedMessage = this.formatMessage(item);
 		const timeAgo = this.formatTimeAgo(item.timestamp);
+		const readClass = item.is_read ? "notification-item--read" : "";
+		const readAction = item.is_read
+			? `<span class="notification-read-state">READ</span>`
+			: `<button type="button" class="btn btn-link mark-read-btn" data-id="${this.escapeHtml(item.id)}">READ</button>`;
 
 		// Slightly larger for mobile touch targets
-		return `<div class="d-flex align-items-start gap-3 px-3 py-3 border-bottom" style="background: ${this.colors.ui.white};">
+		return `<div class="d-flex align-items-start gap-3 px-3 py-3 border-bottom notification-item ${readClass}" style="background: ${this.colors.ui.white};">
 			<div class="flex-shrink-0" style="width: 44px; height: 44px">
 				${iconHtml}
 			</div>
 			<div class="flex-grow-1 min-width-0">
 				<p class="mb-1 lh-sm" style="font-size: 14px">${formattedMessage}</p>
-				<small class="text-muted">${timeAgo}</small>
+				<div class="d-flex align-items-center justify-content-between gap-2">
+					<small class="text-muted">${timeAgo}</small>
+					${readAction}
+				</div>
 			</div>
 		</div>`;
 	},
@@ -385,14 +625,21 @@ const NotificationBell = {
 		const formattedMessage = this.formatMessage(item);
 		const timeAgo = this.formatTimeAgo(item.timestamp);
 		const hoverBg = this.colors.ui.hoverBg;
+		const readClass = item.is_read ? "notification-item--read" : "";
+		const readAction = item.is_read
+			? `<span class="notification-read-state">READ</span>`
+			: `<button type="button" class="btn btn-link mark-read-btn" data-id="${this.escapeHtml(item.id)}">READ</button>`;
 
-		return `<div class="d-flex align-items-start gap-3 px-3 py-2 border-bottom notification-item" style="transition: background 0.2s" onmouseover="this.style.backgroundColor='${hoverBg}'" onmouseout="this.style.backgroundColor='transparent'">
+		return `<div class="d-flex align-items-start gap-3 px-3 py-2 border-bottom notification-item ${readClass}" style="transition: background 0.2s" onmouseover="if (!this.classList.contains('notification-item--read')) { this.style.backgroundColor='${hoverBg}'; }" onmouseout="if (!this.classList.contains('notification-item--read')) { this.style.backgroundColor='transparent'; }">
 			<div class="flex-shrink-0" style="width: 40px; height: 40px">
 				${iconHtml}
 			</div>
 			<div class="flex-grow-1 min-width-0">
 				<p class="mb-1 small lh-sm">${formattedMessage}</p>
-				<small class="text-muted">${timeAgo}</small>
+				<div class="d-flex align-items-center justify-content-between gap-2">
+					<small class="text-muted">${timeAgo}</small>
+					${readAction}
+				</div>
 			</div>
 		</div>`;
 	},
@@ -436,6 +683,22 @@ const NotificationBell = {
 
 			return `<div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: ${bgColor}">
 			<i class="fas ${temperatureConfig.icon}" style="font-size: 1rem; color: ${temperatureConfig.color}"></i>
+		</div>`;
+		}
+
+		if (type === "humidity") {
+			const humidityIconMap = {
+				very_humid: { icon: "fa-droplet", color: this.colors.alert.warning },
+				humid: { icon: "fa-droplet", color: this.colors.alert.alert },
+				very_dry: { icon: "fa-wind", color: this.colors.alert.warning },
+				dry: { icon: "fa-wind", color: this.colors.alert.advisory },
+			};
+
+			const humidityConfig = humidityIconMap[level] || humidityIconMap.humid;
+			const bgColor = this._hexToRgba(humidityConfig.color, 0.1);
+
+			return `<div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background: ${bgColor}">
+			<i class="fas ${humidityConfig.icon}" style="font-size: 1rem; color: ${humidityConfig.color}"></i>
 		</div>`;
 		}
 
@@ -506,6 +769,27 @@ const NotificationBell = {
 
 			const label = tempLabels[item.level] || "Heat Index";
 			const advice = tempAdvice[item.level] || "Stay hydrated.";
+
+			return `${emphasis(label + ":")} ${emphasis(stationName)} recorded ${emphasis(value + " " + unit)} at ${emphasis(timeStr)}. ${advice}`;
+		}
+
+		if (item.type === "humidity") {
+			const humidityLabels = {
+				very_humid: "Very Humid",
+				humid: "Humid",
+				very_dry: "Very Dry",
+				dry: "Dry",
+			};
+			const humidityAdvice = {
+				very_humid:
+					"Air may feel oppressive and heat stress risk can increase.",
+				humid: "Monitor comfort levels and hydration.",
+				very_dry: "Dry air may cause discomfort.",
+				dry: "Consider hydration and ventilation adjustments.",
+			};
+
+			const label = humidityLabels[item.level] || "Humidity";
+			const advice = humidityAdvice[item.level] || "Monitor local conditions.";
 
 			return `${emphasis(label + ":")} ${emphasis(stationName)} recorded ${emphasis(value + " " + unit)} at ${emphasis(timeStr)}. ${advice}`;
 		}

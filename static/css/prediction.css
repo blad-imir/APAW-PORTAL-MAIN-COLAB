@@ -114,6 +114,34 @@
 
 .prediction-chart {
     min-height: 360px;
+    flex: 1;
+}
+
+.prediction-chart-wrap {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.prediction-nav-btn {
+    width: 42px;
+    min-width: 42px;
+    border: 1px solid #c6deec;
+    border-radius: 10px;
+    background: #eef7fc;
+    color: #275f7c;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.prediction-nav-btn:hover:not(:disabled) {
+    background: #ddeff9;
+    border-color: #9ccae2;
+}
+
+.prediction-nav-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
 }
 
 .prediction-loading {
@@ -152,6 +180,11 @@
 @media (max-width: 768px) {
     .prediction-chart {
         min-height: 280px;
+    }
+
+    .prediction-nav-btn {
+        width: 36px;
+        min-width: 36px;
     }
 
     .horizon-tab {

@@ -81,7 +81,15 @@
             <span>Generating forecast...</span>
         </div>
         <div id="predictionError" class="prediction-error d-none"></div>
-        <div id="predictionChart" class="prediction-chart"></div>
+        <div class="prediction-chart-wrap">
+            <button id="predictionNavLeft" type="button" class="prediction-nav-btn" aria-label="Show previous data window">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div id="predictionChart" class="prediction-chart"></div>
+            <button id="predictionNavRight" type="button" class="prediction-nav-btn" aria-label="Show next data window">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
     </div>
 
     <div class="prediction-card">

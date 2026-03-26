@@ -51,7 +51,7 @@ class WeatherPredictionService:
         sites: List[Dict[str, Any]],
         hourly_steps: int = 24,
         daily_steps: int = 7,
-        weekly_steps: int = 4,
+        weekly_steps: int = 7,
     ) -> Dict[str, Any]:
         """Build predictions grouped by horizon for every station."""
         stations_by_id = {site["id"]: site for site in sites}
@@ -167,6 +167,11 @@ class WeatherPredictionService:
                     horizon=horizon,
                     steps=steps,
                 )
+                historical_points = self._build_historical_points(
+                    aggregated_series=aggregated,
+                    horizon=horizon,
+                )
+                series["historical_points"] = historical_points
                 metric_payload[metric] = series
 
             station_payload[station_id] = {
@@ -226,7 +231,7 @@ class WeatherPredictionService:
         grouped: Dict[datetime, List[float]] = defaultdict(list)
 
         for ts, value in points:
-            if horizon == "daily":
+            if horizon in ("daily", "weekly"):
                 bucket = datetime(ts.year, ts.month, ts.day)
             else:
                 iso_year, iso_week, _ = ts.isocalendar()
@@ -239,7 +244,34 @@ class WeatherPredictionService:
 
         if horizon == "daily":
             return aggregated[-90:]
+        if horizon == "weekly":
+            return self._fill_daily_gaps(aggregated)[-30:]
         return aggregated[-52:]
+
+    @staticmethod
+    def _fill_daily_gaps(points: List[Tuple[datetime, float]]) -> List[Tuple[datetime, float]]:
+        if not points:
+            return []
+
+        filled: List[Tuple[datetime, float]] = []
+        points_sorted = sorted(points, key=lambda row: row[0])
+
+        for idx, (current_ts, current_value) in enumerate(points_sorted):
+            filled.append((current_ts, current_value))
+            if idx == len(points_sorted) - 1:
+                continue
+
+            next_ts, _ = points_sorted[idx + 1]
+            days_gap = (next_ts.date() - current_ts.date()).days
+            if days_gap <= 1:
+                continue
+
+            for gap_day in range(1, days_gap):
+                gap_ts = current_ts + timedelta(days=gap_day)
+                filled.append((gap_ts, current_value))
+
+        filled.sort(key=lambda row: row[0])
+        return filled
 
     def _forecast_series(
         self,
@@ -304,11 +336,35 @@ class WeatherPredictionService:
         confidence = self._estimate_confidence(variability, metric, transition_probs)
         return {"points": predictions, "confidence": confidence}
 
+    def _build_historical_points(
+        self,
+        aggregated_series: List[Tuple[datetime, float]],
+        horizon: str,
+    ) -> List[Dict[str, Any]]:
+        if not aggregated_series:
+            return []
+
+        if horizon == "hourly":
+            window = 24
+        else:
+            window = 7
+
+        selected = aggregated_series[-window:]
+        return [
+            {
+                "timestamp": ts.isoformat(),
+                "value": round(value, 2),
+            }
+            for ts, value in selected
+        ]
+
     @staticmethod
     def _step_timestamp(current_ts: datetime, horizon: str) -> datetime:
         if horizon == "hourly":
             return current_ts + timedelta(hours=1)
         if horizon == "daily":
+            return current_ts + timedelta(days=1)
+        if horizon == "weekly":
             return current_ts + timedelta(days=1)
         return current_ts + timedelta(days=7)
 

@@ -1,6 +1,6 @@
 """Web routes for page rendering."""
 
-from flask import Blueprint, render_template, current_app
+from flask import Blueprint, render_template, current_app, request
 from config import MetricCardConfig, WeatherCardConfig
 from utils.error_handlers import handle_service_errors
 from extensions import cache
@@ -119,7 +119,15 @@ def weather_prediction():
 @web_bp.route('/logs')
 @handle_service_errors
 def logs():
-    """Render sensor working/non-working logs page."""
+    """Render logs page with selectable sensor or user/visitor logs."""
+    logs_type = (request.args.get('type') or 'sensor').strip().lower()
+
+    if logs_type == 'user':
+        forwarded = request.headers.get('X-Forwarded-For')
+        client_ip = forwarded.split(',')[0].strip() if forwarded else request.remote_addr
+        visitor_logs = current_app.visitor_counter.get_user_log_summary(client_ip)
+        return render_template('logs.html', logs_type='user', visitor_logs=visitor_logs)
+
     weather_data = current_app.weather_service.fetch_weather_data()
 
     if not weather_data:
@@ -127,7 +135,7 @@ def logs():
         weather_data = stale_data if stale_data else []
 
     sensor_logs = current_app.metrics_service.get_sensor_logs(weather_data, days=14)
-    return render_template('logs.html', sensor_logs=sensor_logs)
+    return render_template('logs.html', logs_type='sensor', sensor_logs=sensor_logs)
 
 
 @web_bp.route('/flood-alert-simulation')

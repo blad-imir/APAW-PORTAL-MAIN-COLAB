@@ -1,9 +1,64 @@
 {% extends 'base.html' %}
 
-{% block title %}Sensor Logs | Project APAW{% endblock %}
+{% block title %}{{ 'User/Visitor Logs' if logs_type == 'user' else 'Sensor Logs' }} | Project APAW{% endblock %}
 
 {% block content %}
 <section class="py-40 logs-page">
+    {% if logs_type == 'user' %}
+    <div class="logs-hero mb-4">
+        <div>
+            <h2 class="logs-title mb-2">User/Visitor Logs</h2>
+            <p class="logs-subtitle mb-0">
+                Current active-user activity snapshot and daily visitor usage metrics.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="logs-stat-card logs-stat-total">
+                <span class="logs-stat-label">Current User(s)</span>
+                <span class="logs-stat-value">{{ visitor_logs.current_users }}</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="logs-stat-card logs-stat-working">
+                <span class="logs-stat-label">Max Users Today</span>
+                <span class="logs-stat-value">{{ visitor_logs.day_max_users }}</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="logs-stat-card logs-stat-offline">
+                <span class="logs-stat-label">Average Users Today</span>
+                <span class="logs-stat-value">{{ visitor_logs.day_average_users }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="logs-card mb-4">
+        <h4 class="logs-section-title">Current User Network Info</h4>
+        <div class="table-responsive">
+            <table class="table logs-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Current User IP (masked)</td>
+                        <td>{{ visitor_logs.current_ip }}</td>
+                    </tr>
+                    <tr>
+                        <td>Visits from This IP</td>
+                        <td>{{ visitor_logs.current_ip_visits }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
     <div class="logs-hero mb-4">
         <div>
             <h2 class="logs-title mb-2">Sensor Logs</h2>
@@ -115,5 +170,6 @@
             </table>
         </div>
     </div>
+    {% endif %}
 </section>
 {% endblock %}

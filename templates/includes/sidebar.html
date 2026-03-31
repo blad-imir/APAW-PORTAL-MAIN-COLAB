@@ -96,9 +96,9 @@
 			</a>
 		</li>
 
-		<li>
+		<li class="dropdown">
 			<a
-				href="{{ url_for('web.logs') }}"
+				href="javascript:void(0);"
 				class="{% if request.endpoint == 'web.logs' %}active{% endif %}"
 			>
 				<svg
@@ -115,6 +115,25 @@
 				</svg>
 				Logs
 			</a>
+			<ul class="sub-menu">
+				<li><hr class="dropdown-divider" /></li>
+				<li>
+					<a
+						href="{{ url_for('web.logs', type='sensor') }}"
+						class="{% if request.endpoint == 'web.logs' and request.args.get('type', 'sensor') != 'user' %}active{% endif %}"
+					>
+						Sensor Logs
+					</a>
+				</li>
+				<li>
+					<a
+						href="{{ url_for('web.logs', type='user') }}"
+						class="{% if request.endpoint == 'web.logs' and request.args.get('type') == 'user' %}active{% endif %}"
+					>
+						User/Visitor Logs
+					</a>
+				</li>
+			</ul>
 		</li>
 
 		<!-- ABOUT -->

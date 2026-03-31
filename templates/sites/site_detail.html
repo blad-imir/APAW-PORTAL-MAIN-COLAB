@@ -4,7 +4,11 @@
 	<div class="row row-gap-4">
 		<div class="col-xxl-8">
 			<!-- Current Weather Card -->
-			<div class="weekly-forecast mb-32">
+			<div
+				class="weekly-forecast mb-32 weather-card site-weather-card"
+				data-rainfall="{{ latest.HourlyRain if latest and latest.HourlyRain is not none else '' }}"
+				data-timestamp="{{ latest.DateTime if latest and latest.DateTime else (latest.DateTimeStamp if latest and latest.DateTimeStamp else '') }}"
+			>
 				<div class="row row-gap-sm-5 row-gap-4">
 					<div class="col-lg-4">
 						<div class="selected-location">
@@ -12,13 +16,18 @@
 								<h4 class="color-white p-3">
 									{{ site.name if site else 'Weather Station' }}
 								</h4>
-								<img
-									src="{{ url_for('static', filename='media/forecast-icons/sunny2.png') }}"
-									id="main-weather-icon"
-									data-rainfall="{{ latest.HourlyRain if latest else '' }}"
-									data-timestamp="{{ latest.DateTime if latest else '' }}"
-									alt="Weather condition"
-								/>
+								<div class="site-weather-card__icon weather-card__icon">
+									<span class="weather-card__fx weather-card__fx--sun" aria-hidden="true"></span>
+									<span class="weather-card__fx weather-card__fx--moon" aria-hidden="true"></span>
+									<span class="weather-card__fx weather-card__fx--rain" aria-hidden="true"></span>
+									<img
+										src="{{ url_for('static', filename='media/forecast-icons/sunny2.png') }}"
+										id="main-weather-icon"
+										data-rainfall="{{ latest.HourlyRain if latest else '' }}"
+										data-timestamp="{{ latest.DateTime if latest else '' }}"
+										alt="Weather condition"
+									/>
+								</div>
 								<div
 									class="pt-2 fw-500 h3 color-white align-items-center gap-1"
 								>
@@ -180,11 +189,23 @@
 					<div class="col-xxl-12 col-sm-6">
 						<a
 							href="{{ url_for('web.site_detail', site_id=station.id) }}"
-							class="cities-forecast-card d-block text-decoration-none"
+							class="cities-forecast-card site-weather-mini-card d-block text-decoration-none"
+							data-rainfall="{{ station_data.HourlyRain if station_data and station_data.HourlyRain is not none else '' }}"
+							data-timestamp="{{ station_data.DateTime if station_data and station_data.DateTime else (station_data.DateTimeStamp if station_data and station_data.DateTimeStamp else '') }}"
 						>
 							<div class="station-content">
+								<div class="station-weather-icon weather-card__icon" aria-hidden="true">
+									<span class="weather-card__fx weather-card__fx--sun"></span>
+									<span class="weather-card__fx weather-card__fx--moon"></span>
+									<span class="weather-card__fx weather-card__fx--rain"></span>
+									<img
+										class="station-weather-img"
+										src="{{ url_for('static', filename='media/forecast-icons/sunny2.png') }}"
+										alt="Weather condition"
+									/>
+								</div>
 								<div class="station-info">
-									<h6 class="light-black">{{ station.name }}</h6>
+									<h6 class="light-black station-name">{{ station.name }}</h6>
 									{% if station.id != 'St4' %}
 									<p class="fw-500 light-gray station-metrics">
 										<span class="n-text"
@@ -684,18 +705,83 @@
 	    const siteName = "{{ site.name }}";
 	    const stationColor = "{{ station_colors.get(current_site_id, '#409ac7') }}";
 
+	    const WEATHER_THEME_CLASSES = [
+	        "weather-card--day-clear",
+	        "weather-card--day-light",
+	        "weather-card--day-moderate",
+	        "weather-card--day-heavy",
+	        "weather-card--night-clear",
+	        "weather-card--night-light",
+	        "weather-card--night-moderate",
+	        "weather-card--night-heavy",
+	    ];
+
+	    const resolveWeatherCondition = (rainfall, timestamp = null) => {
+	        if (window.WeatherIcons) {
+	            const category = WeatherIcons.getRainfallCategory(rainfall);
+	            let hour = new Date().getHours();
+	            if (timestamp) {
+	                const dt = new Date(timestamp);
+	                if (!Number.isNaN(dt.getTime())) {
+	                    hour = dt.getHours();
+	                }
+	            }
+	            const isNight = WeatherIcons.isNightTime(hour);
+	            return {
+	                category,
+	                isNight,
+	                themeClass: `weather-card--${isNight ? "night" : "day"}-${category}`,
+	            };
+	        }
+
+	        return {
+	            category: "clear",
+	            isNight: false,
+	            themeClass: "weather-card--day-clear",
+	        };
+	    };
+
+	    const parseRainfall = (value) => {
+	        if (value === null || value === undefined || value === "") return null;
+	        const parsed = Number.parseFloat(value);
+	        return Number.isFinite(parsed) ? parsed : null;
+	    };
+
+	    const applyWeatherTheme = (cardEl, iconEl) => {
+	        if (!cardEl) return;
+
+	        const rainfall = parseRainfall(cardEl.dataset.rainfall);
+	        const timestamp = cardEl.dataset.timestamp || null;
+	        const condition = resolveWeatherCondition(rainfall, timestamp);
+
+	        cardEl.classList.remove(...WEATHER_THEME_CLASSES);
+	        cardEl.classList.add(condition.themeClass);
+
+	        const iconWrapper = cardEl.querySelector(".weather-card__icon");
+	        if (iconWrapper) {
+	            iconWrapper.setAttribute(
+	                "data-weather-condition",
+	                `${condition.isNight ? "night" : "day"}-${condition.category}`,
+	            );
+	        }
+
+	        if (window.WeatherIcons && iconEl) {
+	            WeatherIcons.updateIcon(iconEl, rainfall, timestamp);
+	        }
+	    };
+
 	    // Station-specific water level thresholds from config.py
 	    {% set station_thresholds = water_level_thresholds.get(current_site_id) %}
 	    const stationThresholds = {% if station_thresholds %}{{ station_thresholds|tojson }}{% else %}null{% endif %};
 
-	    if (window.WeatherIcons) {
-	        const mainIcon = document.getElementById("main-weather-icon");
-	        if (mainIcon) {
-	            const rainfall = parseFloat(mainIcon.dataset.rainfall) || 0;
-	            const timestamp = mainIcon.dataset.timestamp || null;
-	            WeatherIcons.updateIcon(mainIcon, rainfall, timestamp);
-	        }
-	    }
+	    const mainWeatherCard = document.querySelector(".site-weather-card");
+	    const mainIcon = document.getElementById("main-weather-icon");
+	    applyWeatherTheme(mainWeatherCard, mainIcon);
+
+	    const otherStationCards = document.querySelectorAll(".site-weather-mini-card");
+	    otherStationCards.forEach((card) => {
+	        applyWeatherTheme(card, card.querySelector(".station-weather-img"));
+	    });
 
 	    console.log("[SITE_DETAIL] Station:", stationId, siteName);
 	    if (stationThresholds) {

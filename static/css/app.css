@@ -5059,6 +5059,14 @@ div[id*=canvasjs-tooltip] {
   border-radius: 16px;
   padding: clamp(16px, 1.25vw, 32px);
 }
+.site-weather-card.weather-card {
+  border-radius: 16px;
+  padding: clamp(16px, 1.25vw, 32px);
+}
+.site-weather-card.weather-card > * {
+  position: relative;
+  z-index: 1;
+}
 .weekly-forecast .selected-location .img-block {
   text-align: center;
   row-gap: 4px;
@@ -5071,6 +5079,11 @@ div[id*=canvasjs-tooltip] {
 }
 .weekly-forecast .selected-location .img-block img {
   width: clamp(120px, 4vw, 160px);
+}
+.site-weather-card__icon.weather-card__icon {
+  width: clamp(120px, 7vw, 170px);
+  height: clamp(120px, 7vw, 170px);
+  margin-inline: auto;
 }
 .weekly-forecast .weekly-forecast-carousel {
   height: 100%;
@@ -5208,6 +5221,8 @@ div[id*=canvasjs-tooltip] {
   border-radius: 12px;
 }
 .cities-forecast .cities-forecast-card {
+  position: relative;
+  overflow: hidden;
   padding: clamp(10px, 0.833vw, 20px);
   background-color: var(--color-primary-light);
   border-radius: 12px;
@@ -5216,6 +5231,49 @@ div[id*=canvasjs-tooltip] {
   justify-content: space-between;
   gap: clamp(8px, 1vw, 16px);
   min-height: clamp(80px, 10vw, 80px);
+}
+.site-weather-mini-card::before,
+.site-weather-mini-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.site-weather-mini-card > * {
+  position: relative;
+  z-index: 1;
+}
+.site-weather-mini-card .station-weather-icon.weather-card__icon {
+  width: 48px;
+  height: 48px;
+}
+.site-weather-mini-card .station-weather-icon .weather-card__fx--sun {
+  width: 28px;
+  height: 28px;
+  top: -4px;
+  right: -2px;
+}
+.site-weather-mini-card .station-weather-icon .weather-card__fx--moon {
+  width: 24px;
+  height: 24px;
+  top: -2px;
+  right: -1px;
+}
+.site-weather-mini-card .station-weather-icon .weather-card__fx--rain {
+  width: 32px;
+  height: 32px;
+}
+.site-weather-mini-card .station-name,
+.site-weather-mini-card .station-metrics,
+.site-weather-mini-card .station-temp,
+.site-weather-mini-card .n-text {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+.site-weather-mini-card .station-metrics span {
+  color: rgba(255, 255, 255, 0.88);
 }
 .cities-forecast .cities-forecast-card .station-content {
   display: flex;

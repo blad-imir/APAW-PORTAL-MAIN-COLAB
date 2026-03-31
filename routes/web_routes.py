@@ -116,6 +116,20 @@ def weather_prediction():
     return render_template('weather_prediction.html')
 
 
+@web_bp.route('/logs')
+@handle_service_errors
+def logs():
+    """Render sensor working/non-working logs page."""
+    weather_data = current_app.weather_service.fetch_weather_data()
+
+    if not weather_data:
+        stale_data = current_app.weather_service._cache.get_stale_data()
+        weather_data = stale_data if stale_data else []
+
+    sensor_logs = current_app.metrics_service.get_sensor_logs(weather_data, days=14)
+    return render_template('logs.html', sensor_logs=sensor_logs)
+
+
 @web_bp.route('/flood-alert-simulation')
 def test_home():
     """

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Sensor Logs | Project APAW{% endblock %}
+
+{% block content %}
+<section class="py-40 logs-page">
+    <div class="logs-hero mb-4">
+        <div>
+            <h2 class="logs-title mb-2">Sensor Logs</h2>
+            <p class="logs-subtitle mb-0">
+                Daily working and non-working sensor summary for the last {{ sensor_logs.days }} days.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="logs-stat-card logs-stat-working">
+                <span class="logs-stat-label">Working Now</span>
+                <span class="logs-stat-value">{{ sensor_logs.current_working_count }}</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="logs-stat-card logs-stat-offline">
+                <span class="logs-stat-label">Non-Working Now</span>
+                <span class="logs-stat-value">{{ sensor_logs.current_non_working_count }}</span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="logs-stat-card logs-stat-total">
+                <span class="logs-stat-label">Total Sensors</span>
+                <span class="logs-stat-value">{{ sensor_logs.total_sensors }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="logs-card mb-4">
+        <h4 class="logs-section-title">Current Sensor Status</h4>
+        <div class="table-responsive">
+            <table class="table logs-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Sensor</th>
+                        <th>Status</th>
+                        <th>Last Update</th>
+                        <th>Minutes Since Update</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for station in sensor_logs.station_statuses %}
+                    <tr>
+                        <td>{{ station.station_name }} ({{ station.station_id }})</td>
+                        <td>
+                            <span class="logs-badge {% if station.is_working %}logs-badge-working{% else %}logs-badge-offline{% endif %}">
+                                {% if station.is_working %}Working{% else %}Non-Working{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if station.last_update %}
+                                {{ station.last_update | format_datetime_full }}
+                            {% else %}
+                                No data
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if station.minutes_since_update is not none %}
+                                {{ station.minutes_since_update }} mins
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="logs-card">
+        <h4 class="logs-section-title">Daily Working vs Non-Working</h4>
+        <div class="table-responsive">
+            <table class="table logs-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Working Count</th>
+                        <th>Non-Working Count</th>
+                        <th>Working Sensors</th>
+                        <th>Non-Working Sensors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in sensor_logs.daily_logs %}
+                    <tr>
+                        <td>{{ day.day_label }}</td>
+                        <td>{{ day.working_count }}</td>
+                        <td>{{ day.non_working_count }}</td>
+                        <td>
+                            {% if day.working_sensors %}
+                                {{ day.working_sensors | join(', ') }}
+                            {% else %}
+                                None
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if day.non_working_sensors %}
+                                {{ day.non_working_sensors | join(', ') }}
+                            {% else %}
+                                None
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

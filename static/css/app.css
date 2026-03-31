@@ -6255,3 +6255,105 @@ a.contact-item .contact-text {
     max-height: 95px;
   }
 }
+
+.logs-page {
+  min-height: 60vh;
+}
+
+.logs-title {
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.logs-subtitle {
+  color: var(--color-text-secondary);
+}
+
+.logs-stat-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.logs-stat-label {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.logs-stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.logs-stat-working .logs-stat-value {
+  color: var(--color-success);
+}
+
+.logs-stat-offline .logs-stat-value {
+  color: var(--color-error);
+}
+
+.logs-stat-total .logs-stat-value {
+  color: var(--color-primary);
+}
+
+.logs-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.logs-section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.logs-table th,
+.logs-table td {
+  vertical-align: middle;
+  font-size: 0.92rem;
+}
+
+.logs-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.24rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.logs-badge-working {
+  color: #0f7f4e;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.logs-badge-offline {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+@media (max-width: 767px) {
+  .logs-stat-value {
+    font-size: 1.5rem;
+  }
+
+  .logs-card {
+    padding: 0.75rem;
+  }
+
+  .logs-table th,
+  .logs-table td {
+    font-size: 0.84rem;
+  }
+}

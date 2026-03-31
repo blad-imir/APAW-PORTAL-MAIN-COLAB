@@ -139,6 +139,95 @@ class MetricsService:
         
         age_minutes = (now - timestamp).total_seconds() / 60
         return DataFreshnessConfig.get_status(age_minutes)
+
+    def get_sensor_logs(self, weather_data: List[Dict], days: int = 14) -> Dict:
+        """Build current and daily working/non-working sensor logs."""
+        clamped_days = max(1, min(days, 30))
+        today = datetime.now().date()
+        window_dates = [today - timedelta(days=offset) for offset in range(clamped_days - 1, -1, -1)]
+        active_by_day = {day: set() for day in window_dates}
+
+        latest_by_station: Dict[str, datetime] = {}
+
+        for reading in weather_data:
+            station_id = reading.get('StationID')
+            if not station_id:
+                continue
+
+            timestamp = self._parse_timestamp(reading)
+            if not timestamp:
+                continue
+            if timestamp.tzinfo:
+                timestamp = timestamp.replace(tzinfo=None)
+
+            reading_day = timestamp.date()
+            if reading_day in active_by_day:
+                active_by_day[reading_day].add(station_id)
+
+            latest = latest_by_station.get(station_id)
+            if latest is None or timestamp > latest:
+                latest_by_station[station_id] = timestamp
+
+        station_statuses = []
+        working_now = 0
+        now = datetime.now()
+
+        for site in self.sites:
+            station_id = site['id']
+            station_name = site['name']
+            latest_ts = latest_by_station.get(station_id)
+
+            if latest_ts:
+                age_minutes = (now - latest_ts).total_seconds() / 60
+                freshness = DataFreshnessConfig.get_status(age_minutes)
+                minutes_since_update = round(age_minutes, 1)
+            else:
+                freshness = DataFreshnessConfig.STATUS_LEVELS['offline']
+                minutes_since_update = None
+
+            is_working = freshness['status'].lower() != 'offline'
+            if is_working:
+                working_now += 1
+
+            station_statuses.append({
+                'station_id': station_id,
+                'station_name': station_name,
+                'is_working': is_working,
+                'status_label': freshness['status'],
+                'last_update': latest_ts,
+                'minutes_since_update': minutes_since_update,
+            })
+
+        daily_logs = []
+        total_sensors = len(self.sites)
+
+        for day in window_dates:
+            active_ids = active_by_day.get(day, set())
+
+            working_sensors = [
+                site['name'] for site in self.sites if site['id'] in active_ids
+            ]
+            non_working_sensors = [
+                site['name'] for site in self.sites if site['id'] not in active_ids
+            ]
+
+            daily_logs.append({
+                'date': day.isoformat(),
+                'day_label': day.strftime('%b %d, %Y'),
+                'working_count': len(working_sensors),
+                'non_working_count': len(non_working_sensors),
+                'working_sensors': working_sensors,
+                'non_working_sensors': non_working_sensors,
+            })
+
+        return {
+            'days': clamped_days,
+            'total_sensors': total_sensors,
+            'current_working_count': working_now,
+            'current_non_working_count': total_sensors - working_now,
+            'station_statuses': station_statuses,
+            'daily_logs': daily_logs,
+        }
     
     def calculate_dashboard_metrics(self, station_data: Dict[str, Dict]) -> DashboardMetrics:
         alert_counts = {'critical': 0, 'warning': 0, 'alert': 0, 'advisory': 0, 'normal': 0}

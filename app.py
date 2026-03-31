@@ -1,12 +1,15 @@
 """Flask application factory for weather monitoring system"""
 
-from flask import Flask
+from pathlib import Path
+
+from flask import Flask, request
 from extensions import cache
 from routes.web_routes import web_bp
 from routes.api_routes import api_bp
 from services.weather_service import WeatherService
 from services.metrics_service import MetricsService
 from services.prediction_service import WeatherPredictionService
+from services.visitor_counter_service import VisitorCounterService
 from services.chart_data_service import (
     PrecipitationService, WaterLevelService, 
     TemperatureService, HumidityService,
@@ -61,15 +64,35 @@ def create_app(config_name='development'):
     flask_app.temperature_trends_service = TemperatureTrendsService(flask_app.metrics_service)
     flask_app.humidity_trends_service = HumidityTrendsService(flask_app.metrics_service)
     flask_app.prediction_service = WeatherPredictionService(lookback_steps=48)
+    visitor_store = Path(flask_app.root_path) / 'cache' / 'visitor_counts.json'
+    flask_app.visitor_counter = VisitorCounterService(str(visitor_store))
+
+    @flask_app.before_request
+    def track_ip_visitor():
+        """Track page visitors by IP on web pages only."""
+        endpoint = request.endpoint or ''
+        if request.method != 'GET' or not endpoint.startswith('web.'):
+            return
+
+        forwarded = request.headers.get('X-Forwarded-For')
+        client_ip = forwarded.split(',')[0].strip() if forwarded else request.remote_addr
+        flask_app.visitor_counter.register_visit(client_ip)
 
     @flask_app.context_processor
     def inject_config():
         """Inject configuration into all templates"""
+        forwarded = request.headers.get('X-Forwarded-For')
+        client_ip = forwarded.split(',')[0].strip() if forwarded else request.remote_addr
+        visitor_stats = flask_app.visitor_counter.get_summary(client_ip)
+
         return {
             'sites': flask_app.config['SITES'],
             'format_datetime': format_datetime,
             'format_datetime_full': format_datetime_full,
             'css_variables': ColorAPI.get_css_variables(),
+            'visitor_total_unique': visitor_stats['total_unique_visitors'],
+            'visitor_total_hits': visitor_stats['total_hits'],
+            'visitor_current_ip_hits': visitor_stats['current_ip_visits'],
             'thresholds': {
                 'water_level': {
                     'advisory': WeatherThresholds.WATER_ADVISORY,

@@ -198,7 +198,7 @@
 					</div>
 				</div>
 			</div>
-			<a class="icon-btn account d-xl-flex d-none" href="javascript:;">
+			<a class="icon-btn account d-xl-flex d-none" href="javascript:;" title="Profile">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="28"
@@ -211,6 +211,16 @@
 					/>
 				</svg>
 			</a>
+			<span class="visitor-active-chip d-xl-flex d-none" title="Unique visitor IPs">
+				<span class="visitor-active-dot" aria-hidden="true">
+					<span class="visitor-active-dot-ping"></span>
+					<span class="visitor-active-dot-core"></span>
+				</span>
+				<span class="visitor-active-text">
+					<span class="visitor-active-label">Active Users:</span>
+					<span class="visitor-active-value">{{ visitor_total_unique }}</span>
+				</span>
+			</span>
 			<!-- Mobile Notification Bell (replaces search icon) -->
 			<a
 				class="icon-btn notification-mobile position-relative d-xl-none"

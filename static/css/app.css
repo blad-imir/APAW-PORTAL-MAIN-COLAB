@@ -520,6 +520,109 @@ ol.list-style li::marker {
   margin-bottom: 0;
 }
 
+.visitor-counter-inline {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1f4f69;
+  background: #e7f3fb;
+  border: 1px solid #c9e2f1;
+  border-radius: 999px;
+  padding: 2px 8px;
+  line-height: 1.2;
+}
+
+.visitor-account-btn {
+  position: relative;
+}
+
+.visitor-header-inline {
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f4f69;
+  background: #e7f3fb;
+  border: 1px solid #c9e2f1;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-left: 8px;
+  line-height: 1;
+}
+
+.visitor-active-chip {
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  background: rgba(236, 253, 245, 0.7);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 6px 10px;
+  margin-left: 8px;
+}
+
+.visitor-active-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  display: inline-flex;
+}
+
+.visitor-active-dot-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #4ade80;
+  opacity: 0.75;
+  animation: visitor-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.visitor-active-dot-core {
+  position: relative;
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+.visitor-active-text {
+  color: #15803d;
+}
+
+.visitor-active-label {
+  font-weight: 500;
+}
+
+.visitor-active-value {
+  font-weight: 700;
+  margin-left: 3px;
+}
+
+@keyframes visitor-ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.visitor-counter-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #1b7aa9;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  box-shadow: 0 0 0 2px #fff;
+}
+
 @media (max-width: 575px) {
   .col-sec .row {
     margin-right: calc(-0.25 * var(--bs-gutter-x));

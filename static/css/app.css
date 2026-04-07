@@ -559,6 +559,11 @@ ol.list-style li::marker {
   margin-left: 8px;
 }
 
+.visitor-active-chip--compact {
+  margin-left: 16px;
+  margin-top: 0;
+}
+
 .visitor-active-dot {
   position: relative;
   width: 8px;
@@ -595,6 +600,51 @@ ol.list-style li::marker {
 .visitor-active-value {
   font-weight: 700;
   margin-left: 3px;
+}
+
+.logs-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logs-hero .chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.logs-hero .export-btn-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 5px;
+  padding: 12px 18px;
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-weight: 500;
+  transition: all 0.5s ease-in;
+}
+
+.logs-hero .export-btn-inline .export-btn-text {
+  display: inline-block;
+}
+
+.logs-hero .export-btn-inline:hover {
+  background: var(--color-dark-gray);
+  color: var(--color-white) !important;
+}
+
+.logs-hero .export-btn-inline i {
+  font-size: 14px;
+}
+
+.logs-hero .export-btn-inline:hover i,
+.logs-hero .export-btn-inline:hover .export-btn-text {
+  color: var(--color-white) !important;
 }
 
 @keyframes visitor-ping {

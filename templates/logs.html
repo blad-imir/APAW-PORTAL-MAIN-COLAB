@@ -12,6 +12,12 @@
                 Current active-user activity snapshot and daily visitor usage metrics.
             </p>
         </div>
+        <div class="chart-controls">
+            <a href="{{ url_for('api.visitor_logs_export_csv') }}" class="export-btn-inline" aria-label="Export visitor logs CSV">
+                <i class="fas fa-download" aria-hidden="true"></i>
+                <span class="export-btn-text">Export CSV</span>
+            </a>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">
@@ -58,6 +64,36 @@
             </table>
         </div>
     </div>
+
+    <div class="logs-card">
+        <h4 class="logs-section-title">Daily Visitor Totals</h4>
+        <div class="table-responsive">
+            <table class="table logs-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Total Visits</th>
+                        <th>Unique Visitors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if daily_visitor_logs %}
+                        {% for day in daily_visitor_logs %}
+                        <tr>
+                            <td>{{ day.date }}</td>
+                            <td>{{ day.total_visits }}</td>
+                            <td>{{ day.unique_visitors }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">No visitor log data available yet.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
     {% else %}
     <div class="logs-hero mb-4">
         <div>
@@ -65,6 +101,12 @@
             <p class="logs-subtitle mb-0">
                 Daily working and non-working sensor summary for the last {{ sensor_logs.days }} days.
             </p>
+        </div>
+        <div class="chart-controls">
+            <a href="{{ url_for('api.sensor_logs_export_csv', days=sensor_logs.days) }}" class="export-btn-inline" aria-label="Export sensor logs CSV">
+                <i class="fas fa-download" aria-hidden="true"></i>
+                <span class="export-btn-text">Export CSV</span>
+            </a>
         </div>
     </div>
 

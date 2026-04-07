@@ -84,6 +84,7 @@ def create_app(config_name='development'):
         forwarded = request.headers.get('X-Forwarded-For')
         client_ip = forwarded.split(',')[0].strip() if forwarded else request.remote_addr
         visitor_stats = flask_app.visitor_counter.get_summary(client_ip)
+        active_stats = flask_app.visitor_counter.get_active_summary(client_ip)
 
         return {
             'sites': flask_app.config['SITES'],
@@ -93,6 +94,9 @@ def create_app(config_name='development'):
             'visitor_total_unique': visitor_stats['total_unique_visitors'],
             'visitor_total_hits': visitor_stats['total_hits'],
             'visitor_current_ip_hits': visitor_stats['current_ip_visits'],
+            'visitor_active_users': active_stats['current_users'],
+            'visitor_active_today_max': active_stats['day_max_users'],
+            'visitor_active_today_avg': active_stats['day_average_users'],
             'thresholds': {
                 'water_level': {
                     'advisory': WeatherThresholds.WATER_ADVISORY,

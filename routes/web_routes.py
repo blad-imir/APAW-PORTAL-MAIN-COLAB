@@ -126,7 +126,13 @@ def logs():
         forwarded = request.headers.get('X-Forwarded-For')
         client_ip = forwarded.split(',')[0].strip() if forwarded else request.remote_addr
         visitor_logs = current_app.visitor_counter.get_user_log_summary(client_ip)
-        return render_template('logs.html', logs_type='user', visitor_logs=visitor_logs)
+        daily_visitor_logs = current_app.visitor_counter.get_daily_visit_logs().get('logs', [])
+        return render_template(
+            'logs.html',
+            logs_type='user',
+            visitor_logs=visitor_logs,
+            daily_visitor_logs=daily_visitor_logs,
+        )
 
     weather_data = current_app.weather_service.fetch_weather_data()
 

@@ -4,6 +4,8 @@ import json
 import logging
 import os
 import tempfile
+import csv
+import io
 from datetime import datetime
 from pathlib import Path
 from flask import Blueprint, request, current_app, make_response
@@ -172,6 +174,123 @@ def health_check():
     except Exception as e:
         logger.error("Health check failed: %s", str(e), exc_info=True)
         return create_api_error_response('System health check failed', 503)
+
+
+def _get_client_ip():
+    forwarded = request.headers.get('X-Forwarded-For')
+    return forwarded.split(',')[0].strip() if forwarded else request.remote_addr
+
+
+@api_bp.route('/visitors/enter', methods=['POST'])
+@handle_api_errors
+def visitor_enter():
+    payload = request.get_json(silent=True) or {}
+    session_id = payload.get('session_id')
+    client_ip = _get_client_ip()
+    summary = current_app.visitor_counter.register_enter(client_ip, session_id)
+    return create_api_success_response(summary)
+
+
+@api_bp.route('/visitors/heartbeat', methods=['POST'])
+@handle_api_errors
+def visitor_heartbeat():
+    payload = request.get_json(silent=True) or {}
+    session_id = payload.get('session_id')
+    client_ip = _get_client_ip()
+    summary = current_app.visitor_counter.register_heartbeat(client_ip, session_id)
+    return create_api_success_response(summary)
+
+
+@api_bp.route('/visitors/leave', methods=['POST'])
+@handle_api_errors
+def visitor_leave():
+    payload = request.get_json(silent=True) or {}
+    session_id = payload.get('session_id')
+    client_ip = _get_client_ip()
+    summary = current_app.visitor_counter.register_leave(client_ip, session_id)
+    return create_api_success_response(summary)
+
+
+@api_bp.route('/visitors/summary')
+@handle_api_errors
+def visitor_summary():
+    client_ip = _get_client_ip()
+    summary = current_app.visitor_counter.get_active_summary(client_ip)
+    return create_api_success_response(summary)
+
+
+@api_bp.route('/visitors/logs')
+@handle_api_errors
+def visitor_logs():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    logs = current_app.visitor_counter.get_daily_visit_logs(start_date=start_date, end_date=end_date)
+    return create_api_success_response(logs)
+
+
+@api_bp.route('/visitors/logs/export.csv')
+@handle_api_errors
+def visitor_logs_export_csv():
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    logs = current_app.visitor_counter.get_daily_visit_logs(start_date=start_date, end_date=end_date)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['date', 'total_visits', 'unique_visitors'])
+
+    for row in logs.get('logs', []):
+        writer.writerow([
+            row.get('date'),
+            row.get('total_visits', 0),
+            row.get('unique_visitors', 0),
+        ])
+
+    csv_content = output.getvalue()
+    output.close()
+
+    response = make_response(csv_content)
+    response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    response.headers['Content-Disposition'] = 'attachment; filename=visitor_logs.csv'
+    return response
+
+
+@api_bp.route('/sensor-logs/export.csv')
+@handle_api_errors
+def sensor_logs_export_csv():
+    days = request.args.get('days', '14')
+    try:
+        days_value = int(days)
+    except (TypeError, ValueError):
+        days_value = 14
+
+    weather_data = current_app.weather_service.fetch_weather_data()
+    if not weather_data:
+        stale_data = current_app.weather_service._cache.get_stale_data()
+        weather_data = stale_data if stale_data else []
+
+    sensor_logs = current_app.metrics_service.get_sensor_logs(weather_data, days=days_value)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['date', 'working_count', 'non_working_count', 'working_sensors', 'non_working_sensors'])
+
+    for row in sensor_logs.get('daily_logs', []):
+        writer.writerow([
+            row.get('date'),
+            row.get('working_count', 0),
+            row.get('non_working_count', 0),
+            '; '.join(row.get('working_sensors', [])) if row.get('working_sensors') else '',
+            '; '.join(row.get('non_working_sensors', [])) if row.get('non_working_sensors') else '',
+        ])
+
+    csv_content = output.getvalue()
+    output.close()
+
+    response = make_response(csv_content)
+    response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    response.headers['Content-Disposition'] = 'attachment; filename=sensor_logs.csv'
+    return response
 
 
 @api_bp.route('/cache/reset', methods=['POST'])

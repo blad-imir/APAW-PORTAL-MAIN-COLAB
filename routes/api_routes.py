@@ -269,7 +269,8 @@ def sensor_logs_export_csv():
         stale_data = current_app.weather_service._cache.get_stale_data()
         weather_data = stale_data if stale_data else []
 
-    sensor_logs = current_app.metrics_service.get_sensor_logs(weather_data, days=days_value)
+    live_sensor_logs = current_app.metrics_service.get_sensor_logs(weather_data, days=days_value)
+    sensor_logs = current_app.sensor_status_logs.get_sensor_logs(live_sensor_logs, days=days_value)
 
     output = io.StringIO()
     writer = csv.writer(output)

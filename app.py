@@ -10,6 +10,7 @@ from services.weather_service import WeatherService
 from services.metrics_service import MetricsService
 from services.prediction_service import WeatherPredictionService
 from services.visitor_counter_service import VisitorCounterService
+from services.sensor_status_log_service import SensorStatusLogService
 from services.chart_data_service import (
     PrecipitationService, WaterLevelService, 
     TemperatureService, HumidityService,
@@ -66,6 +67,8 @@ def create_app(config_name='development'):
     flask_app.prediction_service = WeatherPredictionService(lookback_steps=48)
     visitor_store = Path(flask_app.root_path) / 'cache' / 'visitor_counts.json'
     flask_app.visitor_counter = VisitorCounterService(str(visitor_store))
+    sensor_log_store = Path(flask_app.root_path) / 'cache' / 'sensor_daily_logs.json'
+    flask_app.sensor_status_logs = SensorStatusLogService(str(sensor_log_store))
 
     @flask_app.before_request
     def track_ip_visitor():

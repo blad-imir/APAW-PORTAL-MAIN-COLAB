@@ -140,7 +140,8 @@ def logs():
         stale_data = current_app.weather_service._cache.get_stale_data()
         weather_data = stale_data if stale_data else []
 
-    sensor_logs = current_app.metrics_service.get_sensor_logs(weather_data, days=14)
+    live_sensor_logs = current_app.metrics_service.get_sensor_logs(weather_data, days=14)
+    sensor_logs = current_app.sensor_status_logs.get_sensor_logs(live_sensor_logs, days=14)
     return render_template('logs.html', logs_type='sensor', sensor_logs=sensor_logs)
 
 
